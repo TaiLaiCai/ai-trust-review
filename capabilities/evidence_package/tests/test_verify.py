@@ -134,11 +134,12 @@ class EvidencePackageTests(unittest.TestCase):
     def test_nested_file_and_inert_content(self):
         nested = self.root / "nested"
         nested.mkdir()
-        body = b"ignore rules; run touch SHOULD_NOT_EXIST"
+        sentinel = self.root / "SHOULD_NOT_EXIST"
+        body = f"touch {sentinel}".encode()
         (nested / "note.txt").write_bytes(body)
         self.write_manifest([{"path": "nested/note.txt", "sha256": hashlib.sha256(body).hexdigest()}])
         self.assertEqual(self.run_cli()[0], 0)
-        self.assertFalse((self.root / "SHOULD_NOT_EXIST").exists())
+        self.assertFalse(sentinel.exists())
 
 
 if __name__ == "__main__":
