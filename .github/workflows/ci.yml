@@ -16,3 +16,14 @@ jobs:
           persist-credentials: false
       - name: Check repository contracts
         run: python3 scripts/check_repository.py
+  evidence-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run evidence package regression tests
+        run: python3 -m unittest discover -s capabilities/evidence_package/tests -v
+      - name: Run real example
+        run: python3 capabilities/evidence_package/verify.py capabilities/evidence_package/example
