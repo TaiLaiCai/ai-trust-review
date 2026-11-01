@@ -1,0 +1,17 @@
+{
+  "origin": "Obsidian AI信任审查 / 分级审查标准",
+  "date": "2026-11-02",
+  "original_source_sha256": {
+    "00-入口与统一判定.md": "44ed1104b7962baf0ba6ccd089f7696bad7f7022fe89445ca7b7d0ae58522cd1",
+    "01-阶段1-深度介入.md": "c16c9f11fa1f3e6deaec3fbec25f3ce8be18863d98fc96b25c1c91d8c3161ef2",
+    "02-阶段2-自证正确.md": "8ac6c52444ced6b2f5ff795c2532bc58766802f2fcd75bfca8f128b73ce8979c",
+    "03-阶段3-接收信号.md": "329f51ad1d47a8fc0c4962fd39611e95a846b026cd4ceae37f67a578e7f3bd1d",
+    "04-阶段4-白名单自动合入.md": "dc52153c4f78ba71d639cb0b63c0e0c69b7a8d0809538e8f1209761933f1a7fc",
+    "05-审查记录与证据模板.md": "64a207011001787e6142f5fd399c77c3308df825ac700f561807cce76e562c25",
+    "06-Dune与CI上线门禁.md": "53c46caa23555f96f0cf3ca8c23ee290574c308c266d3503d4de6570c28772ec",
+    "07-实测案例与反例索引.md": "9cc19c63472031954112f76d4124e4c74270e7154485bb21024f369e213fe2fe",
+    "审查门槛.json": "1e3b716c6687798875e61f5d60991eb843cc929dfee66bcfc10c0a6e1e076ca6",
+    "文件校验.json": "7cf3d4c46197279e438640b54f59effebb7b93f0d5a462a84441be3d1ce48d1b"
+  },
+  "note": "仓库快照转换了链接，案例索引经脱敏重写；哈希对应原始来源，不是转换后文件"
+}
