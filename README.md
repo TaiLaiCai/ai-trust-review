@@ -8,6 +8,8 @@
 
 本仓库已建立标准快照、协作流程和基础 CI。基础 CI 只检查仓库契约、文档完整性与固定安全上限，**不判定真实 Bot 已达标，也不自动调整实际等级或权限**。H1/H2、可信身份适配器、事件门控、持久触发及等级应用器仍待实现。仓库私有；保留挑战不得向被测 Bot 开放。
 
+首轮 [Actions](https://github.com/TaiLaiCai/ai-trust-review/actions/runs/41331300068) 已实际通过（提交 `7482f52`）。2026-11-02 检查设置时，GitHub 提示当前私有个人仓库的分支保护不会强制生效，需迁入 Team/Enterprise 组织账户。故当前人审合并属于操作约定，不能宣称平台已强制；自动合并保持关闭，解决前不得让工作 Agent 持有可绕过审查的主分支写权限。
+
 ## 四级方向
 
 评定单位是 **Bot × 具体能力 × 当前模型/技能/策略版本**。`evidence_stage`、`effective_stage` 和 `enforcement` 分别记录；证据不足为 null，按阶段1方式保守工作。
@@ -40,7 +42,7 @@ submissions/        经脱敏的候选证据清单，不作为可信账本
 control/           控制面设计；实际受保护状态不得由工作 Agent 写入
 scripts/           仓库检查工具
 .github/           CI、Issue/PR模板和 CODEOWNERS
- docs/standards/    分级标准的版本化快照
+docs/standards/    分级标准的版本化快照
 ```
 
 README、示例和目录约定不能构成写隔离。CODEOWNERS 必须配合有效的分支保护才能强制；具备管理员或同账号权限的 Agent 仍可能绕过。**不得把本仓库的文档、CI、保留集和实际等级账本同时交给被测 Bot 写入。**
