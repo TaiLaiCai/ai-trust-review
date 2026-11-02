@@ -56,3 +56,20 @@ jobs:
           rc=$?
           set -e
           test "$rc" -eq 1
+  loop-history-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run non-empty C6 history v2 suite
+        run: |
+          python3 - <<'PY'
+          import unittest
+          suite = unittest.defaultTestLoader.discover("control/loop_status/tests")
+          if suite.countTestCases() == 0:
+              raise SystemExit("no history tests discovered")
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
