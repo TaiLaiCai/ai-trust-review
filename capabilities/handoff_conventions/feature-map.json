@@ -1,0 +1,12 @@
+{
+  "capability": "handoff_conventions/v1",
+  "producer": "Codex via TaiLaiCai; not an authenticated Bot",
+  "steps": [
+    {"id": "red", "command": "python3 capabilities/handoff_conventions/check.py capabilities/handoff_conventions/fixtures/undefined.txt", "expected": "exit 3 NEEDS_CLARIFICATION", "tests": ["test_red_fixture_and_file_input", "test_all_default_terms_require_definition"]},
+    {"id": "green", "command": "python3 capabilities/handoff_conventions/check.py capabilities/handoff_conventions/fixtures/defined.txt", "expected": "exit 0 LEXICAL_CLEAR; not authorization", "tests": ["test_green_fixture_and_file_input", "test_unmentioned_conventions"]},
+    {"id": "fail-closed", "command": "python3 -m unittest discover -s capabilities/handoff_conventions/tests -v", "expected": "undefined, recursive, duplicate and invalid inputs block", "tests": ["Contract"]}
+  ],
+  "independent_verification": {"status": "NOT_TESTED", "verifier": null, "head_sha": null},
+  "remote_capability_tests": "NOT_TESTED",
+  "deployment": "NOT_DEPLOYED"
+}
