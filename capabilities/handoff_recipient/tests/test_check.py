@@ -76,6 +76,40 @@ class Rules(unittest.TestCase):
                 check.load_aliases(bad)
 
 
+class AmbiguityV11(unittest.TestCase):
+    def test_empty_to_including_duplicate_is_rejected(self):
+        for text in (FULL.format(to=""), FULL.format(to="内容") + "\nTo：", FULL.format(to="内容") + "\nTo： \n"):
+            self.assertEqual(run(text, "内容")[1]["verdict"], "AMBIGUOUS")
+
+    def test_second_lowercase_or_mixed_case_to_is_not_ignored(self):
+        for label in ("to", "TO", "tO"):
+            text = FULL.format(to="内容") + "\n" + label + "：验收"
+            self.assertEqual(run(text, "内容")[1]["verdict"], "AMBIGUOUS")
+
+    def test_lowercase_first_to_is_checked(self):
+        text = FULL.format(to="内容").replace("From", "from").replace("To", "to")
+        self.assertEqual(run(text, "内容")[0], 0)
+        self.assertEqual(run(text, "验收")[0], 4)
+
+    def test_multiline_to_never_silently_uses_first_line(self):
+        for to in ("内容\n验收", "内容\nunknown", "内容\n内容"):
+            self.assertEqual(run(FULL.format(to=to), "内容")[1]["verdict"], "AMBIGUOUS")
+
+    def test_empty_lines_do_not_invalidate_one_recipient(self):
+        self.assertEqual(run(FULL.format(to="\n内容\n\n"), "内容")[0], 0)
+
+    def test_duplicate_same_recipient_keeps_existing_behavior(self):
+        self.assertEqual(run(FULL.format(to="内容") + "\nTo：apo-content", "内容")[0], 0)
+
+    def test_duplicate_json_keys_are_input_errors(self):
+        with self.assertRaises(check.InputError):
+            check.load_aliases('{"a":["x"],"a":["y"]}')
+
+    def test_inlined_child_card_is_ambiguous_not_a_quote_exception(self):
+        text = FULL.format(to="总参谋") + "\n《" + FULL.format(to="内容") + "》"
+        self.assertEqual(run(text, "总参谋")[1]["verdict"], "AMBIGUOUS")
+
+
 class Cli(unittest.TestCase):
     def cli(self, *args, stdin=None):
         p = subprocess.run([sys.executable, str(SCRIPT), *args], input=stdin,
@@ -105,6 +139,14 @@ class Cli(unittest.TestCase):
             code, _ = self.cli("--self", "验收", "--aliases", a, "-", stdin=text.encode())
             self.assertEqual(code, 0)
             self.assertFalse(marker.exists())
+
+    def test_v11_probes_have_nonzero_cli_exits(self):
+        a = str(FIX / "aliases.json")
+        for text in (FULL.format(to="内容") + "\nTo：",
+                     FULL.format(to="内容") + "\nto：验收",
+                     FULL.format(to="内容\n验收")):
+            code, out = self.cli("--self", "内容", "--aliases", a, "-", stdin=text.encode())
+            self.assertEqual((code, json.loads(out)["verdict"]), (3, "AMBIGUOUS"))
 
 
 if __name__ == "__main__":
