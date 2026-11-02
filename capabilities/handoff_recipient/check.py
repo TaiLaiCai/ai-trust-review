@@ -15,16 +15,25 @@ LABELS = ("From", "To") + REQUIRED + ("待确认", "附注")
 MAX_BYTES = 256 * 1024
 _LABEL = "|".join(re.escape(x) for x in sorted(LABELS, key=len, reverse=True))
 _BOUNDARY = "".join(f"(?<={re.escape(c)})|" for c in "】。；;，,）)：:")
-FIELD = re.compile(rf"(?:^|(?<=\s)|{_BOUNDARY[:-1]})({_LABEL})\s*[：:]", re.MULTILINE)
+FIELD = re.compile(rf"(?:^|(?<=\s)|{_BOUNDARY[:-1]})({_LABEL})\s*[：:]", re.MULTILINE | re.IGNORECASE)
 
 
 class InputError(ValueError):
     pass
 
 
+def unique_keys(pairs):
+    out = {}
+    for key, value in pairs:
+        if key in out:
+            raise InputError("duplicate aliases JSON key")
+        out[key] = value
+    return out
+
+
 def load_aliases(raw):
     try:
-        data = json.loads(raw)
+        data = json.loads(raw, object_pairs_hook=unique_keys)
     except ValueError:
         raise InputError("aliases file is not valid JSON") from None
     if not isinstance(data, dict) or not data:
@@ -50,7 +59,8 @@ def fields(text):
     for i, m in enumerate(marks):
         end = marks[i + 1].start() if i + 1 < len(marks) else len(text)
         value = text[m.end():end].strip()
-        found.setdefault(m.group(1), []).append(value)
+        label = {"to": "To", "from": "From"}.get(m.group(1).casefold(), m.group(1))
+        found.setdefault(label, []).append(value)
     return found
 
 
@@ -71,6 +81,10 @@ def check(text, me, aliases):
     if who is None:
         raise InputError(f"--self {me!r} is not in the alias table")
     got = fields(text)
+    if any(len([line for line in v.splitlines() if line.strip()]) != 1
+           for v in got.get("To", [])):
+        return 3, {"verdict": "AMBIGUOUS", "reason": "empty or multiline recipient",
+                   "next": "不执行；每个 To 必须只有一个非空收件人行，请发件人澄清"}
     recipients = {first_line(v) for v in got.get("To", []) if first_line(v)}
     if not recipients:
         return 3, {"verdict": "INCOMPLETE", "reason": "no To field",
