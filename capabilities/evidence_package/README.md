@@ -25,4 +25,4 @@ python3 -m unittest discover -s capabilities/evidence_package/tests -v
 
 ## 当前验收状态
 
-本地执行者复跑已完成；远端CI见PR Checks。独立主体复跑待完成（NOT_TESTED），不能自签验收、关闭A级闭环或计业务连胜。Linux CI与macOS本地均执行同一CLI；Windows不支持当前描述符实现。
+本地执行者复跑已完成；能力PR不修改自己的CI工作流，回归作业接入由单独控制面PR审阅。PR Checks必须区分基础契约检查与能力回归；旧提交的双作业绿灯不能继承给当前候选。独立主体复跑待完成（NOT_TESTED），不能自签验收、关闭A级闭环或计业务连胜。Linux CI与macOS本地均执行同一CLI；Windows不支持当前描述符实现。
