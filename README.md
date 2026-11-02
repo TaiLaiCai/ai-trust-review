@@ -6,7 +6,7 @@
 
 ## 当前进度
 
-本仓库已建立标准快照、协作流程和基础 CI。基础 CI 只检查仓库契约、文档完整性与固定安全上限，**不判定真实 Bot 已达标，也不自动调整实际等级或权限**。H1/H2、可信身份适配器、事件门控、持久触发及等级应用器仍待实现。仓库私有；保留挑战不得向被测 Bot 开放。
+本仓库已建立标准快照、协作流程和基础 CI。基础 CI 检查仓库契约、文档完整性与固定安全上限，证据包候选提供本地真实字节校验和回归测试，**不判定真实 Bot 已达标，也不自动调整实际等级或权限**。H1/H2、可信身份适配器、事件门控、持久触发及等级应用器仍待实现。仓库私有；保留挑战不得向被测 Bot 开放。
 
 首轮 [Actions](https://github.com/TaiLaiCai/ai-trust-review/actions/runs/41331300068) 已实际通过（提交 `7482f52`）。2026-11-02 检查设置时，GitHub 提示当前私有个人仓库的分支保护不会强制生效，需迁入 Team/Enterprise 组织账户。故当前人审合并属于操作约定，不能宣称平台已强制；自动合并保持关闭，解决前不得让工作 Agent 持有可绕过审查的主分支写权限。
 
@@ -54,18 +54,20 @@ README、示例和目录约定不能构成写隔离。CODEOWNERS 必须配合有
 | 阶段 | 交付物 | 当前状态 |
 |---|---|---|
 | P0 立项 | README、标准快照、协作模板、基础契约检查 | 本次建立；远端状态见 Actions |
-| P1 原子能力 | 选1项真实能力，建立功能地图、边界和复跑包 | TODO |
+| P1 原子能力 | [证据包读取与校验](capabilities/evidence_package/README.md)：契约、描述符路径边界、功能地图和CLI回归 | PR #4候选已实现；独立验收待完成，CI接入由单独控制面PR审阅 |
 | P2 可信门控 | C1–C6、身份适配器、四个原型反例、连续计数/重放/冻结 | TODO |
 | P3 隔离与应用 | H1/H2、独立主体、持久队列、原子应用/读回/回滚 | TODO |
 | P4 审查试运行 | 真实Bot监督基线、三任务窗口、验收者Eval、独立红绿验证 | TODO |
 | P5 限定自动化 | 14天健康窗口后审议M2；3/4仍另行批准 | BLOCKED：前置条件未完成 |
 
-C1契约、C2门控、C3保留反例、C4身份适配器、C5审计重放、C6闭环检测不能被一个“tests passed”替代。基础工作流名为 `bootstrap / repository-contracts`，不冒充这六项正式门禁。
+C1契约、C2门控、C3保留反例、C4身份适配器、C5审计重放、C6闭环检测不能被一个“tests passed”替代。基础工作流名为 `bootstrap / repository-contracts`，不冒充这六项正式门禁。能力生产者PR不修改工作流；证据包CI接入单独交控制面负责人批准，CI未接入时不得声称最新候选的回归已在远端执行。
 
 ## 本地检查
 
 ```bash
 python3 scripts/check_repository.py
+python3 -m unittest discover -s capabilities/evidence_package/tests -v
+python3 capabilities/evidence_package/verify.py capabilities/evidence_package/example
 ```
 
 Python标准库即可运行，无外部依赖。只确认仓库结构和固定不变量；不运行提交证据中的 shell、不访问生产、不写实际等级。

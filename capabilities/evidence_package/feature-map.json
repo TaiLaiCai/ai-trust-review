@@ -1,0 +1,51 @@
+{
+  "capability": "evidence-package/v1",
+  "version": "1",
+  "producer": "Codex implementation in this PR; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "id": "manifest",
+      "command": "python3 -m unittest discover -s capabilities/evidence_package/tests -v",
+      "expected": "invalid/duplicate/empty/oversized manifests rejected; valid manifests accepted",
+      "tests": [
+        "test_invalid_manifests",
+        "test_duplicate_entries_and_json_keys",
+        "test_manifest_size_and_bad_encoding"
+      ]
+    },
+    {
+      "id": "filesystem-boundary",
+      "command": "python3 -m unittest discover -s capabilities/evidence_package/tests -v",
+      "expected": "traversal, file/directory/root symlinks and FIFO rejected",
+      "tests": [
+        "test_unsafe_paths",
+        "test_symlinks_in_file_directory_manifest_and_root",
+        "test_fifo_is_rejected_without_blocking"
+      ]
+    },
+    {
+      "id": "real-run",
+      "command": "python3 capabilities/evidence_package/verify.py capabilities/evidence_package/example",
+      "expected": "exit0 with actual result.txt SHA; changing bytes causes exit1",
+      "tests": [
+        "test_real_bytes_and_no_mutation",
+        "test_changed_bytes_fail_then_restored_bytes_pass",
+        "test_missing_artifact_and_manifest"
+      ]
+    },
+    {
+      "id": "budgets-and-inert-data",
+      "command": "python3 -m unittest discover -s capabilities/evidence_package/tests -v",
+      "expected": "resource limits enforced, embedded commands remain inert",
+      "tests": [
+        "test_count_and_byte_budgets",
+        "test_nested_file_and_inert_content"
+      ]
+    }
+  ],
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}
