@@ -110,6 +110,26 @@ class AmbiguityV11(unittest.TestCase):
         self.assertEqual(run(text, "总参谋")[1]["verdict"], "AMBIGUOUS")
 
 
+class NormalizeV12(unittest.TestCase):
+    def test_hidden_or_fullwidth_second_to_is_not_ignored(self):
+        for extra in ("\u200bTo：验收", "Ｔｏ：验收", "ＴＯ：验收", "\ufeffTo：验收",
+                      "T\u200bo：验收", "To\u200b：验收", "\u202eTo：验收"):
+            text = FULL.format(to="内容") + "\n" + extra
+            self.assertEqual(run(text, "内容")[1]["verdict"], "AMBIGUOUS", repr(extra))
+
+    def test_fullwidth_or_hidden_first_to_is_still_checked(self):
+        text = FULL.format(to="内容").replace("To", "Ｔｏ").replace("From", "\u200bFrom")
+        self.assertEqual(run(text, "内容")[0], 0)
+        self.assertEqual(run(text, "验收")[0], 4)
+
+    def test_zero_width_inside_recipient_name_resolves(self):
+        self.assertEqual(run(FULL.format(to="内\u200b容"), "内容")[0], 0)
+
+    def test_duplicate_key_message_is_specific(self):
+        with self.assertRaisesRegex(check.InputError, "duplicate"):
+            check.load_aliases('{"a":["x"],"a":["y"]}')
+
+
 class Cli(unittest.TestCase):
     def cli(self, *args, stdin=None):
         p = subprocess.run([sys.executable, str(SCRIPT), *args], input=stdin,
