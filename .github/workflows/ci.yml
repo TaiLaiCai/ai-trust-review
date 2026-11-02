@@ -16,3 +16,20 @@ jobs:
           persist-credentials: false
       - name: Check repository contracts
         run: python3 scripts/check_repository.py
+  loop-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run nonempty history-ratchet suite (not full C6)
+        run: |
+          python3 - <<'PY'
+          import unittest
+          suite = unittest.defaultTestLoader.discover("control/loop_status/tests")
+          if not suite.countTestCases():
+              raise SystemExit("no history tests discovered")
+          if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
+              raise SystemExit(1)
+          PY
