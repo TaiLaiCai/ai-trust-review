@@ -1,0 +1,36 @@
+{
+  "capability": "control/gate/v1",
+  "version": "1",
+  "producer": "Claude (Anthropic cloud session) via TaiLaiCai account; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "id": "streak-rules",
+      "command": "python3 -m unittest discover -s control/gate/tests -v",
+      "expected": "3 distinct qualified tasks + 1 real run -> candidate 2; duplicates, HOLD, replay are no-op; FAIL resets; ceiling 2",
+      "tests": ["StreakRules"]
+    },
+    {
+      "id": "prototype-counterexamples",
+      "command": "python3 -m unittest discover -s control/gate/tests -v",
+      "expected": "body author_role, outer/inner mismatch, bridging missing evidence, empty-assertion self-test all blocked",
+      "tests": ["PrototypeCounterexamples", "IdentityRules"]
+    },
+    {
+      "id": "version-and-freeze",
+      "command": "python3 -m unittest discover -s control/gate/tests -v",
+      "expected": "version drift rejected; owner version_change resets; conflict freezes; unfreeze needs approval",
+      "tests": ["VersionAndFreeze"]
+    },
+    {
+      "id": "replay-integrity",
+      "command": "python3 control/gate/gate.py verify --config control/gate/example/config.json --events control/gate/example/events.jsonl --ledger control/gate/example/ledger.json",
+      "expected": "exit 0 MATCH; tampered ledger exit 1; tampered/deleted/reordered/truncated history exit 5",
+      "tests": ["LogIntegrity", "Cli"]
+    }
+  ],
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}
