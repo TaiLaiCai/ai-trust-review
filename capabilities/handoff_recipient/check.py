@@ -9,6 +9,7 @@ import argparse
 import json
 import re
 import sys
+import unicodedata
 
 REQUIRED = ("目标", "输入", "约束", "验收标准", "交付")
 LABELS = ("From", "To") + REQUIRED + ("待确认", "附注")
@@ -20,6 +21,13 @@ FIELD = re.compile(rf"(?:^|(?<=\s)|{_BOUNDARY[:-1]})({_LABEL})\s*[：:]", re.MUL
 
 class InputError(ValueError):
     pass
+
+
+def normalize(text):
+    """v1.2: drop invisible format chars (zero-width, BOM, bidi) and fold
+    full-width/compatibility forms, so a hidden or full-width second To is seen."""
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Cf")
+    return unicodedata.normalize("NFKC", text)
 
 
 def unique_keys(pairs):
@@ -34,6 +42,8 @@ def unique_keys(pairs):
 def load_aliases(raw):
     try:
         data = json.loads(raw, object_pairs_hook=unique_keys)
+    except InputError:
+        raise
     except ValueError:
         raise InputError("aliases file is not valid JSON") from None
     if not isinstance(data, dict) or not data:
@@ -45,7 +55,7 @@ def load_aliases(raw):
         for name in [stable] + names:
             if not isinstance(name, str) or not name.strip():
                 raise InputError("aliases must be non-empty strings")
-            key = name.strip().casefold()
+            key = normalize(name).strip().casefold()
             if table.get(key, stable) != stable:
                 raise InputError(f"ambiguous alias: {name}")
             table[key] = stable
@@ -77,10 +87,10 @@ def first_line(value):
 
 
 def check(text, me, aliases):
-    who = aliases.get(me.strip().casefold())
+    who = aliases.get(normalize(me).strip().casefold())
     if who is None:
         raise InputError(f"--self {me!r} is not in the alias table")
-    got = fields(text)
+    got = fields(normalize(text))
     if any(len([line for line in v.splitlines() if line.strip()]) != 1
            for v in got.get("To", [])):
         return 3, {"verdict": "AMBIGUOUS", "reason": "empty or multiline recipient",
