@@ -1,0 +1,14 @@
+{
+  "capability": "review_readonly/v1",
+  "issue": 37,
+  "author": "Codex (TaiLaiCai shared account; no independent acceptance identity)",
+  "steps": [
+    {"id": "PRE", "command": "python3 check.py snapshot --root ROOT --file document.txt", "expected": "exit0; explicit file bytes/SHA256 baseline", "actual_source": "tests/test_check.py::test_unchanged_snapshot_deterministic_and_does_not_write"},
+    {"id": "POST", "command": "python3 check.py verify --root ROOT --baseline CONTROL/before.json --baseline-sha256 TRUSTED_SHA", "expected": "unchanged exit0; changed/missing exit1; invalid baseline/input exit5", "actual_source": "tests/test_check.py::test_same_size_edit_and_append_block_delivery; test_modified_manifest_cannot_replace_trusted_digest"},
+    {"id": "BOUNDARY", "command": "python3 -m unittest discover -s capabilities/review_readonly/tests -v", "expected": "path, symlink, FIFO, schema and byte-budget failures are nonzero", "actual_source": "tests/test_check.py"},
+    {"id": "DELIVERY", "command": "verify ... && delivery_command", "expected": "changed original exit1; delivery marker absent", "actual_source": "tests/test_check.py::test_real_cli_exit_blocks_delivery_command"}
+  ],
+  "scope": "two-observation declared-file bytes only; not OS enforcement or stage grading",
+  "runtime_bot_integration": "NOT_TESTED",
+  "independent_acceptance": "NOT_TESTED"
+}
