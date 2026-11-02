@@ -1,0 +1,39 @@
+{
+  "schema_version": "gate-config/v1",
+  "ledger_kind": "test",
+  "trusted_adapters": [
+    "fixture-adapter"
+  ],
+  "identities": {
+    "bot.worker": [
+      "执行者",
+      "Worker"
+    ],
+    "bot.trainer": [
+      "训练者"
+    ],
+    "bot.other": [],
+    "human.owner": [
+      "主人"
+    ]
+  },
+  "owner_identities": [
+    "human.owner"
+  ],
+  "units": [
+    {
+      "bot_id": "bot.worker",
+      "capability_scope": "status-summary",
+      "versions": {
+        "model": "m1",
+        "skill": "s1",
+        "policy": "p1",
+        "standard": "TRUST-REVIEW-1.0"
+      },
+      "producer": "bot.worker",
+      "allowed_verifiers": [
+        "bot.trainer"
+      ]
+    }
+  ]
+}
