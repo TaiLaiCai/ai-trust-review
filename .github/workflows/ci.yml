@@ -16,3 +16,22 @@ jobs:
           persist-credentials: false
       - name: Check repository contracts
         run: python3 scripts/check_repository.py
+  event-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run C2/C5 gate rule tests
+        run: python3 -m unittest discover -s control/gate/tests -v
+      - name: Replay fixture log and verify ledger byte-for-byte
+        run: python3 control/gate/gate.py verify --config control/gate/example/config.json --events control/gate/example/events.jsonl --ledger control/gate/example/ledger.json
+      - name: Tampered ledger must be reported as REGRESSION (exit 1)
+        run: |
+          sed 's/"streak":3/"streak":4/' control/gate/example/ledger.json > "$RUNNER_TEMP/tampered.json"
+          set +e
+          python3 control/gate/gate.py verify --config control/gate/example/config.json --events control/gate/example/events.jsonl --ledger "$RUNNER_TEMP/tampered.json"
+          rc=$?
+          set -e
+          test "$rc" -eq 1
