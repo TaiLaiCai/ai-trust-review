@@ -1,0 +1,56 @@
+{
+  "capability": "handoff_recipient/v1.1",
+  "version": "1.1",
+  "producer": "Codex revision of Claude v1 via TaiLaiCai; same-account technical limits",
+  "steps": [
+    {
+      "id": "real-red-sample",
+      "command": "python3 capabilities/handoff_recipient/check.py --self Apo·内容 --aliases capabilities/handoff_recipient/fixtures/aliases.json capabilities/handoff_recipient/fixtures/r2-card-a.txt",
+      "expected": "exit 4 MISADDRESSED",
+      "tests": [
+        "test_r2_card_a_is_the_real_dispatched_bytes",
+        "test_r2_failure_turns_red_for_content_bot"
+      ]
+    },
+    {
+      "id": "real-green-sample",
+      "command": "python3 capabilities/handoff_recipient/check.py --self 市场情报 --aliases capabilities/handoff_recipient/fixtures/aliases.json capabilities/handoff_recipient/fixtures/r2-card-a.txt",
+      "expected": "exit 0 ACCEPT",
+      "tests": [
+        "test_same_card_is_green_for_its_real_recipient",
+        "test_multiline_r1_handoff"
+      ]
+    },
+    {
+      "id": "fail-closed-rules",
+      "command": "python3 -m unittest discover -s capabilities/handoff_recipient/tests -v",
+      "expected": "missing/unknown/multiple/injected recipients never ACCEPT",
+      "tests": [
+        "Rules",
+        "AmbiguityV11"
+      ]
+    },
+    {
+      "id": "cli-contract",
+      "command": "python3 -m unittest discover -s capabilities/handoff_recipient/tests -v",
+      "expected": "exit codes 0/3/4/5/2, JSON output, oversize and non-UTF-8 rejected, content inert",
+      "tests": [
+        "Cli"
+      ]
+    },
+    {
+      "id": "ambiguity-v11",
+      "command": "python3 -m unittest discover -s capabilities/handoff_recipient/tests -v",
+      "expected": "empty or multiline To, mixed-case different recipient, duplicate JSON key never ACCEPT",
+      "tests": [
+        "AmbiguityV11",
+        "test_v11_probes_have_nonzero_cli_exits"
+      ]
+    }
+  ],
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}

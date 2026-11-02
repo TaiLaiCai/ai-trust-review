@@ -16,6 +16,27 @@ jobs:
           persist-credentials: false
       - name: Check repository contracts
         run: python3 scripts/check_repository.py
+  capability-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run every capabilities/*/tests suite (an empty set fails)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          dirs=(capabilities/*/tests)
+          if [ "${#dirs[@]}" -eq 0 ]; then echo "no capability test suites found"; exit 1; fi
+          for d in "${dirs[@]}"; do echo "== $d"; python3 -m unittest discover -s "$d" -v; done
+      - name: Real R2 misaddressed card must be rejected (exit 4)
+        run: |
+          set +e
+          python3 capabilities/handoff_recipient/check.py --self "Apo·内容" --aliases capabilities/handoff_recipient/fixtures/aliases.json capabilities/handoff_recipient/fixtures/r2-card-a.txt
+          rc=$?
+          set -e
+          test "$rc" -eq 4
   event-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5

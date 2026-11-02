@@ -1,0 +1,9 @@
+{
+  "schema_version": "evidence-package/v1",
+  "artifacts": [
+    {
+      "path": "result.txt",
+      "sha256": "6843d02204166999a6b7110126851503ae135cc2a3dcb148cf88ece7230aa341"
+    }
+  ]
+}

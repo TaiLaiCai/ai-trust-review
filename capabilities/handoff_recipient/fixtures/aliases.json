@@ -1,0 +1,11 @@
+{
+  "Apo·总参谋": ["总参谋", "Chief", "apo-chief-of-staff"],
+  "Apo·牛马执行者": ["执行者", "牛马执行者", "apo-worker"],
+  "Apo·内容": ["内容", "apo-content"],
+  "Apo·市场情报": ["市场情报", "情报", "apo-intel"],
+  "Apo·验收": ["验收", "apo-verifier"],
+  "Apo·信任曲线": ["信任曲线", "hermes-trust-curve", "apo-trust-curve"],
+  "Apo·代码图谱": ["代码图谱", "apo-codegraph"],
+  "Apo·团队协议": ["团队协议", "apo-team-protocol"],
+  "训练者": ["trainer"]
+}
