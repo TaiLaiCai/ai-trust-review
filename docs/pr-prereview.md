@@ -35,6 +35,8 @@ Pull Request 的 `opened`。任何人打开的 PR 都触发。
 
 三档都是评论里的建议。评论不能把 `NOT_TESTED` 改成 PASS，也不能代替另一主体按当前 head 做的独立复跑。
 
+评论正文的字段顺序、每条发现要写的五项，以及结尾单独一行 `VERDICT:`，见 [review-verdict-format.md](review-verdict-format.md)。该文件把「建议合并 / 需修改 / 阻塞」与上游 PASS / CONTESTED / REJECT 一一对应。[../scripts/parse_verdict.py](../scripts/parse_verdict.py) 只抽出这一行。没有这一行、有多行、或这一行的值不是这三档之一，进程失败。
+
 ## 合并仍要同时满足的三件事
 
 这条自动化不执行合并。[AGENTS.md](../AGENTS.md) 写明不自动合并。要合并，下面三件同时成立：
