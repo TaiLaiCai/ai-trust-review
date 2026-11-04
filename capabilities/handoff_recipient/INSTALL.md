@@ -44,3 +44,19 @@ python3 capabilities/handoff_recipient/check.py --self "Apo·内容" \
 5. 回滚：把第 2 步留下的旧字节写回去，再核对 sha256。不要用「删掉检查」充当回滚。
 
 CI 绿、单测通过、或这份说明存在，都不表示已经部署，也不计业务连胜。
+
+## 已发布版本指纹
+
+在 main（`84fbeb8dfd0cc669aaf73b17126b754474ba2437`）上运行 `python3 capabilities/handoff_recipient/check.py --version`，退出码 0。输出原样如下：
+
+```text
+v1.3 37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899
+```
+
+版本号是 `v1.3`，sha256 是 `37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899`。同一文件再用 `sha256sum capabilities/handoff_recipient/check.py` 交叉核对，退出码 0，输出原样如下，摘要与上一行的 sha256 一致：
+
+```text
+37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899  capabilities/handoff_recipient/check.py
+```
+
+部署后对主机上的 `check.py` 运行 `--version`，把打印结果与上面登记的 `v1.3 37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899` 比对。不一致即判未部署。本节只登记仓库里这份已发布文件的指纹，不向任何主机拷贝。
