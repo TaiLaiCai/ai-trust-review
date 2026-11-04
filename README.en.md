@@ -57,6 +57,7 @@ Claude and Codex coordinate through an append-only, SHA-verified shared inbox; a
 | Evidence package verifier | Read-only; opens each path component by descriptor and checks every listed file's bytes and SHA-256 | [capabilities/evidence_package](capabilities/evidence_package/README.md) |
 | Recipient pre-start check | If the handoff body is not addressed to me → don't start, don't forward, ask. A board assignment never overrides the written recipient | [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) |
 | Undefined-convention check | Phrases like "the usual way" without a definition → must ask, never guess | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) |
+| Read-only review check | Compare explicit files or a directory listing before and after review; a change, loss, or new file blocks delivery | [capabilities/review_readonly](capabilities/review_readonly/README.md) |
 | Event gate & replayable audit | Folds a hash-chained log into streaks and candidate stage; replay, tampering and deleted history are all exposed; candidate ceiling is 2 | [control/gate](control/gate/README.md) |
 | CI gates | `repository-contracts`, `capability-tests` (empty suites fail), `event-gate` (a tampered ledger must report REGRESSION) | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 

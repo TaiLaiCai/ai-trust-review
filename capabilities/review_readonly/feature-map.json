@@ -1,14 +1,17 @@
 {
   "capability": "review_readonly/v1",
   "issue": 37,
-  "author": "Codex (TaiLaiCai shared account; no independent acceptance identity)",
+  "revision": "R-38-1 tree listing; R-38-2 read-race and CRLF tests; baseline path/inode guard",
+  "author": "Codex original; this revision is a Cursor cloud agent on the shared TaiLaiCai account, not an independent verifier",
   "steps": [
-    {"id": "PRE", "command": "python3 check.py snapshot --root ROOT --file document.txt", "expected": "exit0; explicit file bytes/SHA256 baseline", "actual_source": "tests/test_check.py::test_unchanged_snapshot_deterministic_and_does_not_write"},
-    {"id": "POST", "command": "python3 check.py verify --root ROOT --baseline CONTROL/before.json --baseline-sha256 TRUSTED_SHA", "expected": "unchanged exit0; changed/missing exit1; invalid baseline/input exit5", "actual_source": "tests/test_check.py::test_same_size_edit_and_append_block_delivery; test_modified_manifest_cannot_replace_trusted_digest"},
-    {"id": "BOUNDARY", "command": "python3 -m unittest discover -s capabilities/review_readonly/tests -v", "expected": "path, symlink, FIFO, schema and byte-budget failures are nonzero", "actual_source": "tests/test_check.py"},
-    {"id": "DELIVERY", "command": "verify ... && delivery_command", "expected": "changed original exit1; delivery marker absent", "actual_source": "tests/test_check.py::test_real_cli_exit_blocks_delivery_command"}
+    {"id": "PRE", "command": "python3 check.py snapshot --root ROOT --file document.txt", "expected": "exit0; explicit file bytes/SHA256 baseline; no trees key", "actual_source": "tests/test_check.py::test_unchanged_snapshot_deterministic_and_does_not_write; test_file_mode_ignores_unlisted_new_file"},
+    {"id": "TREE", "command": "python3 check.py snapshot --root ROOT --tree .", "expected": "added, removed, renamed, nested add exit1; symlink tree or fifo exit5", "actual_source": "tests/test_check.py::test_tree_new_file_is_added; test_tree_deleted_file_is_removed; test_tree_rename_is_added_and_removed; test_tree_new_file_in_subdirectory; test_tree_symlink_directory_fifo_and_nested_symlink_are_rejected"},
+    {"id": "POST", "command": "python3 check.py verify --root ROOT --baseline CONTROL/before.json --baseline-sha256 TRUSTED_SHA", "expected": "unchanged exit0; changed/missing exit1; invalid baseline/input exit5", "actual_source": "tests/test_check.py::test_same_size_edit_and_append_block_delivery; test_modified_manifest_cannot_replace_trusted_digest; test_baseline_inside_review_root_is_rejected"},
+    {"id": "BOUNDARY", "command": "python3 -m unittest discover -s capabilities/review_readonly/tests -v", "expected": "path, symlink, FIFO, schema, byte-budget, mid-read and CRLF failures are nonzero", "actual_source": "tests/test_check.py::test_file_changed_while_reading_exits_5; test_crlf_rewrite_is_a_byte_change"},
+    {"id": "DELIVERY", "command": "verify; exit code is the gate (shell && is only one way to honor it)", "expected": "changed original exit1; delivery marker absent", "actual_source": "tests/test_check.py::test_real_cli_exit_blocks_delivery_command"}
   ],
-  "scope": "two-observation declared-file bytes only; not OS enforcement or stage grading",
+  "scope": "two-observation declared file or tree bytes only; not OS enforcement or stage grading",
+  "ask_before_in_place_fix": "training rule, not this tool",
   "runtime_bot_integration": "NOT_TESTED",
   "independent_acceptance": "NOT_TESTED"
 }
