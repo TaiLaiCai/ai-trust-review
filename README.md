@@ -6,7 +6,7 @@
 
 在 bot 泛滥的时代，做最可信、最有价值的 bot 训练与信任审查体系。
 
-[中文](README.md) · [English（上一版，尚未按本页改写）](README.en.md)
+[中文](README.md) · [English](README.en.md)
 
 </div>
 
@@ -26,7 +26,7 @@
 
 **不信自述，只信可复跑。** Bot 自报的等级、技能哈希或「全部通过」，不能单独构成合格事件。配置成功、单测全绿、拒绝题本身，也不单独计入业务连胜。合格与否要有另一主体按当前 head 复跑。各能力地图里的 `independent_verification` 在没有复跑回执时保持 `NOT_TESTED`；`NOT_TESTED` 不能改写成 PASS。见 [标准入口](docs/standards/00-入口与统一判定.md)、[AGENTS.md](AGENTS.md)、[审查门槛.json](docs/standards/审查门槛.json) 的 `qualified_business_pass`。
 
-**分权制衡：生产者、预审、验收分离。** 生产者与验收者必须是不同主体；生产者等于验收者不能计为合格业务通过。同账号、同模型、共享上下文只能记技术复核，并写明独立性限制。预审（下面的四项检查，以及若已接入的评论机器人）可以建议，不能批准，也不能合并。合并不自动发生，由主人当次点名的一方执行。见 [AGENTS.md](AGENTS.md)、[.github/CODEOWNERS](.github/CODEOWNERS)、[审查门槛.json](docs/standards/审查门槛.json)。
+**分权制衡：生产者、预审、验收分离。** 生产者与验收者必须是不同主体；生产者等于验收者不能计为合格业务通过。同账号、同模型、共享上下文只能记技术复核，并写明独立性限制。预审（下面的四项检查，以及 [docs/pr-prereview.md](docs/pr-prereview.md) 里的中文评论）可以建议，不能批准，也不能合并。合并不自动发生，由主人当次点名的一方执行。见 [AGENTS.md](AGENTS.md)、[.github/CODEOWNERS](.github/CODEOWNERS)、[审查门槛.json](docs/standards/审查门槛.json)。
 
 ---
 
@@ -79,9 +79,15 @@ flowchart TD
   pre --> merge
 ```
 
-名为「信任审查 PR 预审」的 Cursor Automation、它的中文评论，以及「只能三选一建议、不能批准、不能合并」这组权限，**没有**写进本仓库（没有对应 workflow，也没有自动化配置文件）。是否已在 Cursor 侧接入，本次未读回，记**待确认**。仓库内能核对的预审就是上表四项作业。评论即使存在，也不能变成合并：[AGENTS.md](AGENTS.md) 写明不自动合并。
+Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.md](docs/pr-prereview.md)。触发是 PR opened（任何人），在 Cursor 云端运行；允许的工具是 Memories 和 Comment on Pull Request，不允许 PR Approval。它以 `cursor[bot]` 发中文预审，结论只取「建议合并」「需修改」「阻塞」之一。这条自动化不在本仓库的 workflow 里。评论不能批准，也不能合并。要合并，三件事同时成立：规则集里的四项必需检查全绿、该预审结论为「建议合并」、总工程师核对。[AGENTS.md](AGENTS.md) 写明不自动合并。规则集的 `required_approving_review_count` 为 0；后两项是仓库约定，不是 status check。
 
-2026-11-02 的训练记录写，当时 main 的规则集要求走 PR、**三项** CI 必须通过（限 GitHub Actions 来源）、禁止强推和删除。第四项 `loop-history-v2` 是后来经主人批准接入 CI 的（合并说明见 `c69d1ab`）。规则集现在是否已把四项都列为必需，仓库里没有新的读回。[路线图](docs/ROADMAP.md) 约定：GitHub 设置未读回前记待配置。因此上图的四项是工作流作业；它们是否已经全部成为分支保护里的必需检查，记**待确认**。
+2026-11-04 对 `TaiLaiCai/ai-trust-review` 做了只读 GitHub API 查询，没有修改规则集。读回时默认分支头是 `045ed7caaccf0f49b4255e87f63498b9b358d93e`。
+
+规则集 `main`（id `26351164`，[规则页](https://github.com/TaiLaiCai/ai-trust-review/rules/26351164)）`enforcement` 为 `active`，`target` 为 `branch`，`conditions.ref_name.include` 为 `~DEFAULT_BRANCH`，`updated_at` 为 `2026-11-04T07:42:31.783Z`，`current_user_can_bypass` 为 `never`。`GET /repos/TaiLaiCai/ai-trust-review/rulesets/26351164` 的 `required_status_checks` 包含这四项，`integration_id` 都是 `15368`：`repository-contracts`、`capability-tests`、`event-gate`、`loop-history-v2`。`strict_required_status_checks_policy` 为 false，`do_not_enforce_on_create` 为 false。同一条规则集还有 `deletion`、`non_fast_forward`，以及 `pull_request`（`required_approving_review_count` 为 0，`dismiss_stale_reviews_on_push` 为 false，`required_reviewers` 为空，`require_code_owner_review` 为 false，`require_last_push_approval` 为 false，`required_review_thread_resolution` 为 false，`require_extra_approval_for_unattributed_changes` 为 true，`allowed_merge_methods` 为 merge、squash、rebase）。`GET /repos/TaiLaiCai/ai-trust-review/rules/branches/main` 返回的有效规则与此相同。该提交的 check-runs 中，这四项的 `app.slug` 是 `github-actions`，`app.id` 是 `15368`，`conclusion` 都是 `success`。因此四项都已是该规则集的必需状态检查，并且限定在 integration `15368`；在这次提交上，该 id 对应 GitHub Actions。
+
+`GET /repos/TaiLaiCai/ai-trust-review/branches/main/protection` 返回 403，正文是 `Resource not accessible by integration`。`GET /repos/TaiLaiCai/ai-trust-review/branches/main` 里 `protected` 为 true，内嵌 `protection.enabled` 为 false，`required_status_checks.contexts` 为空。GraphQL 字段 `branchProtectionRules` 同样返回 `Resource not accessible by integration`。经典分支保护是否另有一套必需检查，本次查不到，保留**待确认**，原因是当前令牌读不了该端点。上面的四项必需检查来自规则集读回，不依赖这次没读到的经典保护正文。规则集若之后被改，以 GitHub 上的规则集为准，本段不会自动更新。
+
+2026-11-02 的训练记录写的是当时的三项 CI。第四项 `loop-history-v2` 后来接入 workflow（合并说明见 `c69d1ab`）。本次读回表明规则集已经把四项都列为必需。
 
 ---
 
@@ -209,7 +215,9 @@ rm -f "$tampered"
 - **独立复跑。** `NOT_TESTED`： [evidence_package](capabilities/evidence_package/feature-map.json)、[handoff_recipient](capabilities/handoff_recipient/feature-map.json)、[handoff_conventions](capabilities/handoff_conventions/feature-map.json)、[control/gate](control/gate/feature-map.json) 的 `independent_verification.status`。 [review_readonly](capabilities/review_readonly/feature-map.json) 的 `runtime_bot_integration` 与 `independent_acceptance` 同为 `NOT_TESTED`。 [handoff_conventions](capabilities/handoff_conventions/feature-map.json) 另记 `remote_capability_tests: NOT_TESTED`、`deployment: NOT_DEPLOYED`。 [loop_status](control/loop_status/README.md) 写明独立审阅待完成，旧检测器上的变红证据为 `NOT_TESTED`，不能用新测试代替。
 - **身份与隔离。** 平台 sender 认证（C4）未做；H1/H2 写隔离未作为已实现项记录。收件人检查在训练记录中的强制力是 `text_only`。同账号不能证明独立性，见 [CODEOWNERS](.github/CODEOWNERS) 与训练记录。
 - **已部署副本与发布包。** 主机上的收件人检查，记录中的版本是 v1，不是本树的 v1.3。 [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) 来自 main `e3f532a12a5a5219af451471d2452444bc178f79`，其中收件人检查为 v1.1，不含当前的 `review_readonly` 与 `loop_status`。
-- **待确认。** 「总工程师」与「主人」的身份对应；名为「信任审查 PR 预审」的 Cursor Automation 是否已接入；main 规则集是否已把四项 CI 都列为必需；名为「练习卡」的独立规程。 [README.en.md](README.en.md) 仍是上一版定位，本次未改。
+- **规则集读回。** 2026-11-04 的只读查询里，四项 CI 都是规则集 `main` 的必需状态检查，见上文。
+- **预审约定。** 见 [docs/pr-prereview.md](docs/pr-prereview.md)。该文件记载触发、工具、发言身份和三档结论；它不是从 Cursor 自动化配置接口导出的原文。[README.en.md](README.en.md) 与本页结构一致。
+- **待确认。** 「总工程师」与「主人」是否为同一主体；名为「练习卡」的独立规程是否另有一份本仓库未收录的文件。经典分支保护端点本次返回 403，是否另有必需检查见上文。
 - **历史协作图。** [docs/assets/collaboration.svg](docs/assets/collaboration.svg) 是 2026-11-02 前后的示意图。图中名称只是文字标注。 [发布说明](dist/v0.1.0/RELEASE-NOTES.md) 写明：本项目与 xAI、Anthropic、OpenAI 无隶属或背书关系。
 
 [submissions/](submissions/README.md) 只存放脱敏候选索引，不是信用账本。协作约定见 [AGENTS.md](AGENTS.md)。未完成的工程项见 [路线图](docs/ROADMAP.md)。

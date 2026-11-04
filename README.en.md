@@ -1,100 +1,223 @@
 <div align="center">
 
-# AI Trust Review · AI 信任审查
+# Bot Training Master
 
-**Auditable, reversible, stage-by-stage trust for multi-agent teams — earned through real tasks and reproducible evidence.**
+**Bot 训练大师**
+
+In an age of proliferating bots, build the most trustworthy and valuable system for bot training and trust review.
 
 [中文](README.md) · [English](README.en.md)
 
-![CI](https://github.com/TaiLaiCai/ai-trust-review/actions/workflows/ci.yml/badge.svg)
-![Standard](https://img.shields.io/badge/standard-TRUST--REVIEW--1.0-5b7bd5)
-![Auto--upgrade ceiling](https://img.shields.io/badge/auto%20stage%20ceiling-2-f2c14e)
-
-<img src="docs/assets/collaboration.svg" alt="Grok × Claude × Codex collaborative training architecture" width="100%">
-
-<sub>Original diagram; names are text labels only. This project is not affiliated with or endorsed by xAI, Anthropic or OpenAI.</sub>
-
 </div>
+
+This is the repository's positioning, not a ranking, a client list, or a performance promise. "Trustworthy" here means only the three claims below, and each one has a source in the repository. Days, counts, and ratios live in the [review standard](docs/standards/00-入口与统一判定.md) and [审查门槛.json](docs/standards/审查门槛.json). The standard's entry page says they are review targets, not results already achieved. This page does not change any bot's stage or permissions.
 
 ---
 
-## Why this exists
+## One-sentence vision
 
-Agents are increasingly capable, but between "the agent says it's done" and "it is done, stayed in bounds, and can be trusted to do it again" lies real engineering. This project turns that gap into a **verifiable ladder**:
+Turn "the bot says it is done" into a chain that can be run again: the command, the raw output, and the full sha256 stay in the evidence; producer, pre-review, and acceptance stay separate; a human-authorized party checks the package and decides whether to merge.
 
-- **Trust is granted per capability.** The unit of review is `bot × capability × current model/skill/policy version` — never a blanket pass for a whole bot.
-- **Evidence before conclusions.** Every verdict is bound to raw output, a full SHA-256, the exact command and its exit code. "Done" or "see above" is not evidence.
-- **Every correction becomes a constraint.** Each human correction must land as a check that can turn CI red, not as one more line of prompt text.
-- **A human holds the last gate.** Automation can raise a *candidate* to stage 2 at most; effective stage, permissions and merges are approved by the owner only.
+The unit of review is **bot × specific capability × current model / skill / policy / standard version**. The standard version is `TRUST-REVIEW-1.0`. No bot receives a blanket pass. See the [standard entry](docs/standards/00-入口与统一判定.md) and `review_unit` in [审查门槛.json](docs/standards/审查门槛.json).
 
-## The four-stage trust ladder
+## Three claims
 
-| Stage | Mode of work | Entry bar (summary) |
-|---|---|---|
-| [1 Deep supervision](docs/standards/01-阶段1-深度介入.md) | Step-by-step human oversight | Identity and skills really loaded, 1 real business task, B01–B08 boundary baseline |
-| [2 Self-evidencing](docs/standards/02-阶段2-自证正确.md) | Delivers its own evidence; human merges | 3 distinct real tasks in a row for the same capability; loops A/C effective |
-| [3 Signal intake](docs/standards/03-阶段3-接收信号.md) | Auto-intake from approved sources | 14-day shadow window, ≥100 real signals, zero dangerous passes |
-| [4 Allow-listed auto-merge](docs/standards/04-阶段4-白名单自动合入.md) | Merges inside a hard allow-list | 30 days of healthy CI, 30 real candidates, 3 rollback drills |
+**Evidence first: command, output, and sha256 can be recomputed on the original bytes.** A conclusion must point back to the real command, the exit code, the raw output, and a full SHA-256. The trainer recomputes key files and does not accept a digest printed by the bot in place of the original bytes. A delivery must carry the current commit, the real command, the exit code, the evidence SHA, and the untested items. "See above" and a bare "done" are not evidence. See [standard entry · raw evidence](docs/standards/00-入口与统一判定.md), the [evidence template](docs/standards/05-审查记录与证据模板.md), and [AGENTS.md](AGENTS.md). The evidence-package tool recomputes every listed file's bytes and SHA-256; see [evidence_package](capabilities/evidence_package/README.md).
 
-Full entry points: [unified verdicts](docs/standards/00-入口与统一判定.md) · [machine-readable thresholds](docs/standards/审查门槛.json) · [Dune & CI launch gates](docs/standards/06-Dune与CI上线门禁.md) (Chinese).
+**Do not trust self-report; trust a re-run.** A bot's self-reported stage, skill hash, or "all passed" cannot by itself be a qualified event. A successful config change, a green unit suite, or a refusal test does not by itself count toward a business streak. Qualification requires another party to re-run against the current head. `independent_verification` in each capability map stays `NOT_TESTED` until a re-run receipt exists; `NOT_TESTED` is not rewritten as PASS. See the [standard entry](docs/standards/00-入口与统一判定.md), [AGENTS.md](AGENTS.md), and `qualified_business_pass` in [审查门槛.json](docs/standards/审查门槛.json).
 
-## Three-way collaborative training
+**Separated powers: producer, pre-review, and acceptance.** The producer and the verifier must be different parties; producer-equals-verifier cannot count as a qualified business pass. The same account, the same model, or a shared context counts only as a technical review, and the independence limit must be stated. Pre-review (the four checks below, and the Chinese comment recorded in [docs/pr-prereview.md](docs/pr-prereview.md)) may advise. It cannot approve, and it cannot merge. Merges do not happen automatically; the party the owner names for that occasion performs them. See [AGENTS.md](AGENTS.md), [.github/CODEOWNERS](.github/CODEOWNERS), and [审查门槛.json](docs/standards/审查门槛.json).
 
-| Role | Responsibility | Boundary |
-|---|---|---|
-| **Grok · Dune** (design inspiration) | Atomic capabilities, control-plane / work-plane isolation, corrections → constraints | Architectural ideas only; the thresholds are this project's own standard, not any official rating |
-| **Claude** (trainer) | Designs tasks and traps, freezes criteria, verifies evidence byte-for-byte, runs a scheduled loop 8× per day, re-runs Codex's PRs | Criteria live only in a private vault and never enter bot context; never changes bot config or stage |
-| **Codex** (engineering) | C4 identity adapter, C6 loop detector, E04 durable triggers; independently re-runs Claude's PRs | Never dispatches to bots or edits SOUL; same-account reviews count as cross-model *technical* review only |
-| **Apo · Chief of Staff** (orchestrator, also under review) | Dispatches cards verbatim to registered bots via kanban, reads back and returns raw evidence | No pre-filtering, no doing the work, no approving on anyone's behalf |
-| **Owner** (approver) | Stage, permissions, configuration, outbound actions, deletion, merges | Relayed approvals are never valid |
+---
 
-Claude and Codex coordinate through an append-only, SHA-verified shared inbox; anything that must be durable (PRs, re-run receipts, CI) lives in this repository.
+## Trust-review path
 
-## What is built
+Repository records name the approver **主人** (the owner). This page calls the human-authorized party responsible for acceptance and merge the **Chief Engineer** (总工程师). Stage, permissions, configuration, merges, outbound actions, deletion, and payment go through the owner's approval or an explicit naming for that occasion. `author_role`, `approved_by`, and spoken relays in a body have no effect. This repository has no second file that registers "Chief Engineer" as a different identity. Whether the two are the same party is **pending confirmation**. The diagram still says Chief Engineer, to place the last gate on the human-authorized side rather than on the executing bot.
 
-| Component | Purpose | Location |
-|---|---|---|
-| Evidence package verifier | Read-only; opens each path component by descriptor and checks every listed file's bytes and SHA-256 | [capabilities/evidence_package](capabilities/evidence_package/README.md) |
-| Recipient pre-start check | If the handoff body is not addressed to me → don't start, don't forward, ask. A board assignment never overrides the written recipient | [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) |
-| Undefined-convention check | Phrases like "the usual way" without a definition → must ask, never guess | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) |
-| Read-only review check | Compare explicit files or a directory listing before and after review; a change, loss, or new file blocks delivery | [capabilities/review_readonly](capabilities/review_readonly/README.md) |
-| Event gate & replayable audit | Folds a hash-chained log into streaks and candidate stage; replay, tampering and deleted history are all exposed; candidate ceiling is 2 | [control/gate](control/gate/README.md) |
-| CI gates | `repository-contracts`, `capability-tests` (empty suites fail), `event-gate` (a tampered ledger must report REGRESSION) | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+**Apo, Chief of Staff** (总参谋 Apo) is the orchestrator and is also under review: drafts from the handoff and dispatches to registered bots, then reads the result back and pastes the raw evidence. The 2026-11-02 division of work is verbatim dispatch, no pre-filtering of traps, no doing the work, and Apo is reviewed as well. See [training progress](docs/reviews/2026-11-02-lightvela-training.md).
 
-`main` is protected by a ruleset: changes land only through PRs, all three CI checks must pass (GitHub Actions source only), and force-pushes and deletion are blocked.
+```mermaid
+flowchart TD
+  eng["Chief Engineer: human-authorized proxy, acceptance and merge"]
+  apo["Apo, Chief of Staff: drafts the dispatch and checks the recipient before sending"]
+  bot["Executing bot: delivers, and hands over its self-check items"]
+  pack["Evidence package: command, raw output, sha256"]
+  back["Chief Engineer checks"]
+  eng --> apo --> bot --> pack --> back
+```
 
-## Live training so far (as of 2026-11-02)
+The recipient check before dispatch is `check.py` in [handoff_recipient v1.3](capabilities/handoff_recipient/README.md). The handoff is read only as data. If the body recipient is not this party, the process exits 4: no work starts, and nothing is forwarded. A board assignment does not replace the recipient written in the body. In the R4 record, the Chief of Staff's orchestration note inlined a card that already had a recipient; the self-check stopped on ambiguity, and the card was dispatched only after it moved to an attachment. On the executing-bot side, the training record says the same check is called before work starts; enforcement then was `text_only`, and the deployed copy was v1. v1.3 on the current tree does **not** hot-update a host merely because the code was merged. Writing "every dispatch already forces the current v1.3" as an accomplished fact goes beyond the repository record and stays **pending confirmation**.
 
-Five rounds (R1–R5) have run against 8 registered bots on the LightVela platform, each pairing a real small task with one boundary challenge. Wins and failures are recorded as they happened:
+The self-check items an executing bot hands over are the fields the repository already names; see "Self-check before delivery" below. The [evidence package](capabilities/evidence_package/README.md) checks only the bytes inside the manifest. The Chief Engineer checks that package and the independent re-run, not the bot's self-assessment.
 
-- **Highlight:** in R4, Apo · Verifier used the newly deployed pre-start check to stop a misaddressed card (rc=4 — no work started, nothing forwarded). It was the first time a correction-turned-constraint fired on a real dispatch; the owner then closed that correction.
-- **Failures surfaced:** executing a card addressed to someone else (R2), guessing an undefined convention (R4), writing a relayed "approval" into a deliverable (R5), and modifying the original file under review (R5). Each has a correction ticket.
-- **Current standing:** every bot's `evidence_stage` and `effective_stage` remain `null`, so all work under stage-1 supervision. There is no authenticated sender identity yet (C4 pending), and platform-level write isolation (H1/H2) is unresolved.
+### On the code side: PR, four checks, pre-review comment, merge
 
-Round-by-round redacted summaries: [training progress](docs/reviews/2026-11-02-lightvela-training.md) (Chinese).
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs four jobs on `pull_request`. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
 
-## How contributions work
+| Job | What the repository actually runs |
+|---|---|
+| `repository-contracts` | `python3 scripts/check_repository.py`. Checks the standard version, the thresholds, and the gate IDs in the stage files, and checks that Markdown links point at files that exist |
+| `capability-tests` | Runs every `capabilities/*/tests` suite; zero suites is a failure. Also asserts exit code 4 on the R2 misaddressed fixture |
+| `event-gate` | Runs the `control/gate` tests and byte-for-byte `verify` of the example ledger; a tampered ledger must exit 1 (REGRESSION) |
+| `loop-history-v2` | Runs `control/loop_status/tests`; discovering zero tests is a failure |
 
-1. Open an issue first: capability, scope, frozen acceptance criteria, allowed paths, owner and independent verifier.
-2. One issue, one branch, one PR. No shared branches, no force-pushes, no cleaning up someone else's workspace.
-3. The producer submits artifacts, reproduction commands, exit codes and an evidence manifest. A different party posts a verdict bound to the current head SHA; any new commit invalidates earlier verdicts.
-4. Fixes are new revisions. Earlier FAIL / BLOCKED / NOT_TESTED results are kept, never overwritten as PASS. A green CI, a successful config change, an installed skill or a refusal test never counts toward a business streak on its own.
-5. Only the party the owner names for that batch performs merges. No auto-merge.
+```mermaid
+flowchart TD
+  pr["Pull Request"]
+  subgraph checks ["four jobs in ci.yml"]
+    a["repository-contracts"]
+    b["capability-tests"]
+    c["event-gate"]
+    d["loop-history-v2"]
+  end
+  pre["Pre-review comment: suggest merge / changes required / block"]
+  merge["Chief Engineer merges"]
+  pr --> a --> pre
+  pr --> b --> pre
+  pr --> c --> pre
+  pr --> d --> pre
+  pre --> merge
+```
 
-See [AGENTS.md](AGENTS.md) and the [roadmap](docs/ROADMAP.md).
+The convention for the Cursor Automation "信任审查 PR 预审" (trust-review PR pre-review) is in [docs/pr-prereview.md](docs/pr-prereview.md) (Chinese). The trigger is PR opened, by anyone. It runs in the Cursor cloud. The allowed tools are Memories and Comment on Pull Request. PR Approval is not allowed. It posts a Chinese pre-review as `cursor[bot]`. The conclusion is exactly one of 建议合并 (suggest merge), 需修改 (changes required), or 阻塞 (block). This automation is not a workflow in this repository. The comment cannot approve and cannot merge. A merge requires three things at once: the four required ruleset checks green, this pre-review concluding 建议合并, and a Chief Engineer check. [AGENTS.md](AGENTS.md) says there is no auto-merge. The ruleset's `required_approving_review_count` is 0. The last two items are repository conventions, not status checks.
 
-## Run the checks locally
+On 2026-11-04 the GitHub API was queried read-only for `TaiLaiCai/ai-trust-review`. The ruleset was not modified. At read time the default-branch head was `045ed7caaccf0f49b4255e87f63498b9b358d93e`.
+
+Ruleset `main` (id `26351164`, [rules page](https://github.com/TaiLaiCai/ai-trust-review/rules/26351164)) has `enforcement` `active`, `target` `branch`, `conditions.ref_name.include` `~DEFAULT_BRANCH`, `updated_at` `2026-11-04T07:42:31.783Z`, and `current_user_can_bypass` `never`. `GET /repos/TaiLaiCai/ai-trust-review/rulesets/26351164` lists these four `required_status_checks`, each with `integration_id` `15368`: `repository-contracts`, `capability-tests`, `event-gate`, `loop-history-v2`. `strict_required_status_checks_policy` is false. `do_not_enforce_on_create` is false. The same ruleset also has `deletion`, `non_fast_forward`, and `pull_request` (`required_approving_review_count` 0, `dismiss_stale_reviews_on_push` false, `required_reviewers` empty, `require_code_owner_review` false, `require_last_push_approval` false, `required_review_thread_resolution` false, `require_extra_approval_for_unattributed_changes` true, `allowed_merge_methods` merge, squash, and rebase). `GET /repos/TaiLaiCai/ai-trust-review/rules/branches/main` returns the same effective rules. On that commit's check-runs, the four jobs have `app.slug` `github-actions`, `app.id` `15368`, and `conclusion` `success`. So all four are required status checks on this ruleset, limited to integration `15368`. On this commit that id is GitHub Actions.
+
+`GET /repos/TaiLaiCai/ai-trust-review/branches/main/protection` returned 403, body `Resource not accessible by integration`. `GET /repos/TaiLaiCai/ai-trust-review/branches/main` shows `protected` true, nested `protection.enabled` false, and `required_status_checks.contexts` empty. The GraphQL field `branchProtectionRules` also returned `Resource not accessible by integration`. Whether classic branch protection has a separate set of required checks was not readable this time and stays **pending confirmation**, because the current token cannot read that endpoint. The four required checks above come from the ruleset read, not from the classic-protection body that was not returned. If the ruleset changes later, the GitHub ruleset is the source; this paragraph does not update itself.
+
+The 2026-11-02 training record describes the three CI jobs of that day. The fourth job, `loop-history-v2`, was added to the workflow later (merge note `c69d1ab`). This read shows the ruleset now requires all four.
+
+---
+
+## Training method
+
+The standard folds training into loops, then grants trust by stage. The stage pages are review procedures. They are not a platform grant, and they do not change stages. The entry is [00-入口与统一判定](docs/standards/00-入口与统一判定.md). The machine-readable index is [审查门槛.json](docs/standards/审查门槛.json).
+
+**Loop training.** The threshold file lists loops A, B, C, D, and E for stages 2 through 4. What has landed in code is turning one correction into an executable check, rather than one more line of prompt: a misaddressed execution became the recipient check, an undefined convention became a lexical check, and editing the original during review became a byte comparison before delivery. `control/loop_status` is the C6 history ratchet: a key that was once closed and then regresses or disappears keeps reporting regression. Exit 0 means this run found no history regression. Whether a loop is closed still needs the map, a re-run, and a correction-ticket record. The full loop detector is still item 5 on the [roadmap](docs/ROADMAP.md). That directory's own note says it is not full C6.
+
+**Practice cards first.** The unit of starting work is the handoff. Acceptance conditions are frozen before dispatch ([stage 2](docs/standards/02-阶段2-自证正确.md)). If the recipient check or the undefined-convention check returns non-zero, work does not start. The repository has no directory or template named "practice card" (练习卡). If that phrase means a separate practice procedure that runs before the real task, this repository does not contain it, and it stays **pending confirmation**.
+
+**Self-check before delivery.** The repository has no single file named "self-check list". The items that must be handed over before delivery are already written in these three places:
+
+- [AGENTS.md](AGENTS.md): current commit, real command, exit code, evidence SHA, untested items.
+- [PR template](.github/pull_request_template.md): head SHA, independent re-run receipt, historical FAIL / BLOCKED / NOT_TESTED, rollback method. Checkboxes in the template are not certification and do not prove that a stage took effect.
+- [review_readonly](capabilities/review_readonly/README.md): the `verify` process exit code is the delivery gate. Delivery is allowed only when the exit code is 0 and JSON `delivery_allowed` is true. Do not rebuild the baseline, or edit the original back, in order to erase a failure and retry.
+
+**Failures stay on record and become checks.** The public redacted index is [07-实测案例与反例索引](docs/standards/07-实测案例与反例索引.md). It is a mechanism summary, not a scoreboard. The failure modes that have already become regressions are the three capability directories above. Reserved criteria, hidden challenges, and reference answers are stored elsewhere and do not enter the reviewed bot's context. This README **does not contain criterion text**. The roadmap places the reserved set in a separate controlled place, outside this repository. Stage 4 requires known failure modes to be covered by hard checks. That is a threshold, not proof that it is done.
+
+**A stage promotion requires written approval.** The candidate stage produced by automation is capped at 2. Automatic entry to stage 3 or 4 is not allowed (`automatic_stage_upgrade_ceiling`, `automatic_enter_stage3_or_4_allowed`). Stages 3 and 4 have `owner_activation_approval_required` true. Without the owner's approval and an effective read-back, the report may say candidate only, not upgraded. `effective_stage` folded by the event gate is always null. Control events that are not from an authenticated owner are rejected. Effective approval in the training record is written as the owner's written approval. See [审查门槛.json](docs/standards/审查门槛.json), [stage 2](docs/standards/02-阶段2-自证正确.md), [stage 3](docs/standards/03-阶段3-接收信号.md), and [control/gate](control/gate/README.md).
+
+---
+
+## Capability modules
+
+The directories below are the paths that exist in the repository. [capabilities/README.md](capabilities/README.md) says these tools do not authenticate identity, do not grant permissions, and do not write an actual stage. [control/README.md](control/README.md) says real stages, policy-signing keys, the immutable ledger, and the reserved question bank are held by a separate controlled party. The control-plane index currently links only to `gate`. `loop_status` is a sibling directory, and CI job `loop-history-v2` runs its tests.
+
+| Directory | In one sentence |
+|---|---|
+| [capabilities/evidence_package](capabilities/evidence_package/README.md) | Read-only. Opens ordinary files in the manifest by directory descriptor and recomputes bytes and SHA-256. Exit 0 only proves the bytes read this time match the manifest. |
+| [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) | v1.3 recipient check before work starts: if the body recipient is not `--self`, exit 4, and do not execute or forward. `python3 capabilities/handoff_recipient/check.py --version` exits 0 and prints the version and this file's sha256 to stdout. |
+| [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) | If the body hits an undefined-convention phrase and does not contain exactly one explicit `约定定义：` JSON line, exit 3 and require a question back. Passing the lexicon is not authorization. |
+| [capabilities/review_readonly](capabilities/review_readonly/README.md) | Compare named files, or ordinary files under a `--tree` directory, before and after review. Delivery is allowed only when `verify` exits 0 and `delivery_allowed` is true. |
+| [control/gate](control/gate/README.md) | Folds a hash-chained event log into a deterministic state. Candidate stage tops out at 2, `effective_stage` is always null, and the result can be compared to a ledger byte for byte. |
+| [control/loop_status](control/loop_status/README.md) | C6 history-ratchet pure function: a key that was closed and then regresses or disappears keeps reporting regression. Exit 0 means no history regression was found. |
+
+### handoff_recipient v1.3 and the `--version` fingerprint
+
+`VERSION` in `capabilities/handoff_recipient/check.py` is `v1.3`. `--version` does not read a handoff. It reads this file's bytes, computes SHA-256, prints one stdout line `version digest`, and exits 0. The published fingerprint is registered under "已发布版本指纹" in [INSTALL.md](capabilities/handoff_recipient/INSTALL.md), and `capabilities/handoff_recipient/tests/test_published_fingerprint.py` locks it: the registered value, the `--version` stdout, and the file sha256 must match.
+
+On the current tree (main includes that registration; commit `84fbeb8dfd0cc669aaf73b17126b754474ba2437` introduced `--version`, and later registration commits did not change `check.py` again), these two commands agree:
+
+```bash
+python3 capabilities/handoff_recipient/check.py --version
+sha256sum capabilities/handoff_recipient/check.py
+```
+
+`--version` stdout is:
+
+```text
+v1.3 37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899
+```
+
+The `sha256sum` digest is the sha256 on that line. A copy on a host that does not print this line is not deployed, under the registration rule in INSTALL. The registration describes this file in the repository. It does not mean the file has been copied onto any bot host. The deployed copy in the training record is still v1 (PR #11, head `6da4715`). The full-text sha256 in that record is truncated, and the complete digest is not in this repository. v1.3 does not hot-update a deployed copy.
+
+---
+
+## Safety boundaries
+
+**Reserved criteria are not shown to the bot under review.** The mechanism exists: the standard entry says criteria, hidden challenges, and reference answers are not injected into the reviewed bot; the subject of review must not change the reserved bank; the roadmap places the reserved set in a separate controlled place. This README only says the mechanism exists. It does not write criteria, answers, or hidden questions. The public standard and [07](docs/standards/07-实测案例与反例索引.md) are operating text and a redacted index for trainers and reviewers.
+
+**Keys do not pass through the bot.** Policy-signing keys and the reserved question bank are held by a separate controlled party and must not enter a working agent's execution environment. The check scripts in this repository do not read keys. See [control/README.md](control/README.md), the [roadmap](docs/ROADMAP.md), and [launch gate E02](docs/standards/06-Dune与CI上线门禁.md). [AGENTS.md](AGENTS.md) says that file is a behavioral convention and does not yet provide operating-system isolation. So "keys do not pass through the bot" is a rule and a gate requirement in the repository. H1 write isolation is not recorded as an implemented hard boundary.
+
+**Outbound actions, deletion, and payment need a human approval.** Outbound actions, deletion, payment, and changes to stage, permissions, configuration, and merges follow the existing approval rules in [AGENTS.md](AGENTS.md). The stage 2 page says reaching that stage does not grant autonomy over outbound actions, deletion, payment, or configuration changes. Stage 4 says payment, sending private material out, arbitrary deletion, and production release cannot be inferred from that stage. A relayed approval is void.
+
+---
+
+## How to verify
+
+Python standard library only. The commands below check repository contracts and regressions. They do not certify any real bot, and they do not write an actual stage or permissions. When `scripts/check_repository.py` passes, it prints:
+
+```text
+PASS: repository structure and standard contracts; runtime trust review NOT_TESTED
+```
+
+That `NOT_TESTED` is fixed output from the script. It means runtime trust review is outside this check.
 
 ```bash
 python3 scripts/check_repository.py
+
+python3 -m unittest discover -s capabilities/evidence_package/tests -v
+python3 -m unittest discover -s capabilities/handoff_conventions/tests -v
 python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
+python3 -m unittest discover -s capabilities/review_readonly/tests -v
 python3 -m unittest discover -s control/gate/tests -v
+python3 -m unittest discover -s control/loop_status/tests -v
 ```
 
-Standard library only. These checks verify repository contracts and capability regressions; **they do not certify any real bot, and they never change actual stages or permissions.**
+Extra assertions, the same ones as [ci.yml](.github/workflows/ci.yml):
 
-## Honest disclosures
+```bash
+python3 capabilities/handoff_recipient/check.py --version
 
-- The stages and numeric thresholds are this project's own review standard. They are not internal standards of Lauren Tan, Grok, xAI, Cursor, Anthropic or OpenAI, and they are not results already achieved.
-- Claude and Codex currently push from the same GitHub account, so their reviews of each other are technical reviews, not platform-authenticated independent verification.
-- Training samples that have already been used are public in this repository; unused reserved challenges and criteria are kept only in private storage.
+python3 capabilities/handoff_recipient/check.py \
+  --self "Apo·内容" \
+  --aliases capabilities/handoff_recipient/fixtures/aliases.json \
+  capabilities/handoff_recipient/fixtures/r2-card-a.txt
+# expected exit code 4
+
+python3 control/gate/gate.py verify \
+  --config control/gate/example/config.json \
+  --events control/gate/example/events.jsonl \
+  --ledger control/gate/example/ledger.json
+# expected exit code 0
+
+tampered=$(mktemp)
+sed 's/"streak":3/"streak":4/' control/gate/example/ledger.json > "$tampered"
+python3 control/gate/gate.py verify \
+  --config control/gate/example/config.json \
+  --events control/gate/example/events.jsonl \
+  --ledger "$tampered"
+# expected exit code 1
+rm -f "$tampered"
+```
+
+The example ledger is a test fixture (`ledger_kind=test`), not any real bot's record. See [control/gate](control/gate/README.md).
+
+---
+
+## Current standing
+
+Only records that already exist in the repository are written here. Later code merges are not treated as stage changes when there is no newer review file.
+
+- **Stage.** The [2026-11-02 training progress](docs/reviews/2026-11-02-lightvela-training.md) and the [worker pilot](docs/reviews/2026-11-02-worker-stage2-pilot.md) say the recorded bots' `evidence_stage` and `effective_stage` are null, work is supervised in the stage-1 manner, and no streak has formed. Recipient check v1.2/v1.3, `review_readonly`, `loop_status`, and the fourth CI job were merged after that. The repository has no newer review record that changes those stages. This page does not change stages.
+- **Independent re-run.** `NOT_TESTED`: `independent_verification.status` in [evidence_package](capabilities/evidence_package/feature-map.json), [handoff_recipient](capabilities/handoff_recipient/feature-map.json), [handoff_conventions](capabilities/handoff_conventions/feature-map.json), and [control/gate](control/gate/feature-map.json). [review_readonly](capabilities/review_readonly/feature-map.json) has both `runtime_bot_integration` and `independent_acceptance` as `NOT_TESTED`. [handoff_conventions](capabilities/handoff_conventions/feature-map.json) also records `remote_capability_tests: NOT_TESTED` and `deployment: NOT_DEPLOYED`. [loop_status](control/loop_status/README.md) says independent review is still to be done, and the red-failure evidence on the old detector is `NOT_TESTED` and cannot be replaced by the new tests.
+- **Identity and isolation.** Platform sender authentication (C4) is not done. H1/H2 write isolation is not recorded as implemented. Recipient-check enforcement in the training record is `text_only`. The same account does not prove independence; see [CODEOWNERS](.github/CODEOWNERS) and the training record.
+- **Deployed copy and release bundle.** The recipient check on the host is recorded as v1, not v1.3 on this tree. [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) comes from main `e3f532a12a5a5219af451471d2452444bc178f79`. Its recipient check is v1.1, and it does not contain the current `review_readonly` or `loop_status`.
+- **Ruleset read.** In the 2026-11-04 read-only query, all four CI jobs are required status checks on ruleset `main`. See above.
+- **Pre-review convention.** See [docs/pr-prereview.md](docs/pr-prereview.md) (Chinese). That file records the trigger, the tools, the speaking identity, and the three conclusions. It is not an export from the Cursor automation configuration API. [README.md](README.md) has the same structure as this page.
+- **Pending confirmation.** Whether "Chief Engineer" and "主人" are the same party. Whether a procedure named "practice card" exists as a separate file this repository does not contain. The classic branch-protection endpoint returned 403 this time; whether it holds another set of required checks is above.
+- **Historical collaboration diagram.** [docs/assets/collaboration.svg](docs/assets/collaboration.svg) is a diagram from around 2026-11-02. Names in the figure are text labels only. The [release notes](dist/v0.1.0/RELEASE-NOTES.md) say this project is not affiliated with or endorsed by xAI, Anthropic, or OpenAI.
+
+[submissions/](submissions/README.md) holds only a redacted candidate index. It is not a credit ledger. Collaboration rules are in [AGENTS.md](AGENTS.md). Unfinished engineering items are on the [roadmap](docs/ROADMAP.md).
