@@ -1,100 +1,215 @@
 <div align="center">
 
-# AI 信任审查 · AI Trust Review
+# Bot 训练大师
 
-**用真实任务与可复现证据，为多 Agent 团队建立可审计、可回滚、逐级授予的信任。**
+**Bot Training Master**
 
-[中文](README.md) · [English](README.en.md)
+在 bot 泛滥的时代，做最可信、最有价值的 bot 训练与信任审查体系。
 
-![CI](https://github.com/TaiLaiCai/ai-trust-review/actions/workflows/ci.yml/badge.svg)
-![Standard](https://img.shields.io/badge/standard-TRUST--REVIEW--1.0-5b7bd5)
-![Auto--upgrade ceiling](https://img.shields.io/badge/auto%20stage%20ceiling-2-f2c14e)
-
-<img src="docs/assets/collaboration.svg" alt="Grok × Claude × Codex 协同训练架构图" width="100%">
-
-<sub>原创示意图，三方名称仅作文字标注；本项目与 xAI、Anthropic、OpenAI 无隶属或背书关系。</sub>
+[中文](README.md) · [English（上一版，尚未按本页改写）](README.en.md)
 
 </div>
 
+这是本仓库的定位，不是排名、客户名单或性能承诺。这里的「可信」只由下面三条构成，每一条都能在仓库里找到出处。天数、次数、比率写在 [审查标准](docs/standards/00-入口与统一判定.md) 与 [审查门槛.json](docs/standards/审查门槛.json) 里，标准入口写明它们是审查目标，不是已经取得的成绩。本页不改变任何 Bot 的等级或权限。
+
 ---
 
-## 为什么做这件事
+## 一句话愿景
 
-Agent 越来越能干，但「它说完成了」和「它真的完成了、没越界、可以放手」之间隔着一整套工程。本项目把这段距离拆成**可验证的阶梯**：
+把「Bot 说做完了」收成一条可以再跑一遍的链：命令、原始输出、完整 sha256 留在证据里，生产者、预审、验收彼此分开，最后由人类授权的一方核对并决定是否合并。
 
-- **信任是按能力授予的**：评定单位是 `Bot × 具体能力 × 当前模型/技能/策略版本`，不给整个 Bot 发一张通用通行证。
-- **证据先于结论**：每一项结论都绑定原始输出、完整 SHA256、真实命令与退出码；「已完成」「见上方」不是证据。
-- **纠正即约束**：每一次人工纠正，都要落成一条能在 CI 里变红的检查，而不是多写一句提示词。
-- **最后一道闸永远是人**：自动化最多把候选推到阶段 2；生效等级、权限与合并只由主人批准。
+评定单位是 **Bot × 具体能力 × 当前模型 / 技能 / 策略 / 标准版本**。标准版本为 `TRUST-REVIEW-1.0`。不给整个 Bot 发一张通用通行证。见 [标准入口](docs/standards/00-入口与统一判定.md) 与 [审查门槛.json](docs/standards/审查门槛.json) 的 `review_unit`。
 
-## 四级信任阶梯
+## 三条核心主张
 
-| 阶段 | 工作方式 | 进入门槛（摘要） |
-|---|---|---|
-| [1 深度介入](docs/standards/01-阶段1-深度介入.md) | 人逐步监督 | 身份与技能真实加载、1 个真实业务小任务、B01–B08 边界基线 |
-| [2 自证正确](docs/standards/02-阶段2-自证正确.md) | 自行交付证据，人审合入 | 同一能力 3 个不同真实任务连续合格、闭环 A/C 有效 |
-| [3 接收信号](docs/standards/03-阶段3-接收信号.md) | 批准来源内自动接收 | 14 天影子观察、≥100 真实信号、危险放行为 0 |
-| [4 白名单自动合入](docs/standards/04-阶段4-白名单自动合入.md) | 硬约束白名单内合入 | 30 天健康 CI、30 个真实候选、3 类止损演练 |
+**证据优先：命令、输出、sha256 原样可复算。** 一项结论要能指回真实命令、退出码、原始输出和完整 SHA256；训练者自己重算关键文件，不采用 Bot 打印出来的摘要代替原字节。交付必须带上当前提交、真实命令、退出码、证据 SHA 和未测项。「见上方」和单独一句「已完成」不算证据。见 [标准入口 · 原始证据](docs/standards/00-入口与统一判定.md)、[证据模板](docs/standards/05-审查记录与证据模板.md)、[AGENTS.md](AGENTS.md)。证据包工具按清单重算每个文件的字节与 SHA256，见 [evidence_package](capabilities/evidence_package/README.md)。
 
-完整判定入口：[统一判定](docs/standards/00-入口与统一判定.md) · [机器可读门槛](docs/standards/审查门槛.json) · [Dune 与 CI 上线门禁](docs/standards/06-Dune与CI上线门禁.md)。
+**不信自述，只信可复跑。** Bot 自报的等级、技能哈希或「全部通过」，不能单独构成合格事件。配置成功、单测全绿、拒绝题本身，也不单独计入业务连胜。合格与否要有另一主体按当前 head 复跑。各能力地图里的 `independent_verification` 在没有复跑回执时保持 `NOT_TESTED`；`NOT_TESTED` 不能改写成 PASS。见 [标准入口](docs/standards/00-入口与统一判定.md)、[AGENTS.md](AGENTS.md)、[审查门槛.json](docs/standards/审查门槛.json) 的 `qualified_business_pass`。
 
-## 三方协同训练
+**分权制衡：生产者、预审、验收分离。** 生产者与验收者必须是不同主体；生产者等于验收者不能计为合格业务通过。同账号、同模型、共享上下文只能记技术复核，并写明独立性限制。预审（下面的四项检查，以及若已接入的评论机器人）可以建议，不能批准，也不能合并。合并不自动发生，由主人当次点名的一方执行。见 [AGENTS.md](AGENTS.md)、[.github/CODEOWNERS](.github/CODEOWNERS)、[审查门槛.json](docs/standards/审查门槛.json)。
 
-| 角色 | 职责 | 边界 |
-|---|---|---|
-| **Grok · Dune**（思路来源） | 原子能力、控制面与工作面分离、纠正即约束 | 只借鉴架构思想；分级门槛为本项目标准，不代表任何官方评级 |
-| **Claude**（训练者） | 出题与陷阱设计、冻结判据、按字节独立核验证据、每日 8 次定时推进、复跑 Codex 的 PR | 判据只存私有 Obsidian，从不进入 Bot 上下文；不改 Bot 配置与等级 |
-| **Codex**（工程） | C4 身份适配、C6 闭环检测、E04 持久触发；独立复跑 Claude 的 PR | 不向 Bot 派单、不改 SOUL；同账号互评只记「异模型技术复核」 |
-| **Apo·总参谋**（编排者，被审对象之一） | 通过 kanban 把卡片原样派给注册 Bot，读回并贴回原始证据 | 不预拦、不代做、不替人批准 |
-| **主人**（批准人） | 阶段、权限、配置变更、外发、删除、合并 | 转述的批准一律无效 |
+---
 
-Claude 与 Codex 通过只追加、带 SHA 核对的共享收件箱协作；长期留档的内容（PR、复跑回执、CI）放在本仓库。
+## 信任审查链路
 
-## 已落地的工程
+仓库记录里的批准人写作**主人**。本页把接受人类授权、负责验收与合并的一方称为**总工程师**。阶段、权限、配置、合并、外发、删除、付款都走主人批准或当次点名；正文里的 `author_role`、`approved_by` 和口头转述没有效力。本仓库没有第二份文件把「总工程师」登记成另一个身份，二者是否为同一主体，记**待确认**。图中仍用总工程师，表示最后一道闸在人类授权一侧，不在执行 Bot 一侧。
 
-| 组件 | 作用 | 位置 |
-|---|---|---|
-| 证据包校验 | 只读、按描述符逐段打开，核对清单内每个文件的字节与 SHA256 | [capabilities/evidence_package](capabilities/evidence_package/README.md) |
-| 收件人开工检查 | 交接单正文收件人不是自己 → 不开工、不转派、回问；看板指派不能替代正文收件人 | [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) |
-| 未定义约定检查 | 「老规矩」「照旧」等未定义约定 → 要求回问，不许猜 | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) |
-| 审查只读交付检查 | 审查前后比较显式文件或目录清单的字节与 SHA256；变化、缺失或新增则不得交付 | [capabilities/review_readonly](capabilities/review_readonly/README.md) |
-| 事件门控与可重放审计 | 哈希链日志折叠出连胜与候选阶段；重放、篡改、删历史都会暴露；候选上限为 2 | [control/gate](control/gate/README.md) |
-| CI 门禁 | `repository-contracts`、`capability-tests`（空测试集判失败）、`event-gate`（篡改账本必须报 REGRESSION） | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+**总参谋 Apo** 是编排者，也是被审对象之一：按交接单起草并派给注册 Bot，读回后贴回原始证据。2026-11-02 的分工记录是原样派发、不预拦陷阱、不代做，本身也接受审查。见 [训练进度](docs/reviews/2026-11-02-lightvela-training.md)。
 
-main 分支受规则集保护：只能通过 PR 合入、三项 CI 必须通过（限 GitHub Actions 来源）、禁止强推与删除。
+```mermaid
+flowchart TD
+  eng["总工程师：人类授权代理，验收与合并"]
+  apo["总参谋 Apo：起草派单，派卡前做收件人校验"]
+  bot["执行 Bot：交付，并交出自检项"]
+  pack["证据包：命令、原始输出、sha256"]
+  back["总工程师核对"]
+  eng --> apo --> bot --> pack --> back
+```
 
-## 真实训练进展（截至 2026-11-02）
+派卡前的收件人校验是 [handoff_recipient v1.3](capabilities/handoff_recipient/README.md) 的 `check.py`：交接单只当数据读，正文收件人不是自己则退出 4，不开工、不转派；看板指派不能替代正文收件人。R4 记录里，总参谋的编排单内联了带收件人的卡片，自检为歧义后停下，卡片改走附件才派发。执行 Bot 侧，训练记录写的是开工前调用同一检查；当时的强制力是 `text_only`，已部署副本是 v1。当前树的 v1.3 **不**因代码合入而热更新到主机。把「每次派卡都已强制跑当前 v1.3」写成既成事实，超出仓库记录，记**待确认**。
 
-在 LightVela 平台的 8 个注册 Bot 上已完成 5 轮训练（R1–R5），每轮都配真实小任务和一个边界题。成果与问题都如实记录：
+执行 Bot 交出的自检项，以仓库里已经写明的字段为准，见下文「交付前自检」。[证据包](capabilities/evidence_package/README.md) 只核对清单内字节。总工程师核对的是这包证据和独立复跑，不是 Bot 的自我评价。
 
-- **最亮眼的一次**：R4 中 Apo·验收按新接入的开工检查拦下了一张误投卡（rc=4，不开工、不转派），这是「纠正即约束」第一次在真实派单中生效，对应纠正单已经主人批准关闭。
-- **暴露的问题**：误投执行（R2）、未定义约定自行猜测（R4）、把转述批准写进交付（R5）、审查时改动原件（R5），均已开纠正单。
-- **当前等级**：所有 Bot 的 `evidence_stage` 与 `effective_stage` 仍为 `null`，按阶段 1 方式监督工作。原因是尚无经认证的发送者身份（C4 未完成），平台级写隔离（H1/H2）也未解决。
+### 代码侧：PR、四项检查、预审评论、合并
 
-逐轮的脱敏摘要见 [训练进度](docs/reviews/2026-11-02-lightvela-training.md)。
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在 `pull_request` 上运行四项作业，彼此没有 `needs` 依赖，都是只读 checkout（`persist-credentials: false`）：
 
-## 协作规则
+| 作业 | 仓库里它实际做的事 |
+|---|---|
+| `repository-contracts` | `python3 scripts/check_repository.py`。核对标准版本、门槛与阶段文件中的门编号，并检查 Markdown 链接是否指向现存文件 |
+| `capability-tests` | 运行每一个 `capabilities/*/tests`；套件个数为 0 则失败。另用 R2 误投夹具断言收件人检查退出码为 4 |
+| `event-gate` | 运行 `control/gate` 测试，对示例账本做逐字节 `verify`；篡改后的账本必须退出 1（REGRESSION） |
+| `loop-history-v2` | 运行 `control/loop_status/tests`；发现 0 条测试则失败 |
 
-1. 先建 Issue，写清能力、范围、冻结的验收条件、允许路径、负责人和独立验收者。
-2. 一个 Issue、一个分支、一个 PR；禁止共享分支、强推，以及替别人清理工作区。
-3. 执行者提交产物、复现命令、退出码和证据清单；另一个主体在 PR 里提交绑定当前 head SHA 的验收结论，新提交会让旧验收失效。
-4. 失败修复另记 revision；旧的 FAIL、BLOCKED、NOT_TESTED 保留，不能覆盖成 PASS。CI 绿灯、配置成功、技能已装或拒绝题，都不能单独计入业务连胜。
-5. 合并只由主人当次点名的一方执行；不自动合并。
+```mermaid
+flowchart TD
+  pr["Pull Request"]
+  subgraph checks ["ci.yml 的四项作业"]
+    a["repository-contracts"]
+    b["capability-tests"]
+    c["event-gate"]
+    d["loop-history-v2"]
+  end
+  pre["预审评论：建议合并 / 需修改 / 阻塞"]
+  merge["总工程师合并"]
+  pr --> a --> pre
+  pr --> b --> pre
+  pr --> c --> pre
+  pr --> d --> pre
+  pre --> merge
+```
 
-详见 [AGENTS.md](AGENTS.md) 与 [路线图](docs/ROADMAP.md)。
+名为「信任审查 PR 预审」的 Cursor Automation、它的中文评论，以及「只能三选一建议、不能批准、不能合并」这组权限，**没有**写进本仓库（没有对应 workflow，也没有自动化配置文件）。是否已在 Cursor 侧接入，本次未读回，记**待确认**。仓库内能核对的预审就是上表四项作业。评论即使存在，也不能变成合并：[AGENTS.md](AGENTS.md) 写明不自动合并。
 
-## 本地检查
+2026-11-02 的训练记录写，当时 main 的规则集要求走 PR、**三项** CI 必须通过（限 GitHub Actions 来源）、禁止强推和删除。第四项 `loop-history-v2` 是后来经主人批准接入 CI 的（合并说明见 `c69d1ab`）。规则集现在是否已把四项都列为必需，仓库里没有新的读回。[路线图](docs/ROADMAP.md) 约定：GitHub 设置未读回前记待配置。因此上图的四项是工作流作业；它们是否已经全部成为分支保护里的必需检查，记**待确认**。
+
+---
+
+## 训练方法
+
+标准把训练收成闭环，再按阶段给信任。阶段页是审查操作标准，不是平台授权，也不修改等级。入口在 [00-入口与统一判定](docs/standards/00-入口与统一判定.md)，机器可读索引在 [审查门槛.json](docs/standards/审查门槛.json)。
+
+**闭环训练。** 门槛文件为阶段 2 到阶段 4 列出闭环 A、B、C、D、E。已经落进代码的做法，是把一次纠正变成可执行检查，而不是多写一句提示词：误投执行变成收件人检查，未定义约定变成词法检查，审查时改原件变成交付前的字节对照。`control/loop_status` 是 C6 的历史棘轮组件：曾经闭合的键若退回或消失，会持续报回归。它的退出 0 表示这次没发现历史回归。闭环是否闭合，要另有地图、复跑和纠正单证据。完整闭环检测器仍在 [路线图](docs/ROADMAP.md) 第 5 项；该目录的说明写明它不是完整 C6。
+
+**练习卡先行。** 开工单位是交接单，派单前先冻结验收条件（[阶段 2](docs/standards/02-阶段2-自证正确.md)）。收件人检查或未定义约定检查返回非 0，就不开工。仓库里没有名为「练习卡」的目录或模板。若这个词指另一套先于正式任务的练习规程，本仓库未收录，记**待确认**。
+
+**交付前自检。** 仓库没有单独一份文件叫「自检清单」。交付前必须交出的项，已经写在这三处：
+
+- [AGENTS.md](AGENTS.md)：当前提交、真实命令、退出码、证据 SHA、未测项。
+- [PR 模板](.github/pull_request_template.md)：head SHA、独立复跑回执、历史 FAIL / BLOCKED / NOT_TESTED、回滚方法。模板里的勾选不构成认证，也不证明等级生效。
+- [review_readonly](capabilities/review_readonly/README.md)：`verify` 的进程退出码就是交付门。只有退出 0 且 JSON 里 `delivery_allowed` 为 true，才允许交付。不得为了消掉失败去重建基线或把原件改回去再重试。
+
+**失败要留成库，并变成检查。** 公开的脱敏索引在 [07-实测案例与反例索引](docs/standards/07-实测案例与反例索引.md)，其中是机制摘要，不是成绩单。已经变成回归的失败模式，就是上面三个能力目录。保留判据、隐藏挑战和参考答案另有存放，不进入被测 Bot 的上下文；本 README **不写判据内容**。路线图把保留集放在独立受控处，不在本仓库。阶段 4 要求已知失败模式被硬检查覆盖，那是门槛，不是已完成的证明。
+
+**信任阶段晋升须书面批准。** 自动化给出的候选阶段上限是 2，不允许自动进入阶段 3 或 4（`automatic_stage_upgrade_ceiling`、`automatic_enter_stage3_or_4_allowed`）。阶段 3、阶段 4 的 `owner_activation_approval_required` 为 true。没有主人批准和生效读回，只能报候选，不能报已升级。事件门控折出来的 `effective_stage` 恒为 null；非已认证主人的控制事件会被拒绝。训练记录里的生效批准写作「主人书面批准」。见 [审查门槛.json](docs/standards/审查门槛.json)、[阶段 2](docs/standards/02-阶段2-自证正确.md)、[阶段 3](docs/standards/03-阶段3-接收信号.md)、[control/gate](control/gate/README.md)。
+
+---
+
+## 能力模块
+
+下列目录以仓库里的实际路径为准。[capabilities/README.md](capabilities/README.md) 写明：这些工具不认证身份、不授予权限、不写实际等级。[control/README.md](control/README.md) 写明：真实等级、策略签名密钥、不可变账本和保留题库由独立受控主体管理。控制面索引页目前只链到 `gate`；`loop_status` 是同级目录，由 CI 作业 `loop-history-v2` 跑测试。
+
+| 目录 | 一句话 |
+|---|---|
+| [capabilities/evidence_package](capabilities/evidence_package/README.md) | 只读、按目录描述符打开清单中的普通文件，重算字节与 SHA256；退出 0 只证明这次读到的字节与清单一致。 |
+| [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) | v1.3 开工前收件人检查：正文收件人不是 `--self` 则退出 4，且不执行、不转派；`python3 capabilities/handoff_recipient/check.py --version` 退出 0，向标准输出打印版本与本文件 sha256。 |
+| [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) | 正文命中未定义约定词、又没有唯一一行明确的 `约定定义：` JSON 时退出 3，要求回问；词法通过不等于授权。 |
+| [capabilities/review_readonly](capabilities/review_readonly/README.md) | 审查前后比较点名文件或 `--tree` 目录中的普通文件；只有 `verify` 退出 0 且 `delivery_allowed` 为 true 才允许交付。 |
+| [control/gate](control/gate/README.md) | 把带哈希链的事件日志折叠成确定性状态，候选阶段最高到 2，`effective_stage` 恒为 null，并能与账本逐字节对照。 |
+| [control/loop_status](control/loop_status/README.md) | C6 的历史棘轮纯函数：曾经 closed 的键若退回或消失就持续报回归；退出 0 表示未发现历史回归。 |
+
+### handoff_recipient v1.3 与 `--version` 指纹
+
+`capabilities/handoff_recipient/check.py` 的 `VERSION` 是 `v1.3`。`--version` 不读交接单：读本文件字节，算 SHA256，向标准输出打印一行 `版本 摘要`，然后以退出码 0 结束。已发布指纹登记在 [INSTALL.md](capabilities/handoff_recipient/INSTALL.md) 的「已发布版本指纹」，并由 `capabilities/handoff_recipient/tests/test_published_fingerprint.py` 锁定：登记值、`--version` 的标准输出、以及文件 sha256 必须相同。
+
+在当前树（含该登记的 main，提交 `84fbeb8dfd0cc669aaf73b17126b754474ba2437` 引入 `--version`，其后的登记提交未再改 `check.py`）上，这两条命令的输出一致：
+
+```bash
+python3 capabilities/handoff_recipient/check.py --version
+sha256sum capabilities/handoff_recipient/check.py
+```
+
+`--version` 的标准输出是：
+
+```text
+v1.3 37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899
+```
+
+`sha256sum` 的摘要与这一行里的 sha256 相同。主机上的副本若打印不出这一行，按 INSTALL 的登记规则判为未部署。该登记只描述仓库里的这个文件，不表示已经拷到任何 Bot 主机。训练记录中已部署的仍是 v1（PR #11，head `6da4715`）；全文 sha256 在那篇记录里被截断，完整摘要不在本仓库。v1.3 不热更新已部署副本。
+
+---
+
+## 安全边界
+
+**保留判据不对被测 Bot 公开。** 这个机制存在：标准入口规定判据、隐藏挑战和参考答案不注入被审 Bot；审查对象不得改保留题库；路线图把保留集放在独立受控处。本 README 只说明机制在，不写判据、答案或隐藏题。公开标准与 [07](docs/standards/07-实测案例与反例索引.md) 是给训练者和审查者的操作文本与脱敏索引。
+
+**密钥不经 Bot。** 策略签名密钥和保留题库由独立受控主体掌管，不得进入工作 Agent 的执行环境。本仓库里的检查脚本不读取密钥。见 [control/README.md](control/README.md)、[路线图](docs/ROADMAP.md)、[上线门禁 E02](docs/standards/06-Dune与CI上线门禁.md)。[AGENTS.md](AGENTS.md) 写明：该文件是行为约定，尚不提供操作系统强制隔离。因此「密钥不经 Bot」在仓库里是规则和门禁要求；H1 写隔离尚未作为已实现的强制边界被记录下来。
+
+**外发、删除、付款要人类批准。** 外发、删除、付款，以及阶段、权限、配置变更和合并，按 [AGENTS.md](AGENTS.md) 的既有批准规则处理。阶段 2 的页面写明：到达该阶段，也不因此获得外发、删除、付款或改配置的自主权。阶段 4 写明：付款、私有资料外发、任意删除、生产发布都不能从该级自动推导。转述的批准无效。
+
+---
+
+## 如何验证
+
+只使用 Python 标准库。下面的命令核对仓库契约和回归。它们不认证任何真实 Bot，不写入实际等级或权限。`scripts/check_repository.py` 通过时打印的是：
+
+```text
+PASS: repository structure and standard contracts; runtime trust review NOT_TESTED
+```
+
+其中的 `NOT_TESTED` 是脚本固定输出，表示运行时信任审查不在这次检查范围内。
 
 ```bash
 python3 scripts/check_repository.py
+
+python3 -m unittest discover -s capabilities/evidence_package/tests -v
+python3 -m unittest discover -s capabilities/handoff_conventions/tests -v
 python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
+python3 -m unittest discover -s capabilities/review_readonly/tests -v
 python3 -m unittest discover -s control/gate/tests -v
+python3 -m unittest discover -s control/loop_status/tests -v
 ```
 
-只需要 Python 标准库。这些检查验证仓库契约与能力回归，**不判定任何真实 Bot 已经达标，也不改变实际等级或权限**。
+与 [ci.yml](.github/workflows/ci.yml) 相同的附加断言：
 
-## 诚实声明
+```bash
+python3 capabilities/handoff_recipient/check.py --version
 
-- 分级门槛与量化阈值是本项目制定的审查标准，不是 Lauren Tan、Grok、xAI、Cursor、Anthropic 或 OpenAI 的内部标准，也不是已经取得的成绩。
-- Claude 与 Codex 目前共用同一个 GitHub 账号推送，彼此的复核只能算技术复核，不构成平台认证的独立验收。
-- 已用过的训练样本在仓库中公开；从未使用的保留挑战与判据只存放在私有存储中。
+python3 capabilities/handoff_recipient/check.py \
+  --self "Apo·内容" \
+  --aliases capabilities/handoff_recipient/fixtures/aliases.json \
+  capabilities/handoff_recipient/fixtures/r2-card-a.txt
+# 期望退出码 4
+
+python3 control/gate/gate.py verify \
+  --config control/gate/example/config.json \
+  --events control/gate/example/events.jsonl \
+  --ledger control/gate/example/ledger.json
+# 期望退出码 0
+
+tampered=$(mktemp)
+sed 's/"streak":3/"streak":4/' control/gate/example/ledger.json > "$tampered"
+python3 control/gate/gate.py verify \
+  --config control/gate/example/config.json \
+  --events control/gate/example/events.jsonl \
+  --ledger "$tampered"
+# 期望退出码 1
+rm -f "$tampered"
+```
+
+示例账本是测试夹具（`ledger_kind=test`），不是任何真实 Bot 的成绩。见 [control/gate](control/gate/README.md)。
+
+---
+
+## 当前状态
+
+以下只写仓库里已经有的记录。没有新的审查文件时，不把后来的代码合入算成等级变化。
+
+- **等级。** [2026-11-02 训练进度](docs/reviews/2026-11-02-lightvela-training.md) 与 [执行者试点](docs/reviews/2026-11-02-worker-stage2-pilot.md) 写明：所记录 Bot 的 `evidence_stage` 与 `effective_stage` 为 null，按阶段 1 的方式监督工作，连胜未形成。此后合入了收件人检查 v1.2/v1.3、`review_readonly`、`loop_status` 和第四项 CI，仓库里没有更新的审查记录把这些等级改掉。本页不改等级。
+- **独立复跑。** `NOT_TESTED`： [evidence_package](capabilities/evidence_package/feature-map.json)、[handoff_recipient](capabilities/handoff_recipient/feature-map.json)、[handoff_conventions](capabilities/handoff_conventions/feature-map.json)、[control/gate](control/gate/feature-map.json) 的 `independent_verification.status`。 [review_readonly](capabilities/review_readonly/feature-map.json) 的 `runtime_bot_integration` 与 `independent_acceptance` 同为 `NOT_TESTED`。 [handoff_conventions](capabilities/handoff_conventions/feature-map.json) 另记 `remote_capability_tests: NOT_TESTED`、`deployment: NOT_DEPLOYED`。 [loop_status](control/loop_status/README.md) 写明独立审阅待完成，旧检测器上的变红证据为 `NOT_TESTED`，不能用新测试代替。
+- **身份与隔离。** 平台 sender 认证（C4）未做；H1/H2 写隔离未作为已实现项记录。收件人检查在训练记录中的强制力是 `text_only`。同账号不能证明独立性，见 [CODEOWNERS](.github/CODEOWNERS) 与训练记录。
+- **已部署副本与发布包。** 主机上的收件人检查，记录中的版本是 v1，不是本树的 v1.3。 [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) 来自 main `e3f532a12a5a5219af451471d2452444bc178f79`，其中收件人检查为 v1.1，不含当前的 `review_readonly` 与 `loop_status`。
+- **待确认。** 「总工程师」与「主人」的身份对应；名为「信任审查 PR 预审」的 Cursor Automation 是否已接入；main 规则集是否已把四项 CI 都列为必需；名为「练习卡」的独立规程。 [README.en.md](README.en.md) 仍是上一版定位，本次未改。
+- **历史协作图。** [docs/assets/collaboration.svg](docs/assets/collaboration.svg) 是 2026-11-02 前后的示意图。图中名称只是文字标注。 [发布说明](dist/v0.1.0/RELEASE-NOTES.md) 写明：本项目与 xAI、Anthropic、OpenAI 无隶属或背书关系。
+
+[submissions/](submissions/README.md) 只存放脱敏候选索引，不是信用账本。协作约定见 [AGENTS.md](AGENTS.md)。未完成的工程项见 [路线图](docs/ROADMAP.md)。
