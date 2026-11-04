@@ -97,7 +97,7 @@ Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.
 
 **闭环训练。** 门槛文件为阶段 2 到阶段 4 列出闭环 A、B、C、D、E。已经落进代码的做法，是把一次纠正变成可执行检查，而不是多写一句提示词：误投执行变成收件人检查，未定义约定变成词法检查，审查时改原件变成交付前的字节对照。`control/loop_status` 是 C6 的历史棘轮组件：曾经闭合的键若退回或消失，会持续报回归。它的退出 0 表示这次没发现历史回归。闭环是否闭合，要另有地图、复跑和纠正单证据。完整闭环检测器仍在 [路线图](docs/ROADMAP.md) 第 5 项；该目录的说明写明它不是完整 C6。
 
-**练习卡先行。** 开工单位是交接单，派单前先冻结验收条件（[阶段 2](docs/standards/02-阶段2-自证正确.md)）。收件人检查或未定义约定检查返回非 0，就不开工。仓库里没有名为「练习卡」的目录或模板。若这个词指另一套先于正式任务的练习规程，本仓库未收录，记**待确认**。
+**练习卡先行。** 开工单位是交接单，派单前先冻结验收条件（[阶段 2](docs/standards/02-阶段2-自证正确.md)）。收件人检查或未定义约定检查返回非 0，就不开工。空白练习卡在 [docs/practice-card-template.md](docs/practice-card-template.md)，必填目标、输入、只含公开项的验收项、轮次预算、文件上限、完整上下文和回执格式。回执要贴完整命令和完整输出。这张卡按公开字段写在本仓库里，验收项不收保留判据。
 
 **交付前自检。** 仓库没有单独一份文件叫「自检清单」。交付前必须交出的项，已经写在这三处：
 
@@ -105,9 +105,21 @@ Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.
 - [PR 模板](.github/pull_request_template.md)：head SHA、独立复跑回执、历史 FAIL / BLOCKED / NOT_TESTED、回滚方法。模板里的勾选不构成认证，也不证明等级生效。
 - [review_readonly](capabilities/review_readonly/README.md)：`verify` 的进程退出码就是交付门。只有退出 0 且 JSON 里 `delivery_allowed` 为 true，才允许交付。不得为了消掉失败去重建基线或把原件改回去再重试。
 
+按公开原则列出的自检项见 [docs/self-check-principles.md](docs/self-check-principles.md)。交付时仍要交出上面三处已经写明的字段。
+
 **失败要留成库，并变成检查。** 公开的脱敏索引在 [07-实测案例与反例索引](docs/standards/07-实测案例与反例索引.md)，其中是机制摘要，不是成绩单。已经变成回归的失败模式，就是上面三个能力目录。保留判据、隐藏挑战和参考答案另有存放，不进入被测 Bot 的上下文；本 README **不写判据内容**。路线图把保留集放在独立受控处，不在本仓库。阶段 4 要求已知失败模式被硬检查覆盖，那是门槛，不是已完成的证明。
 
 **信任阶段晋升须书面批准。** 自动化给出的候选阶段上限是 2，不允许自动进入阶段 3 或 4（`automatic_stage_upgrade_ceiling`、`automatic_enter_stage3_or_4_allowed`）。阶段 3、阶段 4 的 `owner_activation_approval_required` 为 true。没有主人批准和生效读回，只能报候选，不能报已升级。事件门控折出来的 `effective_stage` 恒为 null；非已认证主人的控制事件会被拒绝。训练记录里的生效批准写作「主人书面批准」。见 [审查门槛.json](docs/standards/审查门槛.json)、[阶段 2](docs/standards/02-阶段2-自证正确.md)、[阶段 3](docs/standards/03-阶段3-接收信号.md)、[control/gate](control/gate/README.md)。
+
+---
+
+## 方法来源
+
+下面三份是公开方法。写进本仓库时用自己的话复述，并链回原文。保留判据不公开，不写进这些文件。
+
+- 预审评论的写法在 [docs/review-verdict-format.md](docs/review-verdict-format.md)。三档「建议合并 / 需修改 / 阻塞」与上游 PASS / CONTESTED / REJECT 一一对应。原文是 [verdict-format.md](https://github.com/poteto/noodle/blob/main/.agents/skills/adversarial-review/references/verdict-format.md)。[poteto/noodle](https://github.com/poteto/noodle) 的许可证是 MIT，版权声明是 Copyright (c) 2026 Lauren Tan，原文在 [LICENSE](https://github.com/poteto/noodle/blob/main/LICENSE)。
+- 练习卡模板在 [docs/practice-card-template.md](docs/practice-card-template.md)。其中的轮次预算和文件上限来自 [cost-aware-delegation.md](https://github.com/poteto/brainmaxxing/blob/main/brain/principles/cost-aware-delegation.md)。
+- 自检项在 [docs/self-check-principles.md](docs/self-check-principles.md)，分别对应 prove-it-works、fix-root-causes、encode-lessons-in-structure、subtract-before-you-add、cost-aware-delegation。原则目录是 [brain/principles](https://github.com/poteto/brainmaxxing/tree/main/brain/principles)。[poteto/brainmaxxing](https://github.com/poteto/brainmaxxing) 的许可证同样是 MIT，版权声明是 Copyright (c) 2026 Lauren Tan，原文在 [LICENSE](https://github.com/poteto/brainmaxxing/blob/main/LICENSE)。
 
 ---
 
@@ -174,6 +186,7 @@ python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
 python3 -m unittest discover -s capabilities/review_readonly/tests -v
 python3 -m unittest discover -s control/gate/tests -v
 python3 -m unittest discover -s control/loop_status/tests -v
+python3 -m unittest discover -s scripts/tests -v
 ```
 
 与 [ci.yml](.github/workflows/ci.yml) 相同的附加断言：
@@ -216,8 +229,8 @@ rm -f "$tampered"
 - **身份与隔离。** 平台 sender 认证（C4）未做；H1/H2 写隔离未作为已实现项记录。收件人检查在训练记录中的强制力是 `text_only`。同账号不能证明独立性，见 [CODEOWNERS](.github/CODEOWNERS) 与训练记录。
 - **已部署副本与发布包。** 主机上的收件人检查，记录中的版本是 v1，不是本树的 v1.3。 [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) 来自 main `e3f532a12a5a5219af451471d2452444bc178f79`，其中收件人检查为 v1.1，不含当前的 `review_readonly` 与 `loop_status`。
 - **规则集读回。** 2026-11-04 的只读查询里，四项 CI 都是规则集 `main` 的必需状态检查，见上文。
-- **预审约定。** 见 [docs/pr-prereview.md](docs/pr-prereview.md)。该文件记载触发、工具、发言身份和三档结论；它不是从 Cursor 自动化配置接口导出的原文。[README.en.md](README.en.md) 与本页结构一致。
-- **待确认。** 「总工程师」与「主人」是否为同一主体；名为「练习卡」的独立规程是否另有一份本仓库未收录的文件。经典分支保护端点本次返回 403，是否另有必需检查见上文。
+- **预审约定。** 见 [docs/pr-prereview.md](docs/pr-prereview.md)。该文件记载触发、工具、发言身份和三档结论；它不是从 Cursor 自动化配置接口导出的原文。评论字段和机器可读裁决行见 [docs/review-verdict-format.md](docs/review-verdict-format.md)。[README.en.md](README.en.md) 与本页结构一致。
+- **待确认。** 「总工程师」与「主人」是否为同一主体。经典分支保护端点本次返回 403，是否另有必需检查见上文。
 - **历史协作图。** [docs/assets/collaboration.svg](docs/assets/collaboration.svg) 是 2026-11-02 前后的示意图。图中名称只是文字标注。 [发布说明](dist/v0.1.0/RELEASE-NOTES.md) 写明：本项目与 xAI、Anthropic、OpenAI 无隶属或背书关系。
 
 [submissions/](submissions/README.md) 只存放脱敏候选索引，不是信用账本。协作约定见 [AGENTS.md](AGENTS.md)。未完成的工程项见 [路线图](docs/ROADMAP.md)。

@@ -97,7 +97,7 @@ The standard folds training into loops, then grants trust by stage. The stage pa
 
 **Loop training.** The threshold file lists loops A, B, C, D, and E for stages 2 through 4. What has landed in code is turning one correction into an executable check, rather than one more line of prompt: a misaddressed execution became the recipient check, an undefined convention became a lexical check, and editing the original during review became a byte comparison before delivery. `control/loop_status` is the C6 history ratchet: a key that was once closed and then regresses or disappears keeps reporting regression. Exit 0 means this run found no history regression. Whether a loop is closed still needs the map, a re-run, and a correction-ticket record. The full loop detector is still item 5 on the [roadmap](docs/ROADMAP.md). That directory's own note says it is not full C6.
 
-**Practice cards first.** The unit of starting work is the handoff. Acceptance conditions are frozen before dispatch ([stage 2](docs/standards/02-阶段2-自证正确.md)). If the recipient check or the undefined-convention check returns non-zero, work does not start. The repository has no directory or template named "practice card" (练习卡). If that phrase means a separate practice procedure that runs before the real task, this repository does not contain it, and it stays **pending confirmation**.
+**Practice cards first.** The unit of starting work is the handoff. Acceptance conditions are frozen before dispatch ([stage 2](docs/standards/02-阶段2-自证正确.md)). If the recipient check or the undefined-convention check returns non-zero, work does not start. The blank practice card is [docs/practice-card-template.md](docs/practice-card-template.md). Its required fields are the goal, the input, acceptance items limited to public items, a turn budget, a file cap, the full context, and the receipt format. The receipt pastes the complete command and the complete output. The card is the public-field template in this repository. Its acceptance items leave reserved criteria out.
 
 **Self-check before delivery.** The repository has no single file named "self-check list". The items that must be handed over before delivery are already written in these three places:
 
@@ -105,9 +105,21 @@ The standard folds training into loops, then grants trust by stage. The stage pa
 - [PR template](.github/pull_request_template.md): head SHA, independent re-run receipt, historical FAIL / BLOCKED / NOT_TESTED, rollback method. Checkboxes in the template are not certification and do not prove that a stage took effect.
 - [review_readonly](capabilities/review_readonly/README.md): the `verify` process exit code is the delivery gate. Delivery is allowed only when the exit code is 0 and JSON `delivery_allowed` is true. Do not rebuild the baseline, or edit the original back, in order to erase a failure and retry.
 
+The self-check items arranged by public principle are in [docs/self-check-principles.md](docs/self-check-principles.md). A delivery still hands over the fields named in the three places above.
+
 **Failures stay on record and become checks.** The public redacted index is [07-实测案例与反例索引](docs/standards/07-实测案例与反例索引.md). It is a mechanism summary, not a scoreboard. The failure modes that have already become regressions are the three capability directories above. Reserved criteria, hidden challenges, and reference answers are stored elsewhere and do not enter the reviewed bot's context. This README **does not contain criterion text**. The roadmap places the reserved set in a separate controlled place, outside this repository. Stage 4 requires known failure modes to be covered by hard checks. That is a threshold, not proof that it is done.
 
 **A stage promotion requires written approval.** The candidate stage produced by automation is capped at 2. Automatic entry to stage 3 or 4 is not allowed (`automatic_stage_upgrade_ceiling`, `automatic_enter_stage3_or_4_allowed`). Stages 3 and 4 have `owner_activation_approval_required` true. Without the owner's approval and an effective read-back, the report may say candidate only, not upgraded. `effective_stage` folded by the event gate is always null. Control events that are not from an authenticated owner are rejected. Effective approval in the training record is written as the owner's written approval. See [审查门槛.json](docs/standards/审查门槛.json), [stage 2](docs/standards/02-阶段2-自证正确.md), [stage 3](docs/standards/03-阶段3-接收信号.md), and [control/gate](control/gate/README.md).
+
+---
+
+## 方法来源
+
+The three items below are public methods. This repository restates them in its own words and links the originals. Reserved criteria stay unpublished, and these files do not contain them.
+
+- How a pre-review comment is written: [docs/review-verdict-format.md](docs/review-verdict-format.md). The three conclusions 建议合并 / 需修改 / 阻塞 correspond one-to-one with upstream PASS / CONTESTED / REJECT. The source is [verdict-format.md](https://github.com/poteto/noodle/blob/main/.agents/skills/adversarial-review/references/verdict-format.md). [poteto/noodle](https://github.com/poteto/noodle) is MIT licensed, Copyright (c) 2026 Lauren Tan, [LICENSE](https://github.com/poteto/noodle/blob/main/LICENSE).
+- The practice-card template: [docs/practice-card-template.md](docs/practice-card-template.md). Its turn budget and file cap come from [cost-aware-delegation.md](https://github.com/poteto/brainmaxxing/blob/main/brain/principles/cost-aware-delegation.md).
+- The self-check items: [docs/self-check-principles.md](docs/self-check-principles.md), one each for prove-it-works, fix-root-causes, encode-lessons-in-structure, subtract-before-you-add, and cost-aware-delegation. The principle directory is [brain/principles](https://github.com/poteto/brainmaxxing/tree/main/brain/principles). [poteto/brainmaxxing](https://github.com/poteto/brainmaxxing) is also MIT licensed, Copyright (c) 2026 Lauren Tan, [LICENSE](https://github.com/poteto/brainmaxxing/blob/main/LICENSE).
 
 ---
 
@@ -174,6 +186,7 @@ python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
 python3 -m unittest discover -s capabilities/review_readonly/tests -v
 python3 -m unittest discover -s control/gate/tests -v
 python3 -m unittest discover -s control/loop_status/tests -v
+python3 -m unittest discover -s scripts/tests -v
 ```
 
 Extra assertions, the same ones as [ci.yml](.github/workflows/ci.yml):
@@ -216,8 +229,8 @@ Only records that already exist in the repository are written here. Later code m
 - **Identity and isolation.** Platform sender authentication (C4) is not done. H1/H2 write isolation is not recorded as implemented. Recipient-check enforcement in the training record is `text_only`. The same account does not prove independence; see [CODEOWNERS](.github/CODEOWNERS) and the training record.
 - **Deployed copy and release bundle.** The recipient check on the host is recorded as v1, not v1.3 on this tree. [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) comes from main `e3f532a12a5a5219af451471d2452444bc178f79`. Its recipient check is v1.1, and it does not contain the current `review_readonly` or `loop_status`.
 - **Ruleset read.** In the 2026-11-04 read-only query, all four CI jobs are required status checks on ruleset `main`. See above.
-- **Pre-review convention.** See [docs/pr-prereview.md](docs/pr-prereview.md) (Chinese). That file records the trigger, the tools, the speaking identity, and the three conclusions. It is not an export from the Cursor automation configuration API. [README.md](README.md) has the same structure as this page.
-- **Pending confirmation.** Whether "Chief Engineer" and "主人" are the same party. Whether a procedure named "practice card" exists as a separate file this repository does not contain. The classic branch-protection endpoint returned 403 this time; whether it holds another set of required checks is above.
+- **Pre-review convention.** See [docs/pr-prereview.md](docs/pr-prereview.md) (Chinese). That file records the trigger, the tools, the speaking identity, and the three conclusions. It is not an export from the Cursor automation configuration API. Comment fields and the machine-readable verdict line are in [docs/review-verdict-format.md](docs/review-verdict-format.md). [README.md](README.md) has the same structure as this page.
+- **Pending confirmation.** Whether "Chief Engineer" and "主人" are the same party. The classic branch-protection endpoint returned 403 this time; whether it holds another set of required checks is above.
 - **Historical collaboration diagram.** [docs/assets/collaboration.svg](docs/assets/collaboration.svg) is a diagram from around 2026-11-02. Names in the figure are text labels only. The [release notes](dist/v0.1.0/RELEASE-NOTES.md) say this project is not affiliated with or endorsed by xAI, Anthropic, or OpenAI.
 
 [submissions/](submissions/README.md) holds only a redacted candidate index. It is not a credit ledger. Collaboration rules are in [AGENTS.md](AGENTS.md). Unfinished engineering items are on the [roadmap](docs/ROADMAP.md).
