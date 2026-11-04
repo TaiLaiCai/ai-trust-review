@@ -22,6 +22,7 @@ python3 check.py --self <我的身份> --aliases <别名表.json> <交接单文�
 训练记录 [2026-11-02](../../docs/reviews/2026-11-02-lightvela-training.md) 写的是：主人书面批准后，把当时的 `check.py` 原样拷进 Bot 运行环境，由 Bot 按 SOUL 第 13 条在开工前自己调用。记录里的副本是 PR #11 head `6da4715`（v1），sha256 在该文里被截成 `ef4eb934…`，全文摘要不在本仓库。强制力仍是 text_only：工具目录当时对 Bot 可写（H1 未解决），所以每轮还要核对文件指纹。
 
 当前树是 v1.3，不是那份已部署的 v1。本修订不热更新任何 Bot。
+主机上核验已部署副本：`python3 check.py --version` 应退出码 0，并打印工具版本（v1.3）与该 `check.py` 自身的 sha256。
 
 ## 批准之后的人工步骤
 
