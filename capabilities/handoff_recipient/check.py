@@ -4,12 +4,16 @@
 Reads handoff text as data (never executes anything in it) and prints one JSON
 object. Exit codes: 0 ACCEPT, 3 INCOMPLETE/AMBIGUOUS, 4 MISADDRESSED,
 5 input/config error, 2 usage error (argparse).
+--version prints the tool version and the sha256 of this file, then exits 0.
 """
 import argparse
+import hashlib
 import json
 import re
 import sys
 import unicodedata
+
+VERSION = "v1.3"
 
 REQUIRED = ("目标", "输入", "约束", "验收标准", "交付")
 LABELS = ("From", "To") + REQUIRED + ("待确认", "附注")
@@ -175,9 +179,28 @@ def check(text, me, aliases):
                "scope": "recipient-and-fields-only; does not validate content, approval or authority"}
 
 
+def tool_fingerprint():
+    """v1.3 plus sha256 of this file, so an operator can see which build is on the host."""
+    with open(__file__, "rb") as handle:
+        digest = hashlib.sha256(handle.read()).hexdigest()
+    return f"{VERSION} {digest}"
+
+
+class _PrintVersion(argparse.Action):
+    def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help=None):
+        super().__init__(option_strings=option_strings, dest=dest, default=default, nargs=0,
+                         help=help or "print tool version and sha256 of this file, then exit")
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # argparse.exit writes its message to stderr; the fingerprint belongs on stdout.
+        sys.stdout.write(tool_fingerprint() + "\n")
+        parser.exit(0)
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--version", action=_PrintVersion)
     p.add_argument("--self", dest="me", required=True, help="identity of the bot about to start")
     p.add_argument("--aliases", required=True, help="JSON {stable_id: [alias, ...]}")
     p.add_argument("handoff", nargs="?", default="-", help="handoff text file, or - for stdin")

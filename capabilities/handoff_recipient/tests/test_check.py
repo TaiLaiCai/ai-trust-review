@@ -172,6 +172,12 @@ class Cli(unittest.TestCase):
         self.assertEqual(code, 5)
         self.assertEqual(self.cli()[0], 2)
 
+    def test_version_flag_prints_version_and_sha256(self):
+        code, out = self.cli("--version")
+        digest = hashlib.sha256(SCRIPT.read_bytes()).hexdigest()
+        self.assertEqual(code, 0)
+        self.assertEqual(out.decode(), f"v1.3 {digest}\n")
+
     def test_oversize_and_inert_content(self):
         a = str(FIX / "aliases.json")
         code, _ = self.cli("--self", "验收", "--aliases", a, "-", stdin=b"x" * (256 * 1024 + 1))
