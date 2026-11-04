@@ -17,17 +17,68 @@ MAX_BYTES = 256 * 1024
 _LABEL = "|".join(re.escape(x) for x in sorted(LABELS, key=len, reverse=True))
 _BOUNDARY = "".join(f"(?<={re.escape(c)})|" for c in "】。；;，,）)：:")
 FIELD = re.compile(rf"(?:^|(?<=\s)|{_BOUNDARY[:-1]})({_LABEL})\s*[：:]", re.MULTILINE | re.IGNORECASE)
+_BOUNDARY_CHARS = set("】。；;，,）)：:")
+
+
+def label_has_combining_mark(text):
+    """Known field label with a nonspacing mark inserted before its colon."""
+    n = len(text)
+    for i in range(n):
+        if i and not (text[i - 1].isspace() or text[i - 1] in _BOUNDARY_CHARS):
+            continue
+        for label in LABELS:
+            j, saw, matched = i, False, True
+            for ch in label:
+                while j < n and unicodedata.category(text[j]) == "Mn":
+                    saw = True
+                    j += 1
+                if j >= n or text[j].casefold() != ch.casefold():
+                    matched = False
+                    break
+                j += 1
+            if not matched:
+                continue
+            while j < n and unicodedata.category(text[j]) == "Mn":
+                saw = True
+                j += 1
+            k = j
+            while k < n and text[k] in " \t":
+                k += 1
+            if saw and k < n and text[k] in "：:":
+                return True
+    return False
 
 
 class InputError(ValueError):
     pass
 
 
+# Mn marks that Unicode treats as default-ignorable or as variation selectors.
+# Visible diacritics (for example U+0301) are not in this set: they stay in
+# prose and names, and a field label that still contains one is AMBIGUOUS.
+_INVISIBLE_MN = {0x034F, 0x17B4, 0x17B5, 0x180B, 0x180C, 0x180D, 0x180F}
+
+
+def invisible(ch):
+    if unicodedata.category(ch) == "Cf":
+        return True
+    o = ord(ch)
+    if 0xFE00 <= o <= 0xFE0F or 0xE0100 <= o <= 0xE01EF:
+        return True
+    return o in _INVISIBLE_MN
+
+
+def strip_invisible(text):
+    return "".join(ch for ch in text if not invisible(ch))
+
+
 def normalize(text):
-    """v1.2: drop invisible format chars (zero-width, BOM, bidi) and fold
-    full-width/compatibility forms, so a hidden or full-width second To is seen."""
-    text = "".join(ch for ch in text if unicodedata.category(ch) != "Cf")
-    return unicodedata.normalize("NFKC", text)
+    """Drop Cf and invisible Mn (CGJ, variation selectors), then NFKC.
+
+    A second To hidden by U+034F or U+FE0F is therefore visible to the label
+    scan. Visible combining marks are not deleted globally.
+    """
+    return unicodedata.normalize("NFKC", strip_invisible(text))
 
 
 def unique_keys(pairs):
@@ -90,7 +141,11 @@ def check(text, me, aliases):
     who = aliases.get(normalize(me).strip().casefold())
     if who is None:
         raise InputError(f"--self {me!r} is not in the alias table")
-    got = fields(normalize(text))
+    stripped = strip_invisible(text)
+    if label_has_combining_mark(stripped):
+        return 3, {"verdict": "AMBIGUOUS", "reason": "combining mark in field label",
+                   "next": "不执行；字段名含组合附加符号，请发件人去掉后重发"}
+    got = fields(unicodedata.normalize("NFKC", stripped))
     if any(len([line for line in v.splitlines() if line.strip()]) != 1
            for v in got.get("To", [])):
         return 3, {"verdict": "AMBIGUOUS", "reason": "empty or multiline recipient",

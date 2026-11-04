@@ -130,6 +130,29 @@ class NormalizeV12(unittest.TestCase):
             check.load_aliases('{"a":["x"],"a":["y"]}')
 
 
+class MarksV13(unittest.TestCase):
+    def test_invisible_mn_second_to_is_ambiguous(self):
+        for extra in ("T\u034Fo：验收", "T\uFE0Fo：验收", "T\U000E0100o：验收", "To\uFE0F：验收"):
+            text = FULL.format(to="内容") + "\n" + extra
+            code, out = run(text, "内容")
+            self.assertEqual((code, out["verdict"], out["reason"]),
+                             (3, "AMBIGUOUS", "multiple recipients"), repr(extra))
+            self.assertIn("Apo·验收", out["to"])
+            self.assertNotEqual(run(text, "验收")[1]["verdict"], "ACCEPT", repr(extra))
+
+    def test_visible_combining_mark_in_label_is_ambiguous(self):
+        for extra in ("T\u0301o：验收", "To\u0301：验收", "T\u0301O：验收"):
+            text = FULL.format(to="内容") + "\n" + extra
+            code, out = run(text, "内容")
+            self.assertEqual((code, out["verdict"], out["reason"]),
+                             (3, "AMBIGUOUS", "combining mark in field label"), repr(extra))
+
+    def test_combining_mark_in_prose_stays_accept(self):
+        text = FULL.format(to="内容") + "\n附注：na\u0303ive 与普通中文正文"
+        self.assertEqual(run(text, "内容")[0], 0)
+        self.assertEqual(run(FULL.format(to="内容"), "内容")[0], 0)
+
+
 class Cli(unittest.TestCase):
     def cli(self, *args, stdin=None):
         p = subprocess.run([sys.executable, str(SCRIPT), *args], input=stdin,
@@ -159,6 +182,14 @@ class Cli(unittest.TestCase):
             code, _ = self.cli("--self", "验收", "--aliases", a, "-", stdin=text.encode())
             self.assertEqual(code, 0)
             self.assertFalse(marker.exists())
+
+    def test_mn_hidden_second_to_has_nonzero_cli_exit(self):
+        a = str(FIX / "aliases.json")
+        for extra in ("T\u034Fo：验收", "T\uFE0Fo：验收", "T\u0301o：验收"):
+            text = (FULL.format(to="内容") + "\n" + extra).encode()
+            code, out = self.cli("--self", "内容", "--aliases", a, "-", stdin=text)
+            self.assertEqual((code, json.loads(out)["verdict"]), (3, "AMBIGUOUS"), extra)
+            self.assertNotEqual(code, 0)
 
     def test_v11_probes_have_nonzero_cli_exits(self):
         a = str(FIX / "aliases.json")

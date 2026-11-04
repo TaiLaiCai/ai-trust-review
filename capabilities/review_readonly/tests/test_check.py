@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -158,6 +159,148 @@ class ReadonlyReview(unittest.TestCase):
         (self.root / "a.txt").write_bytes(b"temporary edit")
         (self.root / "a.txt").write_bytes(b"draft\n")
         self.assertEqual(self.verify_cli()[0], 0)
+
+    def take_snapshot(self, *extra):
+        p = subprocess.run([sys.executable, str(SCRIPT), "snapshot", "--root", str(self.root), *extra],
+                           capture_output=True, timeout=10)
+        parsed = json.loads(p.stdout) if p.stdout else None
+        self.assertEqual(p.returncode, 0, parsed or p.stderr)
+        self.baseline.write_bytes(p.stdout)
+        self.raw = p.stdout
+        self.sha = hashlib.sha256(p.stdout).hexdigest()
+        return parsed
+
+    def test_crlf_rewrite_is_a_byte_change(self):
+        (self.root / "a.txt").write_bytes(b"draft\r\n")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["changed"], out["delivery_allowed"]), (1, ["a.txt"], False))
+        self.take_snapshot("--file", "a.txt")
+        self.assertEqual(self.verify_cli()[0], 0)
+
+    def test_file_changed_while_reading_exits_5(self):
+        target = self.root / "a.txt"
+        real_read = os.read
+
+        def hooked(fd, n):
+            data = real_read(fd, n)
+            if not hooked.done:
+                hooked.done = True
+                target.write_bytes(b"mutated-while-reading")
+            return data
+
+        hooked.done = False
+        os.read = hooked
+        stdout = sys.stdout
+        wrapper = io.TextIOWrapper(io.BytesIO(), encoding="utf-8")
+        sys.stdout = wrapper
+        try:
+            code = c.main(["snapshot", "--root", str(self.root), "--file", "a.txt"])
+            payload = json.loads(wrapper.buffer.getvalue())
+        finally:
+            sys.stdout = stdout
+            os.read = real_read
+            wrapper.close()
+        self.assertEqual(code, 5, payload)
+        self.assertEqual(payload["verdict"], "INPUT_ERROR")
+        self.assertFalse(payload["delivery_allowed"])
+        self.assertIn("changed while reading", payload["reason"])
+
+    def test_file_mode_ignores_unlisted_new_file(self):
+        (self.root / "extra.txt").write_bytes(b"extra")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["verdict"], out["delivery_allowed"]), (0, "UNCHANGED", True))
+        self.assertNotIn("trees", json.loads(self.raw))
+
+    def test_tree_new_file_is_added(self):
+        manifest = self.take_snapshot("--tree", ".")
+        self.assertEqual(manifest["trees"], ["."])
+        self.assertEqual(self.verify_cli()[0], 0)
+        (self.root / "extra.txt").write_bytes(b"extra")
+        code, out = self.verify_cli()
+        self.assertEqual(code, 1)
+        self.assertEqual(out["changed"], {"added": ["extra.txt"], "removed": [], "modified": []})
+        self.assertFalse(out["delivery_allowed"])
+
+    def test_tree_deleted_file_is_removed(self):
+        self.take_snapshot("--tree", ".")
+        (self.root / "nested" / "b.txt").unlink()
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["changed"]["removed"], out["delivery_allowed"]),
+                         (1, ["nested/b.txt"], False))
+
+    def test_tree_rename_is_added_and_removed(self):
+        self.take_snapshot("--tree", ".")
+        (self.root / "a.txt").rename(self.root / "z.txt")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["changed"]), (1, {
+            "added": ["z.txt"], "removed": ["a.txt"], "modified": []}))
+
+    def test_tree_new_file_in_subdirectory(self):
+        self.take_snapshot("--tree", "nested")
+        (self.root / "nested" / "c.txt").write_bytes(b"c")
+        (self.root / "extra.txt").write_bytes(b"outside this tree")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["changed"]["added"], out["delivery_allowed"]),
+                         (1, ["nested/c.txt"], False))
+
+    def test_tree_same_size_edit_is_modified(self):
+        self.take_snapshot("--tree", ".")
+        (self.root / "a.txt").write_bytes(b"craft\n")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["changed"]["modified"]), (1, ["a.txt"]))
+
+    def test_tree_symlink_directory_fifo_and_nested_symlink_are_rejected(self):
+        (self.root / "linked").symlink_to(self.root / "nested", target_is_directory=True)
+        code, out = self.cli("snapshot", "--root", str(self.root), "--tree", "linked")
+        self.assertEqual((code, out["delivery_allowed"]), (5, False))
+        (self.root / "nested" / "alias").symlink_to(self.root / "a.txt")
+        self.assertEqual(self.cli("snapshot", "--root", str(self.root), "--tree", "nested")[0], 5)
+        fifo_dir = self.root / "fifodir"
+        fifo_dir.mkdir()
+        os.mkfifo(fifo_dir / "pipe")
+        self.assertEqual(self.cli("snapshot", "--root", str(self.root), "--tree", "fifodir")[0], 5)
+
+    def test_tree_duplicate_or_missing_selector_is_rejected(self):
+        self.assertEqual(self.cli("snapshot", "--root", str(self.root))[0], 2)
+        self.assertEqual(self.cli("snapshot", "--root", str(self.root), "--tree", "nested", "--tree", "nested")[0], 5)
+
+    def test_invalid_tree_metadata_is_rejected(self):
+        base = json.loads(self.raw)
+        for trees in (["../x"], [".", "."], "nested", [], ["a.txt"]):
+            raw = c.canonical(dict(base, trees=trees))
+            self.baseline.write_bytes(raw)
+            code, out = self.verify_cli(hashlib.sha256(raw).hexdigest())
+            self.assertEqual((code, out["delivery_allowed"]), (5, False), trees)
+
+    def test_baseline_inside_review_root_is_rejected(self):
+        inside = self.root / "before.json"
+        inside.write_bytes(self.raw)
+        code, out = self.cli("verify", "--root", str(self.root), "--baseline", str(inside),
+                             "--baseline-sha256", self.sha)
+        self.assertEqual((code, out["verdict"], out["delivery_allowed"]), (5, "INPUT_ERROR", False))
+        self.assertIn("inside", out["reason"])
+        alias = self.base / "alias-parent"
+        alias.symlink_to(self.root, target_is_directory=True)
+        code, out = self.cli("verify", "--root", str(self.root), "--baseline", str(alias / "before.json"),
+                             "--baseline-sha256", self.sha)
+        self.assertEqual((code, out["delivery_allowed"]), (5, False))
+
+    def test_baseline_hardlink_inside_tree_is_rejected(self):
+        self.take_snapshot("--tree", ".")
+        os.link(self.baseline, self.root / "alias.json")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["verdict"], out["delivery_allowed"]), (5, "INPUT_ERROR", False))
+        self.assertIn("inode", out["reason"])
+
+    def test_empty_tree_then_add_is_changed(self):
+        empty = self.root / "empty"
+        empty.mkdir()
+        manifest = self.take_snapshot("--tree", "empty")
+        self.assertEqual(manifest["files"], {})
+        self.assertEqual(self.verify_cli()[0], 0)
+        (empty / "a.txt").write_bytes(b"a")
+        code, out = self.verify_cli()
+        self.assertEqual((code, out["changed"]["added"]), (1, ["empty/a.txt"]))
 
 
 if __name__ == "__main__":

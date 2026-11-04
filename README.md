@@ -57,6 +57,7 @@ Claude 与 Codex 通过只追加、带 SHA 核对的共享收件箱协作；长�
 | 证据包校验 | 只读、按描述符逐段打开，核对清单内每个文件的字节与 SHA256 | [capabilities/evidence_package](capabilities/evidence_package/README.md) |
 | 收件人开工检查 | 交接单正文收件人不是自己 → 不开工、不转派、回问；看板指派不能替代正文收件人 | [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) |
 | 未定义约定检查 | 「老规矩」「照旧」等未定义约定 → 要求回问，不许猜 | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) |
+| 审查只读交付检查 | 审查前后比较显式文件或目录清单的字节与 SHA256；变化、缺失或新增则不得交付 | [capabilities/review_readonly](capabilities/review_readonly/README.md) |
 | 事件门控与可重放审计 | 哈希链日志折叠出连胜与候选阶段；重放、篡改、删历史都会暴露；候选上限为 2 | [control/gate](control/gate/README.md) |
 | CI 门禁 | `repository-contracts`、`capability-tests`（空测试集判失败）、`event-gate`（篡改账本必须报 REGRESSION） | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 
