@@ -1,0 +1,134 @@
+{
+  "package": "ai-trust-review S1 补证包 C 类（阻碍 c：平台命令审批撤回）",
+  "generated": "2026-11-07",
+  "source_root_readonly": "Obsidian 库 /Users/tlc/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian_Vault/02-项目/AI信任审查/（只读，未写入）",
+  "source_files_path_base": "相对 AI信任审查/ 库根",
+  "items": [
+    {
+      "item": "C1",
+      "title": "用户委托审查者处理审查审批的记录",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-用户授权后审批.txt",
+        "阶段2先导-执行者-20261102/revision2-用户授权后回执.json",
+        "阶段2先导-执行者-20261102/总参谋参与-初始交接.txt",
+        "阶段2先导-执行者-20261102/总参谋-U1方案审批与CLI定位.txt",
+        "阶段2先导-执行者-20261102/总参谋-desktop工具集映射修复审批.txt"
+      ],
+      "removed": [
+        "消息ID（回执 JSON turns[].key，hermes-turn-<UUID> 形式回合键，每文件 4 条）",
+        "发送者身份原文（From/To 身份行：训练者→执行者 4 处、推进者→总参谋 1 处）",
+        "人名（用户称呼与发件人署名真实称呼）",
+        "真实 profile ID（执行者、候选独立审查者等 3 处十六进制值）"
+      ],
+      "output_sha256": "15ee72e082d906b77cae9226afde18d140841de8ea097f237496af19fe6744b9",
+      "notes": "委托源头为 2026-11-02 08:30–08:34 之间用户主聊天书面授权原文；批准文本 revision2-用户授权后审批.txt 本身无 From/To 行与消息ID，近全文引用；委托存续声明见 3 份总参谋文件（08:39/08:42/09:01）。"
+    },
+    {
+      "item": "C2",
+      "title": "六项续跑的回执（每项命令、退出码、SHA、时间）",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-用户授权后回执.json",
+        "阶段2先导-执行者-20261102/revision2-交付链接.json",
+        "阶段2先导-执行者-20261102/revision2-审批阻碍回执.json（被撤回命令原文）",
+        "阶段2先导-执行者-20261102/revision2-原件/report.md",
+        "阶段2先导-执行者-20261102/revision2-原件/sha256_all.txt",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/rerun.json",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T1.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T1.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T2.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T3.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T4.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T5.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T6.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/TP.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/PREFLIGHT-LOCAL.stdout"
+      ],
+      "removed": [
+        "消息ID（回执 JSON turns[].key，hermes-turn-<UUID> 形式回合键）",
+        "身份原文（From/To 行、Bot 平台名、rerun.json author/verifier 中的真实 profile ID 与 Bot 名称）"
+      ],
+      "output_sha256": "8d9e73e43eb5d79196c6e99a83132135cd8c6574a591b78e2df568941c1cb312",
+      "notes": "六项 T1–T6：08:34 执行者回执（真实退出码 T1–T4=0、T5/T6=2）+ 08:40 训练者独立复跑 rerun.json（每项 argv/exit/stdout/stderr SHA256）+ r3 末值清单 sha256_all.txt 完整 SHA。所有 SHA 均为原始记录既有值，未补算；独立复跑标注 not_a_registered_bot_receipt=true，不计连胜。"
+    },
+    {
+      "item": "C3",
+      "title": "审批链原始引用（谁批准、批了什么、原始记录在哪里）",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/R0-派单.txt",
+        "阶段2先导-执行者-20261102/R0-平台回执.json",
+        "阶段2先导-执行者-20261102/监督业务任务-原始派单.txt",
+        "阶段2先导-执行者-20261102/监督业务任务-平台回执.json",
+        "阶段2先导-执行者-20261102/SUPERVISED-01-revision2派单.txt",
+        "阶段2先导-执行者-20261102/revision2-审批阻碍询证.txt",
+        "阶段2先导-执行者-20261102/revision2-审批阻碍回执.json",
+        "阶段2先导-执行者-20261102/revision2-用户授权后审批.txt",
+        "阶段2先导-执行者-20261102/revision2-用户授权后回执.json",
+        "阶段2先导-执行者-20261102/revision2-交付链接.json",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/rerun.json",
+        "阶段2先导-执行者-20261102/审查状态-非控制面.json",
+        "阶段2先导-执行者-20261102/总参谋参与-初始交接.txt",
+        "阶段2先导-执行者-20261102/总参谋参与-初始回执.json",
+        "阶段2先导-执行者-20261102/总参谋-U1方案审批与CLI定位.txt",
+        "阶段2先导-执行者-20261102/总参谋-U1方案与CLI回执.json",
+        "阶段2先导-执行者-20261102/总参谋-U1-pre正式投递审批.txt",
+        "阶段2先导-执行者-20261102/总参谋-U1-pre投递回执.json",
+        "阶段2先导-执行者-20261102/总参谋-desktop工具集映射修复审批.txt",
+        "阶段2先导-执行者-20261102/总参谋-kanban工具接入修复回执.json"
+      ],
+      "removed": [
+        "消息ID（回执 JSON turns[].key，hermes-turn-<UUID> 形式回合键）",
+        "发送者身份原文（From/To 身份行、Bot 平台名，共 5 处）",
+        "真实 profile ID（执行者/候选独立审查者/旧验收 Bot，3 处十六进制值）",
+        "人名（发件人署名真实称呼 1 处）"
+      ],
+      "output_sha256": "ca2eefcff6d6b9c3aba6695869e9972919980a0e9217e46cc09c6f14d8bd30e9",
+      "notes": "15 行事实时间线（08:15 R0 → 09:01 desktop 修复批准），批准权限链四层摘要（用户→审查训练者→总参谋；执行者对删除类动作主张需主人通道书面批准）。会话时间取回执文本内时间戳，文件时间取 mtime，均在表中区分。"
+    },
+    {
+      "item": "C4",
+      "title": "平台撤回审批的原始记录（attached client cannot answer approval requests 出处）",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-审批阻碍回执.json（最原始记录，08:30 段）",
+        "阶段2先导-执行者-20261102/revision2-用户授权后回执.json（复现）",
+        "阶段2先导-执行者-20261102/revision2-交付链接.json（复现）",
+        "阶段2先导-执行者-20261102/审查状态-非控制面.json（blockers[2]，第 28 行）",
+        "阶段2先导-执行者-20261102/先导审查进度.md（第 20 行）",
+        "阶段2先导-执行者-20261102/revision2-原件/report.md（审批事件记录节）"
+      ],
+      "removed": [
+        "消息ID（回执 JSON turns[].key，hermes-turn-<UUID> 形式回合键）",
+        "内部标识（turn key、真实 profile ID）",
+        "平台密钥：原始记录中未发现任何密钥/凭据（询证单即要求不泄漏凭据），无可删项"
+      ],
+      "output_sha256": "6c3807f0f8454c3cd2d5ca7d4b72ab278f6db81ce5d644b8910ce9ef61020a8d",
+      "notes": "英文错误原文逐字保留（含客户端产品名，属报文原文）；时间 08:28 撤回、08:30 固化；被撤回命令原文保留；grep -r 全库共 5 个文件命中，全部列出。"
+    }
+  ],
+  "global_removed_common": [
+    "保留题原文",
+    "个人画像",
+    "真实 profile ID（3 处十六进制值）",
+    "控制面数据",
+    "密钥（未发现）",
+    "IP（未发现）",
+    "消息ID（hermes-turn-<UUID> 形式回合键）",
+    "发送者身份原文"
+  ],
+  "global_retained": [
+    "命令",
+    "退出码",
+    "SHA256（原始记录既有值，未补算）",
+    "时间",
+    "相对路径",
+    "步骤ID",
+    "预期与实测"
+  ],
+  "discipline": "库只读未写入；不联网；不发 GitHub；staging 之外零写入；不改写原始记录、不补算缺失 SHA、不编造。",
+  "corrections": [
+    "2026-11-07 apo 合流追加：C3 item notes 称时间线为“15 行”，实为 16 行（08:15 至 09:01），计数差 1，内容齐全。以 C3.md 正文为准。"
+  ]
+}

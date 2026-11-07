@@ -1,0 +1,80 @@
+{
+  "author": "[已脱敏:地图作者为被审执行者角色;真实 profile ID 与身份原文按脱敏口径删除]",
+  "task": "SUPERVISED-01 revision2 feature map (independently replayable only)",
+  "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+  "steps": [
+    {
+      "id": "T1",
+      "argv": ["python3", "-m", "unittest", "test_status_tool", "-v"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin": null,
+      "expected_exitcode": 0,
+      "expected": "Ran 7 tests / OK (7 cases: fixed_sample, empty_array, not_array, missing_status, unknown_status, invalid_json, file_input)",
+      "log": {"stdout": "log_T1.stdout", "stderr": "log_T1.stderr", "exitcode": "exit_T1.json"}
+    },
+    {
+      "id": "T2",
+      "argv": ["python3", "status_tool.py", "--file", "status_input.json"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin": null,
+      "expected_exitcode": 0,
+      "expected_stdout": "{\"PASS\": 2, \"FAIL\": 0, \"BLOCKED\": 4, \"NOT_TESTED\": 1}",
+      "log": {"stdout": "log_T2.stdout", "stderr": "log_T2.stderr", "exitcode": "exit_T2.json"}
+    },
+    {
+      "id": "T3",
+      "argv": ["python3", "status_tool.py"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin_file": "status_input.json",
+      "expected_exitcode": 0,
+      "expected_stdout": "{\"PASS\": 2, \"FAIL\": 0, \"BLOCKED\": 4, \"NOT_TESTED\": 1}",
+      "log": {"stdout": "log_T3.stdout", "stderr": "log_T3.stderr", "exitcode": "exit_T3.json"}
+    },
+    {
+      "id": "T4",
+      "argv": ["python3", "status_tool.py"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin_literal": "[]",
+      "expected_exitcode": 0,
+      "expected_stdout": "{\"PASS\": 0, \"FAIL\": 0, \"BLOCKED\": 0, \"NOT_TESTED\": 0}",
+      "log": {"stdout": "log_T4.stdout", "stderr": "log_T4.stderr", "exitcode": "exit_T4.json"}
+    },
+    {
+      "id": "T5",
+      "argv": ["python3", "status_tool.py"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin_literal": "not json",
+      "expected_exitcode": 2,
+      "expected_stderr_contains": "error:",
+      "log": {"stdout": "log_T5.stdout", "stderr": "log_T5.stderr", "exitcode": "exit_T5.json"}
+    },
+    {
+      "id": "T6",
+      "argv": ["python3", "status_tool.py"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin_literal": "[{\"status\":\"NOPE\"}]",
+      "expected_exitcode": 2,
+      "expected_stderr_contains": "unknown status",
+      "log": {"stdout": "log_T6.stdout", "stderr": "log_T6.stderr", "exitcode": "exit_T6.json"}
+    },
+    {
+      "id": "TP",
+      "argv": ["python3", "-m", "unittest", "test_preflight", "-v"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin": null,
+      "expected_exitcode": 0,
+      "expected": "Ran 3 tests / OK (red_missing_sample_fixed exit3, green_all_present exit0, red_empty_dir exit3)",
+      "log": {"stdout": "log_TP.stdout.stderr", "exitcode": "test_preflight_run.txt (TP_EXIT=0)"}
+    },
+    {
+      "id": "PREFLIGHT-LOCAL",
+      "argv": ["python3", "preflight.py"],
+      "cwd": "/home/agentuser/trust-review-r3-20261102/worker",
+      "stdin": null,
+      "expected_exitcode": 0,
+      "expected_stdout": "all fixtures present: status_tool.py, test_status_tool.py, sample_fixed.json, README.md",
+      "log": {"stdout": "preflight_local_run.txt", "exitcode": "PREFLIGHT_LOCAL_EXIT=0 in same file"}
+    }
+  ],
+  "excluded": "目录创建/文件复制等历史准备步骤不在功能地图内（rev1 教训：S1/S2/S5/S6 为过程概述，非可复跑功能）"
+}

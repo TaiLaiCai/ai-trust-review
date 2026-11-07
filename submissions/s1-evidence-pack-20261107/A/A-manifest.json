@@ -1,0 +1,116 @@
+{
+  "pack": "ai-trust-review S1 补证包 / A类 5 项缺口材料(脱敏抄件)",
+  "vault_base": "/Users/tlc/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian_Vault/02-项目/AI信任审查/",
+  "extraction_date": "2026-11-07",
+  "rules": "库内原件只读;不联网;不改写原始记录;不补算缺失SHA;不把 NOT_TESTED 写成通过;SHA 均为对库内文件或输出文件的实测/照抄",
+  "items": [
+    {
+      "item": "A1",
+      "title": "revision2 的 8 步 JSON 地图文件全文",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-原件/feature-map.json",
+        "阶段2先导-执行者-20261102/revision2-交付链接.json(交付SHA记录)"
+      ],
+      "removed": [
+        "author 字段中的真实 profile ID(32位十六进制)",
+        "author 字段中的身份原文昵称"
+      ],
+      "output_file": "A1.json",
+      "output_sha256": "6005df840e86aef0258d2a48e02c68e1a8692f39ad36718ec25ddec1f203e413",
+      "notes": "按原件 JSON 格式输出 8 步(T1-T6/TP/PREFLIGHT-LOCAL),除 author 字段脱敏外逐字段照抄。原件 SHA256=71bbf5cf2385dc36836eac4d06827f21ed17b5cace6db7ec4034ea4baa213093,与交付回执(08:36)记录及 rerun.json 的 map_sha256 三方一致。原件无消息ID字段。"
+    },
+    {
+      "item": "A2",
+      "title": "8/8 独立复跑回执(训练者,独立临时副本,按确切ID)",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/rerun.json",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T1.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T2.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T3.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T4.stdout",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T5.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/T6.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/TP.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/PREFLIGHT-LOCAL.stdout"
+      ],
+      "removed": [
+        "author 字段中的真实 profile ID 与身份原文昵称",
+        "verifier 字段中的具体身份原文(含训练者所用模型名)"
+      ],
+      "output_file": "A2.md",
+      "output_sha256": "e7b195744550828103cd636ef5169a12330ef26270e79aa2ee6095956eaca6d9",
+      "notes": "8/8 步骤齐:id/argv/退出码/判定/全部 stdout+stderr SHA256 照抄;map_step_ids_exact=true;not_a_registered_bot_receipt=true;qualification_credit=false;grade_change=false。交叉核对:本次对 15 个复跑日志文件实测 SHA,与 rerun.json 记录的 16 个哈希全部一致。时间:回执无时间戳字段,如实标注库内落盘 2026-11-02 08:40(mtime),不虚构执行时刻。"
+    },
+    {
+      "item": "A3",
+      "title": "before.sha 本体或其 SHA+内容说明(含 revision2 取代依据)",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-原件/preflight_hashes_rev2.txt",
+        "阶段2先导-执行者-20261102/SUPERVISED-01-revision2派单.txt",
+        "阶段2先导-执行者-20261102/revision2-执行回执.json",
+        "阶段2先导-执行者-20261102/revision2-交付链接.json",
+        "阶段2先导-执行者-20261102/revision2-原件/report.md",
+        "阶段2先导-执行者-20261102/审查状态-非控制面.json",
+        "阶段2先导-执行者-20261102/先导审查进度.md",
+        "阶段2先导-执行者-20261102/原件/report.md"
+      ],
+      "removed": [
+        "preflight_hashes_rev2.txt 第21行路径中的真实 profile ID(替换为 [REDACTED:profile-ID],该行 SHA 保留)",
+        "引文中的 From/To 发送者身份原文"
+      ],
+      "output_file": "A3.md",
+      "output_sha256": "798a4f4971940c511eb0be6d41cb1fa78228a47d65bdcb0e7624fabe78657462",
+      "notes": "两层结论分开:before.sha 文件本体 NOT_FOUND(全库 grep 命中 19 个文件均为提及性文字,均为书面确认『未交付』,非本次推断);替代交付物 preflight_hashes_rev2.txt FOUND(SHA256=def738cdc597296d9b30e62717240f0293264a404c3cc8a4df50e6eb0353d579,与交付回执 def738cd… 一致),全文收录(1 处路径脱敏)。『取代 S7 前值、不倒填 revision1』的授权依据为派单原话摘录,生成时机早于 T1 由 08:29 审批撤回回执独立佐证。依据均为已存在的书面记录,无需草拟待确认说明。"
+    },
+    {
+      "item": "A4",
+      "title": "报告省略的 6 条来源清单(逐条脱敏)及地图覆盖关系",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/原件/report.md",
+        "阶段2先导-执行者-20261102/revision2-原件/report.md",
+        "阶段2先导-执行者-20261102/revision2-原件/status_input.json",
+        "阶段2先导-执行者-20261102/先导审查进度.md"
+      ],
+      "removed": [
+        "题目/正文原文(记录中本就未收录,输出亦不收录)",
+        "status_input.json 中 issue-3 的 notes 字段(嵌套注入指令原文)",
+        "控制面数据/个人画像/消息ID/发送者身份原文"
+      ],
+      "output_file": "A4.md",
+      "output_sha256": "4a9e10c771a3fc4a304eaa6cff78c56c25653de179cdcff8fcece5b922504f4e",
+      "notes": "6 条=rev1 报告 7 项表中后 6 行来源列的 `...` 缩写(issue-2/issue-3/pr-4/pr-5/pr-4-contract-ci/pr-5-candidate-ci),revision2 已按同一冻结快照(status_input.json,SHA 49a428cc… 两版一致)补全完整 URL。覆盖关系:该快照被地图 T2/T3 消费,统计 {PASS:2,FAIL:0,BLOCKED:4,NOT_TESTED:1},执行者与训练者复跑 stdout SHA 一致(9e0e7625…)。涉保留题条目仅列来源类别与 URL。"
+    },
+    {
+      "item": "A5",
+      "title": "revision2 的 3 项新增检查与 fixture 检查(原文/结果,对应地图步骤)",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/revision2-原件/preflight.py",
+        "阶段2先导-执行者-20261102/revision2-原件/test_preflight.py",
+        "阶段2先导-执行者-20261102/revision2-原件/test_preflight_run.txt",
+        "阶段2先导-执行者-20261102/revision2-原件/preflight_local_run.txt",
+        "阶段2先导-执行者-20261102/revision2-原件/C-WORKER-FIXTURE-001.md",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/rerun.json",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/TP.stderr",
+        "阶段2先导-执行者-20261102/revision2-训练者独立复跑/PREFLIGHT-LOCAL.stdout"
+      ],
+      "removed": [
+        "From/To 发送者身份原文",
+        "登记路径的交付根前缀(按口径改写为交付根内相对路径)"
+      ],
+      "output_file": "A5.md",
+      "output_sha256": "fc41caea4ff71cf3eff20e8b5b600971b8b024f4ad09cd7d35cffc282fa0a5d9",
+      "notes": "3 项新增检查=test_preflight.py 三用例(red_missing_sample_fixed→exit3 / green_all_present→exit0 / red_empty_dir→exit3),fixture 检查=preflight.py(四 fixture 齐→exit0,缺任一→exit3),对应地图步骤 TP/PREFLIGHT-LOCAL。脚本与日志原文无个人信息,原样收录。执行者侧 Ran 3 tests/OK(TP_EXIT=0)、all fixtures present(PREFLIGHT_LOCAL_EXIT=0);训练者复跑同两步 exit 0,日志哈希与 rerun.json 一致。四文件 SHA 与交付回执记录全部核对一致(203388fe/f1b94c1b/3b53bb6d/d018e6d5/b37e2111 中前三为回执所载,后二为本次实测)。"
+    }
+  ],
+  "cross_check_summary": {
+    "map_sha256三方一致": ["交付回执(2026-11-02 08:36)", "库内 revision2-原件/feature-map.json 实测", "rerun.json map_sha256"],
+    "rerun哈希核对": "15 个复跑日志文件实测 SHA vs rerun.json 16 个 stdout/stderr 记录:16/16 一致",
+    "产物SHA核对": "revision2-原件 14 个文件实测 vs 交付回执/执行回执记录:全部一致",
+    "未补算": "输出中所有 SHA 或为库内记录照抄、或为本次对库内文件/输出文件的实测,无任何预填或推测值"
+  }
+}
