@@ -102,3 +102,35 @@ jobs:
               if p.returncode != code or json.loads(p.stdout)["verdict"] != verdict:
                   raise SystemExit("real fixture regression")
           PY
+  handoff-conventions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run nonempty convention suite and assert red and green exits
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          import unittest
+          root = "capabilities/handoff_conventions"
+          suite = unittest.defaultTestLoader.discover(root + "/tests")
+          count = suite.countTestCases()
+          if not count:
+              raise SystemExit("no convention tests discovered")
+          if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
+              raise SystemExit(1)
+          for fixture, code, verdict in (
+              ("undefined.txt", 3, "NEEDS_CLARIFICATION"),
+              ("defined.txt", 0, "LEXICAL_CLEAR"),
+          ):
+              p = subprocess.run(
+                  [sys.executable, root + "/check.py", root + "/fixtures/" + fixture],
+                  capture_output=True, text=True, timeout=10)
+              print(fixture, "rc=" + str(p.returncode), p.stdout, end="")
+              if p.returncode != code or json.loads(p.stdout)["verdict"] != verdict:
+                  raise SystemExit("fixture regression: " + fixture)
+          PY
