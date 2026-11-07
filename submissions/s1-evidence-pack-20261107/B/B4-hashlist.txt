@@ -1,0 +1,6 @@
+# B4 · 纠正后的验收日志哈希清单(生成项)
+# 生成命令(单独第二条命令,清单不自哈希): cd /Users/tlc/s1-pack-staging/B && shasum -a 256 B1.md B2.md B3.md
+b6c09fb66a2cf0de062538a4ba3d9fb8c9009999c7a073b0a6600a506ba659b7  B1.md
+70f4e70c7340de6fbf9c5d288abb14d6ad87e7914d768096e46251bceb4df13f  B2.md
+139b0708580e533fbb17c6e4790d6e3cde557432f31abd7acfe14323b8358f86  B3.md
+2dca57a2521a5caea0ff547ae01cb49297344b4f21e1c2da27483f214ada6f4e  B4-hashlist.txt(本行由清单正文写完后单独计算,不含本行)

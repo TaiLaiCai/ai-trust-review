@@ -1,0 +1,66 @@
+{
+  "package": "S1补证包 B类 4项缺口材料(阻碍b: 验收日志自包含SHA冲突)",
+  "generated_at": "2026-11-07",
+  "source_vault": "/Users/tlc/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian_Vault/02-项目/AI信任审查 (只读)",
+  "items": [
+    {
+      "item": "B1",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/原件/05_after_and_final.txt"
+      ],
+      "removed": [],
+      "output_sha256": "b6c09fb66a2cf0de062538a4ba3d9fb8c9009999c7a073b0a6600a506ba659b7",
+      "notes": "05验收日志全文17行逐字保留(含已写入SHA行);逐行核对后原文不含消息ID/发送者身份原文/真实profileID,无删除项;第17行自指向哈希行原样保留并标注为冲突本体,未替换未补算。原件本地SHA 618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9(1132字节)。"
+    },
+    {
+      "item": "B2",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/V1-独立业务验收回执.json",
+        "阶段2先导-执行者-20261102/V1-复核补证回执.json"
+      ],
+      "removed": [
+        "消息ID: turns内hermes-turn-*键(回执一2条、回执二3条)",
+        "发送者身份原文: 各轮From/To行(To行同时删除真实profileID)",
+        "内嵌report.md预览的Author行(含真实profileID,回执二)",
+        "平台会话blob链接(lightvela.com,按消息ID/会话标识类处理)"
+      ],
+      "output_sha256": "70f4e70c7340de6fbf9c5d288abb14d6ad87e7914d768096e46251bceb4df13f",
+      "notes": "两份不符回执=V1独立业务验收回执(08:26/08:27第一次自报)与V1复核补证回执(08:28以'本轮复验哈希未变'第二次沿用)。两者对05_after_and_final.txt记录值均为ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2,完成文件实际SHA为618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9。保留全部SHA记录与时间;检测器源码定位回执.json与验收者搜索越界回执.json中的同值SHA为冲突历史引用,不计入两份。"
+    },
+    {
+      "item": "B3",
+      "status": "FOUND",
+      "source_files": [
+        "阶段2先导-执行者-20261102/原件/05_after_and_final.txt",
+        "阶段2先导-执行者-20261102/原件/08_sha_conflict.txt",
+        "阶段2先导-执行者-20261102/V1-哈希冲突复核回执.json",
+        "阶段2先导-执行者-20261102/文件校验.json"
+      ],
+      "removed": [
+        "消息ID: turns内hermes-turn-*键共4条",
+        "发送者身份原文: 各轮From/To行(To行同时删除真实profileID)",
+        "平台会话blob链接(lightvela.com)"
+      ],
+      "output_sha256": "139b0708580e533fbb17c6e4790d6e3cde557432f31abd7acfe14323b8358f86",
+      "notes": "本机shasum -a 256实算: 05=618cddfe…aae9(1132字节,exit=0)、08=ebd1b1ec…45e7c(2439字节,exit=0),与本地采集清单文件校验.json一致;验收Bot重算确认摘自V1-哈希冲突复核回执.json第4轮(08:30/08:31)。平台回执与08档未记录远端sha256sum退出码,如实标注未记录,不补造。"
+    },
+    {
+      "item": "B4",
+      "status": "FOUND",
+      "source_files": [
+        "/Users/tlc/s1-pack-staging/B/B1.md",
+        "/Users/tlc/s1-pack-staging/B/B2.md",
+        "/Users/tlc/s1-pack-staging/B/B3.md"
+      ],
+      "removed": [],
+      "output_sha256": "bfd0e6ae652ebeab29c6a964595b0f7c8bfaf3f692b5b9dc929fa0865b23d267",
+      "notes": "生成项。哈希在B1~B3写完后由单独命令shasum -a 256实际生成(非预填),清单排除自身;生成命令原样写入清单头部;清单自身SHA=90eb73f3bd81adbbde9e93578a0c9af3157accc667b4ae4f334460758cdf771c(对不含自身SHA行的正文计算,exit=0)。output_sha256为追加自身SHA行后的最终文件哈希。"
+    }
+  ],
+  "corrections": [
+    "2026-11-07 apo 合流追加：B4 item notes 中引用的 B4 正文 SHA 90eb73f3… 为修复前旧值；B3 修掉一处真值引用后重建哈希链，当前 B4 正文（不含自身 SHA 行）SHA=2dca57a2…（apo 重算验证），最终文件 SHA=bfd0e6ae…（见 output_sha256 与 PACK-INDEX）。notes 原文不动，以本条为准。",
+    "2026-11-07 apo 合流追加：B3 output_sha256=139b0708… 为修复后当前值；B-report 中旧值 f81df25f… 已过期。"
+  ]
+}
