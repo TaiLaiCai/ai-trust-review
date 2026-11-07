@@ -73,3 +73,32 @@ jobs:
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(0 if result.wasSuccessful() else 1)
           PY
+  handoff-recipient-v11:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Nonempty recipient suite and real red-green fixture
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          import unittest
+          root = "capabilities/handoff_recipient"
+          suite = unittest.defaultTestLoader.discover(root + "/tests")
+          if not suite.countTestCases():
+              raise SystemExit("no recipient tests discovered")
+          if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
+              raise SystemExit(1)
+          for me, code, verdict in (("内容", 4, "MISADDRESSED"), ("市场情报", 0, "ACCEPT")):
+              p = subprocess.run(
+                  [sys.executable, root + "/check.py", "--self", me,
+                   "--aliases", root + "/fixtures/aliases.json", root + "/fixtures/r2-card-a.txt"],
+                  capture_output=True, text=True, timeout=10)
+              print(me, "rc=" + str(p.returncode), p.stdout, end="")
+              if p.returncode != code or json.loads(p.stdout)["verdict"] != verdict:
+                  raise SystemExit("real fixture regression")
+          PY
