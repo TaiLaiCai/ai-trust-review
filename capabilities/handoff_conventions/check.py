@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import unicodedata
 
 MAX_BYTES = 256 * 1024
 PREFIX = "约定定义："
@@ -47,6 +48,18 @@ def load_terms(raw):
     return terms
 
 
+def normalize(text):
+    """Strip invisible format characters and compatibility-normalize.
+
+    A convention term with a zero-width character inside it (U+200B,
+    U+2060, U+00AD, ...) must not slip past matching: NFKC first, then
+    drop every Unicode Cf character, so the check sees the same text
+    a reader sees.
+    """
+    return "".join(ch for ch in unicodedata.normalize("NFKC", text)
+                   if unicodedata.category(ch) != "Cf")
+
+
 def check(text, terms):
     definitions, body = {}, []
     seen = False
@@ -62,9 +75,15 @@ def check(text, terms):
         else:
             body.append(line)
     body = "\n".join(body)
-    missing = [term for term in terms if term in body and (
-        not definitions.get(term, "").strip() or
-        any(t in definitions.get(term, "") for t in terms))]
+    # Match against a normalized copy: the definition line itself is
+    # parsed from the raw text (NFKC would rewrite its full-width
+    # colon), but term matching must not let invisible characters hide
+    # a term in the body or inside a definition value.
+    norm_body = normalize(body)
+    norm_defs = {key: normalize(value) for key, value in definitions.items()}
+    missing = [term for term in terms if term in norm_body and (
+        not norm_defs.get(term, "").strip() or
+        any(t in norm_defs.get(term, "") for t in terms))]
     if missing:
         return 3, {"verdict": "NEEDS_CLARIFICATION", "undefined": missing,
                    "next": "不开工；复述缺少明确约定的词，向发件人回问", "scope": SCOPE}
