@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-11-07T08:10:49Z",
+  "head_sha": "1526ea1bc733612dba4f814ecb220ea2330e0646",
+  "receipts": [
+    {
+      "argv": [
+        "python3",
+        "-c",
+        "print('rerun-receipt example')"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-11-07T08:10:49Z",
+      "id": "example-ok",
+      "started_at": "2026-11-07T08:10:49Z",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "050dcb44baef0b8491a2fcd580881adca1b57140cc6cac6a6bb4476dd315ba2e"
+    },
+    {
+      "argv": [
+        "python3",
+        "-c",
+        "import sys; sys.exit(4)"
+      ],
+      "exit_code": 4,
+      "finished_at": "2026-11-07T08:10:49Z",
+      "id": "example-exit4",
+      "started_at": "2026-11-07T08:10:49Z",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "runner": {
+    "account": "TaiLaiCai",
+    "agent": "claude-code CLI",
+    "model": "glm-5.3",
+    "os": "Darwin 27.2.0 arm64",
+    "python": "3.15.0"
+  },
+  "schema_version": "rerun-receipt/v1"
+}

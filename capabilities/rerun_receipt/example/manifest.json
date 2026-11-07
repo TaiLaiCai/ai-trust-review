@@ -1,0 +1,24 @@
+{
+  "schema_version": "rerun-manifest/v1",
+  "head_sha": "1526ea1bc733612dba4f814ecb220ea2330e0646",
+  "commands": [
+    {
+      "id": "example-ok",
+      "argv": [
+        "python3",
+        "-c",
+        "print('rerun-receipt example')"
+      ],
+      "expect_exit": 0
+    },
+    {
+      "id": "example-exit4",
+      "argv": [
+        "python3",
+        "-c",
+        "import sys; sys.exit(4)"
+      ],
+      "expect_exit": 4
+    }
+  ]
+}

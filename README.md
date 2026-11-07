@@ -133,6 +133,7 @@ Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.
 | [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) | v1.3 开工前收件人检查：正文收件人不是 `--self` 则退出 4，且不执行、不转派；`python3 capabilities/handoff_recipient/check.py --version` 退出 0，向标准输出打印版本与本文件 sha256。 |
 | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) | 正文命中未定义约定词、又没有唯一一行明确的 `约定定义：` JSON 时退出 3，要求回问；词法通过不等于授权。 |
 | [capabilities/review_readonly](capabilities/review_readonly/README.md) | 审查前后比较点名文件或 `--tree` 目录中的普通文件；只有 `verify` 退出 0 且 `delivery_allowed` 为 true 才允许交付。 |
+| [capabilities/rerun_receipt](capabilities/rerun_receipt/README.md) | `emit` 按清单在绑定的 head 上执行命令并记录输出摘要，`verify` 只读核验回执与证据字节；退出 0 只证明这次读到的回执与证据一致。 |
 | [control/gate](control/gate/README.md) | 把带哈希链的事件日志折叠成确定性状态，候选阶段最高到 2，`effective_stage` 恒为 null，并能与账本逐字节对照。 |
 | [control/loop_status](control/loop_status/README.md) | C6 的历史棘轮纯函数：曾经 closed 的键若退回或消失就持续报回归；退出 0 表示未发现历史回归。 |
 
@@ -184,6 +185,7 @@ python3 -m unittest discover -s capabilities/evidence_package/tests -v
 python3 -m unittest discover -s capabilities/handoff_conventions/tests -v
 python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
 python3 -m unittest discover -s capabilities/review_readonly/tests -v
+python3 -m unittest discover -s capabilities/rerun_receipt/tests -v
 python3 -m unittest discover -s control/gate/tests -v
 python3 -m unittest discover -s control/loop_status/tests -v
 python3 -m unittest discover -s scripts/tests -v
