@@ -71,16 +71,6 @@ def open_root(root):
         os.close(fd)
 
 
-def directory_fd_path(fd):
-    proc = f"/proc/self/fd/{fd}"
-    if os.path.exists(proc):
-        return proc
-    dev = f"/dev/fd/{fd}"
-    if os.path.exists(dev):
-        return dev
-    raise InputError("directory listing needs /proc/self/fd or /dev/fd")
-
-
 def digest_fd(fd, forbidden_id=None):
     before = os.fstat(fd)
     if forbidden_id and (before.st_dev, before.st_ino) == forbidden_id:
@@ -126,7 +116,7 @@ def list_directory(fd):
     before = os.fstat(fd)
     if not stat.S_ISDIR(before.st_mode):
         raise InputError("tree is not a directory")
-    names = os.listdir(directory_fd_path(fd))
+    names = os.listdir(fd)
     after = os.fstat(fd)
     if (before.st_mtime_ns, before.st_ctime_ns) != (after.st_mtime_ns, after.st_ctime_ns):
         raise InputError("directory changed while reading")

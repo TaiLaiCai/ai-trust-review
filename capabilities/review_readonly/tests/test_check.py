@@ -302,6 +302,53 @@ class ReadonlyReview(unittest.TestCase):
         code, out = self.verify_cli()
         self.assertEqual((code, out["changed"]["added"]), (1, ["empty/a.txt"]))
 
+    def test_tree_works_when_dev_fd_is_not_listable(self):
+        # Regression for #47: on macOS /dev/fd/N exists but cannot be used
+        # as a directory, and /proc/self/fd does not exist, so every
+        # --tree call failed closed with exit 5. Listing the directory
+        # descriptor directly must work there. The simulation runs the CLI
+        # in a subprocess with a sitecustomize that hides /proc/self/fd
+        # and makes os.listdir('/dev/fd/N') raise ENOTDIR, so the test
+        # also runs on Linux CI and in Hark's sandbox; a real macOS
+        # machine is still NOT_TESTED here.
+        sim = self.base / "macos_sim"
+        sim.mkdir()
+        (sim / "sitecustomize.py").write_text(
+            "import os\n"
+            "_listdir = os.listdir\n"
+            "def _fake_listdir(path):\n"
+            "    if isinstance(path, str) and path.startswith('/dev/fd/'):\n"
+            "        raise NotADirectoryError(20, 'Not a directory', path)\n"
+            "    return _listdir(path)\n"
+            "os.listdir = _fake_listdir\n"
+            "_exists = os.path.exists\n"
+            "def _fake_exists(p):\n"
+            "    if isinstance(p, str) and p.startswith('/proc/self/fd'):\n"
+            "        return False\n"
+            "    return _exists(p)\n"
+            "os.path.exists = _fake_exists\n"
+        )
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(sim) + os.pathsep + env.get("PYTHONPATH", "")
+        p = subprocess.run(
+            [sys.executable, str(SCRIPT), "snapshot", "--root", str(self.root), "--tree", "."],
+            capture_output=True, timeout=10, env=env,
+        )
+        manifest = json.loads(p.stdout) if p.stdout else None
+        self.assertEqual(p.returncode, 0, manifest or p.stderr)
+        self.assertEqual(sorted(manifest["files"]), ["a.txt", "nested/b.txt"])
+        self.assertEqual(manifest["trees"], ["."])
+        self.baseline.write_bytes(c.canonical(manifest))
+        self.sha = hashlib.sha256(c.canonical(manifest)).hexdigest()
+        p = subprocess.run(
+            [sys.executable, str(SCRIPT), "verify", "--root", str(self.root),
+             "--baseline", str(self.baseline), "--baseline-sha256", self.sha],
+            capture_output=True, timeout=10, env=env,
+        )
+        out = json.loads(p.stdout) if p.stdout else None
+        self.assertEqual((p.returncode, out["verdict"], out["delivery_allowed"]),
+                         (0, "UNCHANGED", True))
+
 
 if __name__ == "__main__":
     unittest.main()
