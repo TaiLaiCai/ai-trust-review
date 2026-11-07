@@ -76,6 +76,17 @@ class Contract(unittest.TestCase):
     def test_argument_errors(self):
         self.assertEqual(self.run_check(None, '--unknown').returncode, 2)
 
+    def test_invisible_characters_do_not_hide_conventions(self):
+        # Regression for #14 (Claude 11-07 independent review): a term
+        # with a zero-width character inside it bypassed matching and
+        # returned LEXICAL_CLEAR. Cf characters are stripped before
+        # matching, so all three variants must still block.
+        for hidden in ("老\u200b规矩", "老\u2060规矩", "老\u00ad规矩"):
+            out = self.assert_verdict("按" + hidden + "归档。", 3, "NEEDS_CLARIFICATION")
+            self.assertIn("老规矩", out["undefined"])
+        defined = '按老\u200b规矩归档。\n约定定义：{"老规矩":"先核对清单再归档"}'
+        self.assert_verdict(defined, 0, "LEXICAL_CLEAR")
+
     def test_shell_content_is_never_executed(self):
         with tempfile.TemporaryDirectory() as d:
             marker = Path(d) / "marker"
