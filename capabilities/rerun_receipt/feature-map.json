@@ -1,0 +1,57 @@
+{
+  "capability": "rerun-receipt/v1",
+  "version": "1",
+  "producer": "Claude Code (GLM) implementation in this PR; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "id": "contract",
+      "command": "python3 -m unittest discover -s capabilities/rerun_receipt/tests -v",
+      "expected": "strict schemas reject unknown/duplicate keys, bad hex digests, bad ids, bool expect_exit, empty receipts; exit 2",
+      "tests": [
+        "test_contract_violations_exit_2"
+      ]
+    },
+    {
+      "id": "head-binding",
+      "command": "python3 -m unittest discover -s capabilities/rerun_receipt/tests -v",
+      "expected": "emit refuses when manifest head differs from repo HEAD or HEAD is unreadable (exit 2, no receipts written); verify rejects receipts bound to another head",
+      "tests": [
+        "test_head_binding_exit_2"
+      ]
+    },
+    {
+      "id": "emit-record",
+      "command": "python3 -m unittest discover -s capabilities/rerun_receipt/tests -v",
+      "expected": "argv executed without shell, digests recorded, verify is read-only; expect mismatch still writes receipts (emit exit 1); timeout recorded as -9 with explanation",
+      "tests": [
+        "test_emit_verify_roundtrip_and_verify_is_read_only",
+        "test_emit_expect_mismatch_still_writes_receipts",
+        "test_timeout_is_recorded_not_hidden"
+      ]
+    },
+    {
+      "id": "verify-tamper",
+      "command": "python3 -m unittest discover -s capabilities/rerun_receipt/tests -v",
+      "expected": "tampered evidence bytes, forged digest, altered argv, extra or missing receipts, missing evidence file all fail with exit 1",
+      "tests": [
+        "test_verify_tampered_evidence_fails",
+        "test_verify_tampered_receipt_digest_fails",
+        "test_verify_argv_extra_and_missing_receipts_fail",
+        "test_verify_missing_evidence_file_fails"
+      ]
+    },
+    {
+      "id": "fingerprint",
+      "command": "python3 capabilities/rerun_receipt/check.py --version",
+      "expected": "exit 0 printing v1 plus full sha256 of check.py itself, locked by test",
+      "tests": [
+        "test_version_fingerprint_locks_own_bytes"
+      ]
+    }
+  ],
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}
