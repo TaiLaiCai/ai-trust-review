@@ -174,7 +174,7 @@
       "reviewed_detector",
       "owner_mode_switch_approval"
     ],
-    "min_M2_healthy_ci_days": 14,
+    "min_M2_healthy_ci_days": 7,
     "missing_required_check_is_success": false,
     "cancelled_skipped_neutral_is_success": false,
     "runtime_grade_changes_performed_by_this_document": false
