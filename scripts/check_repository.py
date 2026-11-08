@@ -6,6 +6,48 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# The five capability maps. control/gate already uses the same three keys and is not one of them.
+CAPABILITY_FEATURE_MAPS = (
+    "capabilities/evidence_package/feature-map.json",
+    "capabilities/handoff_conventions/feature-map.json",
+    "capabilities/handoff_recipient/feature-map.json",
+    "capabilities/rerun_receipt/feature-map.json",
+    "capabilities/review_readonly/feature-map.json",
+)
+REVIEW_READONLY_SCOPE = (
+    "two-observation declared file or tree bytes only; not OS enforcement or stage grading"
+)
+
+
+def require_unverified_independent_verification(block, label):
+    """Schema only. No receipt is invented: the triple stays NOT_TESTED/null/null."""
+    assert isinstance(block, dict), f"{label}: independent_verification must be an object"
+    assert list(block) == ["status", "verifier", "head_sha"], (
+        f"{label}: independent_verification keys must be status, verifier, head_sha"
+    )
+    assert block["status"] == "NOT_TESTED", (
+        f"{label}: unverified status must stay NOT_TESTED, not {block['status']!r}"
+    )
+    assert block["verifier"] is None and block["head_sha"] is None, (
+        f"{label}: unverified verifier and head_sha must stay null"
+    )
+
+
+def check_capability_feature_maps(root=ROOT):
+    found = sorted(
+        path.relative_to(root).as_posix()
+        for path in (root / "capabilities").glob("*/feature-map.json")
+    )
+    assert found == list(CAPABILITY_FEATURE_MAPS), f"capability feature maps changed: {found}"
+    for rel in found:
+        data = json.loads((root / rel).read_text())
+        assert "independent_verification" in data, f"{rel}: missing independent_verification"
+        require_unverified_independent_verification(data["independent_verification"], rel)
+    review = json.loads((root / "capabilities/review_readonly/feature-map.json").read_text())
+    assert review["runtime_bot_integration"] == "NOT_TESTED"
+    assert review["independent_acceptance"] == "NOT_TESTED"
+    assert review["scope"] == REVIEW_READONLY_SCOPE
+
 
 def main():
     policy = json.loads((ROOT / "docs/standards/审查门槛.json").read_text())
@@ -55,6 +97,7 @@ def main():
                 continue
             target = target.split("#")[0]
             assert (path.parent / target).is_file(), f"{path}: missing {target}"
+    check_capability_feature_maps()
     print("PASS: repository structure and standard contracts; runtime trust review NOT_TESTED")
 
 
