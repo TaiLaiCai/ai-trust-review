@@ -134,6 +134,8 @@ def main():
         and "--file status_input.json" in readme
         and "stdin" in readme
         and "历史暴露范围未解决" in readme
+        and "21c44e16ba356ea0dc6c8efcd34b3599783ffc04" in readme
+        and "ad33676eb0a64cb6a704747bb55e938a2ef98d58" in readme
         and "16/16 REPRODUCED" not in readme
         and "字节与 11-02 历史登记一致" not in readme
         and "Hark 已按包复跑" not in readme
@@ -158,6 +160,66 @@ def main():
         "historical private claim was not rerun and is not a verification")
     add("ITEM3_A2_PRIVATE_ORIGINALS", "NOT_TESTED",
         "stored A2 hashes can be recalculated; private originals are absent")
+
+    exposure = replay.get("historical_exposure", "")
+    exposure_ok = (
+        "21c44e16ba356ea0dc6c8efcd34b3599783ffc04" in exposure
+        and "ad33676eb0a64cb6a704747bb55e938a2ef98d58" in exposure
+        and "历史暴露范围未解决" in exposure
+    )
+    add("ITEM2_HISTORY_COMMITS_NAMED", "PASS" if exposure_ok else "FAIL",
+        "21c44e1 and ad33676 named; purge remains NOT_TESTED")
+
+    mappings_doc = json.loads((ROOT / "hash-mappings.json").read_text())
+    mappings = mappings_doc["mappings"]
+    on_disk = sorted(path.name for path in ROOT.glob("*.desensitized.json"))
+    mapped_names = [item["file"] for item in mappings]
+    mapping_ok = on_disk == sorted(mapped_names) and len(mapped_names) == len(set(mapped_names))
+    mapping_details = []
+    for item in mappings:
+        path = ROOT / item["file"]
+        digest = sha256_file(path) if path.is_file() else None
+        entry = next(entry for entry in merge["entries"] if entry["merge_path"] == item["file"])
+        current_ok = (
+            digest is not None
+            and item["desensitized_sha256"] == digest
+            and item["stored_sha256"] == digest
+            and entry["sha256"] == digest
+            and item["original_sha256"] != digest
+        )
+        historical = item.get("historical_registered_sha256")
+        if historical is None:
+            history_ok = item["desensitized_sha256"] == item["stored_sha256"]
+        else:
+            history_ok = (
+                historical != digest
+                and historical == entry["source_sha256"]
+                and "不是当前文件" in item.get("historical_registered_scope", "")
+                and "NOT_TESTED" in item.get("historical_registered_scope", "")
+            )
+        if not current_ok or not history_ok:
+            mapping_ok = False
+        mapping_details.append(f"{item['file']}={digest}")
+    self_names = {"hash-mappings.json", "merge-manifest.json", "check_addendum_boundaries.py"}
+    if any(item["file"] in self_names for item in mappings):
+        mapping_ok = False
+    mappings_text = (ROOT / "hash-mappings.json").read_text()
+    merge_text = (ROOT / "merge-manifest.json").read_text()
+    if sha256_file(ROOT / "hash-mappings.json") in mappings_text:
+        mapping_ok = False
+    if sha256_file(ROOT / "merge-manifest.json") in merge_text:
+        mapping_ok = False
+    feature = next(item for item in mappings if item["file"] == "feature-map.desensitized.json")
+    rerun = next(item for item in mappings if item["file"] == "rerun.desensitized.json")
+    preserved = (
+        feature["original_sha256"] == "71bbf5cf2385dc36836eac4d06827f21ed17b5cace6db7ec4034ea4baa213093"
+        and feature["historical_registered_sha256"] == "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b"
+        and rerun["original_sha256"] == "4124e6f9eab6730d47796a339df6187ec32b215a94638c96b1730c3ee88ea09b"
+    )
+    add("MAPPING_CROSSCHECK", "PASS" if mapping_ok and preserved else "FAIL",
+        " ".join(mapping_details))
+    add("MAPPING_ORIGINAL_BYTES", "NOT_TESTED",
+        "vault originals and feature-map historical registration bytes are absent")
 
     failed = [item for item, status, _ in results if status == "FAIL"]
     print("OVERALL", "FAIL" if failed else "PASS", "failed=" + ",".join(failed))

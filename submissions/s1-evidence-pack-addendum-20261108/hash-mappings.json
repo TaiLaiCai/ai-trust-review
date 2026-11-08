@@ -1,5 +1,5 @@
 {
-  "rule": "脱敏字节不用于核对原件哈希;核原件用 original_sha256,对照脱敏差异用 removed 列表",
+  "rule": "original_sha256 是历史库内原件登记。原件字节不在本树时为 NOT_TESTED，不能用入库字节代替。desensitized_sha256 与 stored_sha256 必须等于本树 file 的实测 SHA，只用于核对该文件。historical_registered_sha256 保留与实测值不同的旧登记，不是当前文件；对应字节不在本树时为 NOT_TESTED。",
   "mappings": [
     {
       "file": "rerun.desensitized.json",
@@ -10,17 +10,21 @@
         "profile-[0-9a-f]{32}×1",
         "\"author\"\\s*:\\s*\"[^\"]*\"×1",
         "\"verifier\"\\s*:\\s*\"[^\"]*\"×1"
-      ]
+      ],
+      "stored_sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e"
     },
     {
       "file": "feature-map.desensitized.json",
       "original_vault_path": "<VAULT>/feature-map.json",
       "original_sha256": "71bbf5cf2385dc36836eac4d06827f21ed17b5cace6db7ec4034ea4baa213093",
-      "desensitized_sha256": "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b",
+      "desensitized_sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
       "removed": [
         "profile-[0-9a-f]{32}×1",
         "\"author\"\\s*:\\s*\"[^\"]*\"×1"
-      ]
+      ],
+      "stored_sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
+      "historical_registered_sha256": "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b",
+      "historical_registered_scope": "该值自 21c44e16ba356ea0dc6c8efcd34b3599783ffc04 起写在 desensitized_sha256，并与 merge-manifest source_sha256 相同。本树文件从该提交起实测一直是 stored_sha256。仓库内没有这份旧字节。保留旧登记，不是当前文件，不改写 source_sha256。旧字节与当前文件的差异 NOT_TESTED。"
     }
   ]
 }

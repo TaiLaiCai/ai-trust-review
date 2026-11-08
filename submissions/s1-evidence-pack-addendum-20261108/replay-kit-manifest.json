@@ -192,5 +192,5 @@
     "sample_fixed_effect": "入库 sample_fixed.json 是多行重排,SHA 与历史登记不同。T1 的 file_input 只按 JSON 解析入库字节并核对计数。PREFLIGHT 只检查四个文件名存在,不校验 SHA。TP 使用临时文件,不读取入库 sample_fixed.json 的字节。",
     "not_a_verification": "A2 的 16 个日志文件可以重算入库 SHA。与私有原件逐字节是否相同,本环境 NOT_TESTED。不把 16/16 口号当作验证。"
   },
-  "historical_exposure": "起点提交 ad33676eb0a64cb6a704747bb55e938a2ef98d58 的 replay-kit-manifest.json files[4].flag 含受限输入正文。本候选只在新树去掉该正文,不改写 git 历史,不声称历史提交已经清除。历史暴露范围未解决。"
+  "historical_exposure": "公开提交 21c44e16ba356ea0dc6c8efcd34b3599783ffc04 与 ad33676eb0a64cb6a704747bb55e938a2ef98d58 的 replay-kit-manifest.json files[4].flag 仍含受限输入正文。本候选新树不含该正文，不改写 git 历史，不声称历史提交已经清除。历史暴露范围未解决。"
 }

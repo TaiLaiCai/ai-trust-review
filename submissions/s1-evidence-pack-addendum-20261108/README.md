@@ -12,7 +12,7 @@
 ## 受限正文
 
 - `replay-kit-manifest.json` 的 `files[4]`（`status_input.json`）`flag` 只保留缺失说明，不含受限输入正文。
-- 起点提交 `ad33676eb0a64cb6a704747bb55e938a2ef98d58` 的旧 `flag` 仍在 git 历史中。本候选不改写历史，不声称已经从历史提交移除。历史暴露范围未解决。
+- 公开提交 `21c44e16ba356ea0dc6c8efcd34b3599783ffc04` 与 `ad33676eb0a64cb6a704747bb55e938a2ef98d58` 的旧 `flag` 仍在 git 历史中。本候选不改写历史，不声称已经从历史提交移除。历史暴露范围未解决。
 
 ## 公开复跑边界
 
@@ -23,7 +23,7 @@
 
 ## 其他
 
-- 三件脱敏件与 `hash-mappings.json`：核原件用映射内 `original_sha256`。原件字节不在本树时为 **NOT_TESTED**。不用脱敏字节代替原件。
+- `hash-mappings.json`：核本树脱敏文件时，`desensitized_sha256` 与 `stored_sha256` 必须等于该文件实测 SHA。`original_sha256` 是历史原件登记，原件不在本树时为 **NOT_TESTED**。`feature-map.desensitized.json` 实测是 `38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803`。旧登记 `dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b` 留在 `historical_registered_sha256`，与 `merge-manifest.json` 的 `source_sha256` 相同，不是当前文件。
 - `B-originals-hashlist.txt` 不含自身。整体摘要 `d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6` 是对本树该文件的实测。清单点名的 B 原件不在本树，**NOT_TESTED**。
 - `d3-summary.md` 只保留检索哈希与脱敏摘要，全文不入库。
 - 排除未入：`authorized-only/`、d3 全文、`status_input.json`。

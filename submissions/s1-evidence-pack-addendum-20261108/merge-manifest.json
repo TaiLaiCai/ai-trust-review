@@ -181,7 +181,7 @@
     },
     {
       "merge_path": "replay-kit-manifest.json",
-      "sha256": "bbc2cd95dc8e5fc98effa55f1831ecd3ea60c2b6bae59029d99f3c8f9e288f50",
+      "sha256": "b41a924d49ddd18e99cd6cd33233dc0b0e6938ed874b12140fd7191a80443d89",
       "source_sha256": "f5bb42800b56d39b77c0de06054e791715041fe7900bcf4be7bbd2a628a024d3",
       "status": "入",
       "note": "入库 SHA 是本文件当前字节的实测值,与 source_sha256 不同。source_sha256 的源字节不在本树,NOT_TESTED。相对历史源,旧差异含私有路径清理;本候选另去掉 files[4].flag 的受限正文,并改写 sample_fixed 与公开复跑边界的不实声称。本字段不覆盖 merge-manifest.json。"
@@ -191,7 +191,7 @@
       "sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
       "source_sha256": "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b",
       "status": "入",
-      "note": "JSON 已去私有路径"
+      "note": "sha256 是本树文件实测值。source_sha256 是历史登记，等于 hash-mappings 的 historical_registered_sha256。旧字节不在本树，与入库文件的差异 NOT_TESTED。不把 source_sha256 改写成入库值。"
     },
     {
       "merge_path": "rerun.desensitized.json",
@@ -202,10 +202,10 @@
     },
     {
       "merge_path": "hash-mappings.json",
-      "sha256": "0bf91db9cb571a53a4a9b0956b9e03adfc1d8001d03b546bf4c123fb0139ee9b",
+      "sha256": "785dea674503528377036b197000c739f7dd14bf0d7d2a5bff15604b82cdf078",
       "source_sha256": "ed9e3c337d27e189fd466edb804eedd96587b2a326da9dbf78f533e2a6c1f126",
       "status": "入",
-      "note": "JSON 已去私有路径"
+      "note": "入库 SHA 是本文件当前字节的实测值。source_sha256 保持历史登记，源字节不在本树，NOT_TESTED。本候选把 feature-map 的 desensitized_sha256 改为入库实测，并把旧登记留在 historical_registered_sha256。本字段不覆盖 merge-manifest.json。"
     },
     {
       "merge_path": "d3-summary.md",
