@@ -12,14 +12,14 @@
 | B1 | FOUND | B/B1.md | `b6c09fb66a2cf0de062538a4ba3d9fb8c9009999c7a073b0a6600a506ba659b7` |
 | B2 | FOUND | B/B2.md | `70f4e70c7340de6fbf9c5d288abb14d6ad87e7914d768096e46251bceb4df13f` |
 | B3 | FOUND | B/B3.md | `139b0708580e533fbb17c6e4790d6e3cde557432f31abd7acfe14323b8358f86` |
-| B4 | FOUND | B/- | `bfd0e6ae652ebeab29c6a964595b0f7c8bfaf3f692b5b9dc929fa0865b23d267` |
+| B4 | FOUND | B/B4-hashlist.txt | `bfd0e6ae652ebeab29c6a964595b0f7c8bfaf3f692b5b9dc929fa0865b23d267` |
 | C1 | FOUND | C/C1.md | `15ee72e082d906b77cae9226afde18d140841de8ea097f237496af19fe6744b9` |
 | C2 | FOUND | C/C2.md | `8d9e73e43eb5d79196c6e99a83132135cd8c6574a591b78e2df568941c1cb312` |
 | C3 | FOUND | C/C3.md | `ca2eefcff6d6b9c3aba6695869e9972919980a0e9217e46cc09c6f14d8bd30e9` |
 | C4 | FOUND | C/C4.md | `6c3807f0f8454c3cd2d5ca7d4b72ab278f6db81ce5d644b8910ce9ef61020a8d` |
-| D1 | PARTIAL | D/D1.md | `889ebe55825bd093df3f2a91bc8c9aabffdc008941dd43626c0f80bd81ef530e` |
+| D1 | PARTIAL | D/D1.md | `d5026f03d44b042bfa2effc931e7e67d713223ec18cbc4b2baa8ab45eeea3813` |
 | D2 | PARTIAL | D/D2.md | `d687df76c6c1b59508edaca577dbd2d8c61478b810efe3bf0f660b7388cc4d4c` |
-| D3 | NOT_FOUND | D/D3.md | `759789639f8035247aa2bc58afb5cf78490d2ad4331f3ba6fdcd89f2e35abda7` |
+| D3 | NOT_FOUND | D/D3.md | `cd381fd14219c3f74b16904ef0f1bc2afcec9a330301a62fb5c10e51a9ffdb2a` |
 
 **统计:16 项 = FOUND 13 + PARTIAL 2 + NOT_FOUND 1**
 
@@ -38,3 +38,10 @@
 - **C3 行数**：C3 时间线实为 16 行，C-report 与 C-manifest 称“15 行”为计数差 1，内容齐全。
 - **A2 时间戳**：回执无时间戳字段，以库内落盘 mtime 2026-11-02 08:40（北京时间）标注，不虚构执行时刻；标注在 .md 包装层，原件 rerun.json 未动。
 - **组装与署名**：Obsidian 证据（A/B/C/D）由 tlc（Claude Code + GLM，有本地文件权限）组装；仓库可见材料重建（repo-evidence/）与合流由 apo。提交包生产方署名 apo。tlc 为证据组装者，不能担任独立审阅；独立审阅改由 Grok Bot（另一主体），Hark 独立复跑，主人裁定 S1。repo-evidence/README.md 中“tlc 独立审阅”一句已被此条取代。
+
+## 2026-11-08 可确定的文件错误（不新造原件）
+
+- **B4 路径**：索引原先写成 `B/-`，该路径没有文件。改为 `B/B4-hashlist.txt`。该文件字节未改，SHA 仍是上表的 `bfd0e6ae…`。
+- **D1 括号**：`D/D1.md` 里一处 `](` 被仓库链接检查当成相对链接。改为全角括号，旁边的字不变。因此 D1 文件 SHA 变了。这不是新的平台读回。
+- **D3 的 04 号哈希**：原先 63 位，与本包 `B/B1.md` 代码块和 `B/B2.md` 里的 64 位不一致。现对齐到包内那 64 位。私有 `04_sha_coverage.txt` 本轮没有读取。D3 状态仍是 NOT_FOUND。`05` 的回执自报值 `ee830731…` 不改。
+- D1、D3 的新 SHA 由改后的文件字节重算，并写回本索引、`D/D-report.md` 与 `D/D-manifest.json`。历史回执正文不重写。地图复跑、原库对照、A2 日志原件仍未测。

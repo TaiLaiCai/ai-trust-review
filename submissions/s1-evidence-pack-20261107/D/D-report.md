@@ -42,8 +42,10 @@
 
 ## 产出清单
 
-- `D1.md`(SHA256 `889ebe55825bd093df3f2a91bc8c9aabffdc008941dd43626c0f80bd81ef530e`)
+- `D1.md`(SHA256 `d5026f03d44b042bfa2effc931e7e67d713223ec18cbc4b2baa8ab45eeea3813`)
 - `D2.md`(SHA256 `d687df76c6c1b59508edaca577dbd2d8c61478b810efe3bf0f660b7388cc4d4c`)
-- `D3.md`(SHA256 `759789639f8035247aa2bc58afb5cf78490d2ad4331f3ba6fdcd89f2e35abda7`)
+- `D3.md`(SHA256 `cd381fd14219c3f74b16904ef0f1bc2afcec9a330301a62fb5c10e51a9ffdb2a`)
 - `D-report.md`(本文件)
 - `D-manifest.json`(含上述各件 SHA256;manifest 自身不含自引用哈希)
+
+2026-11-08：上表 D1、D3 的 SHA 改为当时文件的现字节。D1 只改了会被当成相对链接的括号；D3 的 04 号哈希改为与本包 B1/B2 已有的 64 位一致。私有原件没有重读。D2 未改。
