@@ -133,6 +133,7 @@ The directories below are the paths that exist in the repository. [capabilities/
 | [capabilities/handoff_recipient](capabilities/handoff_recipient/README.md) | v1.3 recipient check before work starts: if the body recipient is not `--self`, exit 4, and do not execute or forward. `python3 capabilities/handoff_recipient/check.py --version` exits 0 and prints the version and this file's sha256 to stdout. |
 | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) | If the body hits an undefined-convention phrase and does not contain exactly one explicit `约定定义：` JSON line, exit 3 and require a question back. Passing the lexicon is not authorization. |
 | [capabilities/review_readonly](capabilities/review_readonly/README.md) | Compare named files, or ordinary files under a `--tree` directory, before and after review. Delivery is allowed only when `verify` exits 0 and `delivery_allowed` is true. |
+| [capabilities/rerun_receipt](capabilities/rerun_receipt/README.md) | `emit` executes manifest commands at a bound head and records byte digests; `verify` re-checks receipts and evidence bytes read-only. Exit 0 only proves the receipts and evidence read this time are consistent. |
 | [control/gate](control/gate/README.md) | Folds a hash-chained event log into a deterministic state. Candidate stage tops out at 2, `effective_stage` is always null, and the result can be compared to a ledger byte for byte. |
 | [control/loop_status](control/loop_status/README.md) | C6 history-ratchet pure function: a key that was closed and then regresses or disappears keeps reporting regression. Exit 0 means no history regression was found. |
 
@@ -184,6 +185,7 @@ python3 -m unittest discover -s capabilities/evidence_package/tests -v
 python3 -m unittest discover -s capabilities/handoff_conventions/tests -v
 python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
 python3 -m unittest discover -s capabilities/review_readonly/tests -v
+python3 -m unittest discover -s capabilities/rerun_receipt/tests -v
 python3 -m unittest discover -s control/gate/tests -v
 python3 -m unittest discover -s control/loop_status/tests -v
 python3 -m unittest discover -s scripts/tests -v
