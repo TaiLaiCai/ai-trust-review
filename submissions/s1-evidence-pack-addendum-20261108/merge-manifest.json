@@ -1,0 +1,239 @@
+{
+  "generated": "2026-11-08 16:21 北京时间",
+  "b_originals_hashlist_digest": "d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6",
+  "note": "不自行宣布 S1 闭合;status_input.json 不在本候选,待 apo 明确公开授权后才可能另案补入;排除项不入库;不把历史 8/8 或 16/16 当作本清单的验证",
+  "hash_scope": "entries[].sha256 只覆盖该 merge_path 的入库字节;文件不在本树则为 null,禁止用 source_sha256 填入。source_sha256 是登记或历史源值,不是本清单自身的哈希。merge-manifest.json、README.md 与 check_addendum_boundaries.py 不在 entries 中,避免清单自引用循环。b_originals_hashlist_digest 只覆盖 B-originals-hashlist.txt。",
+  "entries": [
+    {
+      "merge_path": "A2-originals/PREFLIGHT-LOCAL.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/PREFLIGHT-LOCAL.stdout",
+      "sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+      "source_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T1.stderr",
+      "sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+      "source_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T1.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T2.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T2.stdout",
+      "sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "source_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T3.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T3.stdout",
+      "sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "source_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T4.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T4.stdout",
+      "sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+      "source_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T5.stderr",
+      "sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+      "source_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T5.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T6.stderr",
+      "sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+      "source_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/T6.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/TP.stderr",
+      "sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+      "source_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals/TP.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "A2-originals-manifest.json",
+      "sha256": "7729e76574b2d5626453b8e61000c69588b08496834c6bb3579aa9a69ef8d6dd",
+      "source_sha256": "144f566bc7e6b9f5f92b620094e1122e66261ce8021be99de424766e86b8733d",
+      "status": "入",
+      "note": "JSON 已去私有路径"
+    },
+    {
+      "merge_path": "replay-kit/README.md",
+      "sha256": "6832be613bf6d8946be82984e51c43b1ffd0908005ab9e8894317bc0f7ff0aa4",
+      "source_sha256": "6832be613bf6d8946be82984e51c43b1ffd0908005ab9e8894317bc0f7ff0aa4",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "replay-kit/preflight.py",
+      "sha256": "203388fe8d3cafc5035d8a71f6aee051b1d13fab81ee7adf2854f373ebccd57d",
+      "source_sha256": "203388fe8d3cafc5035d8a71f6aee051b1d13fab81ee7adf2854f373ebccd57d",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "replay-kit/sample_fixed.json",
+      "sha256": "79e0d15f5a5729b4fe8afb1b7376d8352d7f4ca08b8534c40faa4d47827df099",
+      "source_sha256": "094e5186e657456fdf58c4198b07949237c9370128d6224b9aa165dd6963ac16",
+      "status": "入",
+      "note": "入库 SHA 是多行重排的实测值。source_sha256 是历史登记值;历史源文件不在本树,NOT_TESTED。不是路径脱敏。未写回内存重排。"
+    },
+    {
+      "merge_path": "replay-kit/status_input.json",
+      "sha256": null,
+      "source_sha256": "49a428cca57668bcfae5dececca9aeec3caacb40c7bf519d128890fc7b708549",
+      "status": "未入",
+      "note": "文件不在本候选。source_sha256 只作历史登记引用,源字节未在本环境实测,NOT_TESTED。不生成替代文件。缺此文件时地图 T2(--file status_input.json)与 T3(stdin 为该文件)不能按地图执行。"
+    },
+    {
+      "merge_path": "replay-kit/status_tool.py",
+      "sha256": "2631e604db7328dacb2ae56334d91ec76fdcc14b36499a4e99cc74e06b047f01",
+      "source_sha256": "2631e604db7328dacb2ae56334d91ec76fdcc14b36499a4e99cc74e06b047f01",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "replay-kit/test_preflight.py",
+      "sha256": "f1b94c1b66bc7523ff54e89cd09e7944c4eb610e5e7702bd9c6e9d64ff948640",
+      "source_sha256": "f1b94c1b66bc7523ff54e89cd09e7944c4eb610e5e7702bd9c6e9d64ff948640",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "replay-kit/test_status_tool.py",
+      "sha256": "6155adf4504fc7703dcedb357a781d2bfce1f4139228b091afd7cefbdbe31f72",
+      "source_sha256": "6155adf4504fc7703dcedb357a781d2bfce1f4139228b091afd7cefbdbe31f72",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "replay-kit/alt-inputs/真实项目状态输入.json",
+      "sha256": "d13d017c509656e77fc9c77b1e5d563c96b7bf9ba91292c1b5d996ee4f413726",
+      "source_sha256": "d13d017c509656e77fc9c77b1e5d563c96b7bf9ba91292c1b5d996ee4f413726",
+      "status": "入",
+      "note": "JSON 已去私有路径"
+    },
+    {
+      "merge_path": "replay-kit-manifest.json",
+      "sha256": "b41a924d49ddd18e99cd6cd33233dc0b0e6938ed874b12140fd7191a80443d89",
+      "source_sha256": "f5bb42800b56d39b77c0de06054e791715041fe7900bcf4be7bbd2a628a024d3",
+      "status": "入",
+      "note": "入库 SHA 是本文件当前字节的实测值,与 source_sha256 不同。source_sha256 的源字节不在本树,NOT_TESTED。相对历史源,旧差异含私有路径清理;本候选另去掉 files[4].flag 的受限正文,并改写 sample_fixed 与公开复跑边界的不实声称。本字段不覆盖 merge-manifest.json。"
+    },
+    {
+      "merge_path": "feature-map.desensitized.json",
+      "sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
+      "source_sha256": "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b",
+      "status": "入",
+      "note": "sha256 是本树文件实测值。source_sha256 是历史登记，等于 hash-mappings 的 historical_registered_sha256。旧字节不在本树，与入库文件的差异 NOT_TESTED。不把 source_sha256 改写成入库值。"
+    },
+    {
+      "merge_path": "rerun.desensitized.json",
+      "sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+      "source_sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+      "status": "入",
+      "note": "JSON 已去私有路径"
+    },
+    {
+      "merge_path": "hash-mappings.json",
+      "sha256": "785dea674503528377036b197000c739f7dd14bf0d7d2a5bff15604b82cdf078",
+      "source_sha256": "ed9e3c337d27e189fd466edb804eedd96587b2a326da9dbf78f533e2a6c1f126",
+      "status": "入",
+      "note": "入库 SHA 是本文件当前字节的实测值。source_sha256 保持历史登记，源字节不在本树，NOT_TESTED。本候选把 feature-map 的 desensitized_sha256 改为入库实测，并把旧登记留在 historical_registered_sha256。本字段不覆盖 merge-manifest.json。"
+    },
+    {
+      "merge_path": "d3-summary.md",
+      "sha256": "3f45a9475d7f9ba0be163b0f33cb23ea5330d0a56627f8c73deb5ffd1233d4a3",
+      "source_sha256": "3f45a9475d7f9ba0be163b0f33cb23ea5330d0a56627f8c73deb5ffd1233d4a3",
+      "status": "入",
+      "note": "逐字节同源"
+    },
+    {
+      "merge_path": "vault-manifest.txt",
+      "sha256": null,
+      "source_sha256": "5cc3be9659eb531b51a5a692a8443c3fa1210d9a0d8e066076db544423e9bf1d",
+      "status": "排除",
+      "note": "authorized-only,主人裁定1"
+    },
+    {
+      "merge_path": "verify.sh",
+      "sha256": null,
+      "source_sha256": "ab89598c14930a629d07a825bf7c6505ddbe62bd70966b86864da2e8ba9243a0",
+      "status": "排除",
+      "note": "authorized-only,主人裁定1"
+    },
+    {
+      "merge_path": "d3-search-transcript.md",
+      "sha256": null,
+      "source_sha256": "037bebc3589994783c1fbe9395563b56ad0470c8a94fca63f097b2b822b1a8fe",
+      "status": "排除",
+      "note": "主人裁定2:哈希+摘要替代"
+    }
+  ]
+}

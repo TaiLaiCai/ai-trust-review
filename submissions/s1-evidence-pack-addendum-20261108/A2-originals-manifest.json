@@ -1,0 +1,400 @@
+{
+  "title": "A2 addendum - rerun log originals export (SUPERVISED-01 revision2 trainer independent rerun)",
+  "generated": "2026-11-08",
+  "source_directory_vault_relative": "<VAULT>/revision2-训练者独立复跑",
+  "source_directory_absolute": "<VAULT>/revision2-训练者独立复跑",
+  "source_rerun_json": "rerun.json (same directory; map_sha256=71bbf5cf...13093, 8 steps T1-T6/TP/PREFLIGHT-LOCAL)",
+  "redaction_scan": {
+    "patterns_scanned": [
+      "hermes-turn-* message IDs",
+      "From:/To: identity lines",
+      "profile-<32-hex> real profile IDs",
+      "lightvela.com blob links",
+      "any http(s) URL",
+      "IPv4 addresses",
+      "private key blocks / sk- keys / api-key / token strings"
+    ],
+    "hits": 0,
+    "files_modified": 0,
+    "note": "zero hits -> all 16 files exported byte-identical (verified by cmp); no redactions applied. rerun.json itself (which does contain an author profile ID and nickname in its author/verifier fields, per first-batch A2 redaction) is NOT part of this export."
+  },
+  "file_count_note": "16 log files exported. First-batch A2.md described this set as '15 log files' (it enumerated T1-T6 .stdout/.stderr, TP .stdout/.stderr, and PREFLIGHT-LOCAL.stdout, omitting the empty PREFLIGHT-LOCAL.stderr). Actual vault directory holds 16 files; all 16 are exported here. The 16 rerun.json SHA records map 1:1 onto the 16 files; repeated SHA values exist because 8 empty files share the empty-string SHA e3b0c442...855 and T2.stdout/T3.stdout share identical 54-byte output (9e0e7625...c991) - two records, two distinct file paths.",
+  "files": [
+    {
+      "exported_file": "PREFLIGHT-LOCAL.stderr",
+      "original_vault_path": "<VAULT>/PREFLIGHT-LOCAL.stderr",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "PREFLIGHT-LOCAL",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "PREFLIGHT-LOCAL.stdout",
+      "original_vault_path": "<VAULT>/PREFLIGHT-LOCAL.stdout",
+      "original_size_bytes": 88,
+      "original_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+      "exported_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "PREFLIGHT-LOCAL",
+        "stream": "stdout",
+        "recorded_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T1.stderr",
+      "original_vault_path": "<VAULT>/T1.stderr",
+      "original_size_bytes": 633,
+      "original_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+      "exported_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T1",
+        "stream": "stderr",
+        "recorded_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T1.stdout",
+      "original_vault_path": "<VAULT>/T1.stdout",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T1",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T2.stderr",
+      "original_vault_path": "<VAULT>/T2.stderr",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T2",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T2.stdout",
+      "original_vault_path": "<VAULT>/T2.stdout",
+      "original_size_bytes": 54,
+      "original_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "exported_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T2",
+        "stream": "stdout",
+        "recorded_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T3.stderr",
+      "original_vault_path": "<VAULT>/T3.stderr",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T3",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T3.stdout",
+      "original_vault_path": "<VAULT>/T3.stdout",
+      "original_size_bytes": 54,
+      "original_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "exported_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T3",
+        "stream": "stdout",
+        "recorded_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T4.stderr",
+      "original_vault_path": "<VAULT>/T4.stderr",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T4",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T4.stdout",
+      "original_vault_path": "<VAULT>/T4.stdout",
+      "original_size_bytes": 54,
+      "original_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+      "exported_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T4",
+        "stream": "stdout",
+        "recorded_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T5.stderr",
+      "original_vault_path": "<VAULT>/T5.stderr",
+      "original_size_bytes": 49,
+      "original_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+      "exported_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T5",
+        "stream": "stderr",
+        "recorded_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T5.stdout",
+      "original_vault_path": "<VAULT>/T5.stdout",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T5",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T6.stderr",
+      "original_vault_path": "<VAULT>/T6.stderr",
+      "original_size_bytes": 85,
+      "original_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+      "exported_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T6",
+        "stream": "stderr",
+        "recorded_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "T6.stdout",
+      "original_vault_path": "<VAULT>/T6.stdout",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "T6",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "TP.stderr",
+      "original_vault_path": "<VAULT>/TP.stderr",
+      "original_size_bytes": 356,
+      "original_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+      "exported_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "TP",
+        "stream": "stderr",
+        "recorded_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221"
+      },
+      "original_vs_recorded": "MATCH"
+    },
+    {
+      "exported_file": "TP.stdout",
+      "original_vault_path": "<VAULT>/TP.stdout",
+      "original_size_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified_during_export": false,
+      "modifications": [],
+      "rerun_json_record": {
+        "step_id": "TP",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "original_vs_recorded": "MATCH"
+    }
+  ],
+  "crosscheck_rerun_json_16_records": {
+    "total_records": 16,
+    "match": 16,
+    "mismatch": 0,
+    "not_found": 0,
+    "detail": [
+      {
+        "step_id": "T1",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "T1.stdout"
+      },
+      {
+        "step_id": "T1",
+        "stream": "stderr",
+        "recorded_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+        "measured_sha256_of_vault_file": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+        "result": "MATCH",
+        "file": "T1.stderr"
+      },
+      {
+        "step_id": "T2",
+        "stream": "stdout",
+        "recorded_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+        "measured_sha256_of_vault_file": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+        "result": "MATCH",
+        "file": "T2.stdout"
+      },
+      {
+        "step_id": "T2",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "T2.stderr"
+      },
+      {
+        "step_id": "T3",
+        "stream": "stdout",
+        "recorded_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+        "measured_sha256_of_vault_file": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+        "result": "MATCH",
+        "file": "T3.stdout"
+      },
+      {
+        "step_id": "T3",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "T3.stderr"
+      },
+      {
+        "step_id": "T4",
+        "stream": "stdout",
+        "recorded_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+        "measured_sha256_of_vault_file": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+        "result": "MATCH",
+        "file": "T4.stdout"
+      },
+      {
+        "step_id": "T4",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "T4.stderr"
+      },
+      {
+        "step_id": "T5",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "T5.stdout"
+      },
+      {
+        "step_id": "T5",
+        "stream": "stderr",
+        "recorded_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+        "measured_sha256_of_vault_file": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+        "result": "MATCH",
+        "file": "T5.stderr"
+      },
+      {
+        "step_id": "T6",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "T6.stdout"
+      },
+      {
+        "step_id": "T6",
+        "stream": "stderr",
+        "recorded_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+        "measured_sha256_of_vault_file": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+        "result": "MATCH",
+        "file": "T6.stderr"
+      },
+      {
+        "step_id": "TP",
+        "stream": "stdout",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "TP.stdout"
+      },
+      {
+        "step_id": "TP",
+        "stream": "stderr",
+        "recorded_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+        "measured_sha256_of_vault_file": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+        "result": "MATCH",
+        "file": "TP.stderr"
+      },
+      {
+        "step_id": "PREFLIGHT-LOCAL",
+        "stream": "stdout",
+        "recorded_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+        "measured_sha256_of_vault_file": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+        "result": "MATCH",
+        "file": "PREFLIGHT-LOCAL.stdout"
+      },
+      {
+        "step_id": "PREFLIGHT-LOCAL",
+        "stream": "stderr",
+        "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "measured_sha256_of_vault_file": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "MATCH",
+        "file": "PREFLIGHT-LOCAL.stderr"
+      }
+    ]
+  }
+}

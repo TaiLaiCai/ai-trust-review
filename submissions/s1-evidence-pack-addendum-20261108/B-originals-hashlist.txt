@@ -1,0 +1,10 @@
+# B 底层原始日志当前复核清单(仅哈希与字节数;当前态快照)
+# 生成命令: python3(见 #6 交付帖);旧 CONFLICT(ee830731 记录)原样保留于 B1/B2,不因本清单改写;历史重算退出码不倒填
+
+55a2423fcce474bc5d1ac21d9c80aa04bf980e77ed89caab7b10d2c8d7feb003  V1-哈希冲突复核回执.json  (28007B)
+9063be8d587d9f33063db574dcbe7ea680fb68086c3f44bb2f3e407e4b665e08  V1-复核补证回执.json  (23657B)
+142f5ef0be4c7408a0fbc6c8e506e4531af6e5d253a6a631d82475f45abddbb2  V1-独立业务验收回执.json  (12850B)
+618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9  05_after_and_final.txt  (1132B)
+ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c  08_sha_conflict.txt  (2439B)
+60ede36d5e5382ee24d23d2e79f0d987a751fe46b172a733c18273ca10419652  文件校验.json  (4973B)
+# 注:文件名一律 basename,私有目录结构不入库;清单不含自身哈希,整体摘要另记于 merge-manifest 与 #6 交付帖

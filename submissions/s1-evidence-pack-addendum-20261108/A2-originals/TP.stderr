@@ -1,0 +1,8 @@
+test_green_all_present (test_preflight.TestPreflight.test_green_all_present) ... ok
+test_red_empty_dir (test_preflight.TestPreflight.test_red_empty_dir) ... ok
+test_red_missing_sample_fixed (test_preflight.TestPreflight.test_red_missing_sample_fixed) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.064s
+
+OK
