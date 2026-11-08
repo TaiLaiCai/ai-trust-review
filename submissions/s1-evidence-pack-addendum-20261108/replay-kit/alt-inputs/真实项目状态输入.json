@@ -1,0 +1,44 @@
+[
+  {
+    "id": "issue-1",
+    "status": "BLOCKED",
+    "reason": "P1能力候选待独立验收",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/issues/1"
+  },
+  {
+    "id": "issue-2",
+    "status": "NOT_TESTED",
+    "reason": "可信事件和计数实现尚未开工",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/issues/2"
+  },
+  {
+    "id": "issue-3",
+    "status": "BLOCKED",
+    "reason": "控制面及主分支强制保护前提未完成",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/issues/3"
+  },
+  {
+    "id": "pr-4",
+    "status": "BLOCKED",
+    "reason": "能力head c75a6e3待真实独立复跑、人审",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/pull/4"
+  },
+  {
+    "id": "pr-5",
+    "status": "BLOCKED",
+    "reason": "Draft控制面head 5bb1d7a待负责人审阅",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/pull/5"
+  },
+  {
+    "id": "pr-4-contract-ci",
+    "status": "PASS",
+    "reason": "仅基础仓库契约CI成功，不是业务信用PASS",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/actions/runs/41365753835"
+  },
+  {
+    "id": "pr-5-candidate-ci",
+    "status": "PASS",
+    "reason": "控制面候选自检CI成功，不能代替真实独立验收",
+    "source": "https://github.com/TaiLaiCai/ai-trust-review/actions/runs/41365757362"
+  }
+]

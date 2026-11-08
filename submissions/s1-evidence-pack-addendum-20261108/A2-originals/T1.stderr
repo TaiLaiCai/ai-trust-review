@@ -1,0 +1,12 @@
+test_empty_array (test_status_tool.TestStatusTool.test_empty_array) ... ok
+test_file_input (test_status_tool.TestStatusTool.test_file_input) ... ok
+test_fixed_sample (test_status_tool.TestStatusTool.test_fixed_sample) ... ok
+test_invalid_json (test_status_tool.TestStatusTool.test_invalid_json) ... ok
+test_missing_status (test_status_tool.TestStatusTool.test_missing_status) ... ok
+test_not_array (test_status_tool.TestStatusTool.test_not_array) ... ok
+test_unknown_status (test_status_tool.TestStatusTool.test_unknown_status) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.222s
+
+OK

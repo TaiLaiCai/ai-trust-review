@@ -1,0 +1,26 @@
+{
+  "rule": "脱敏字节不用于核对原件哈希;核原件用 original_sha256,对照脱敏差异用 removed 列表",
+  "mappings": [
+    {
+      "file": "rerun.desensitized.json",
+      "original_vault_path": "<VAULT>/rerun.json",
+      "original_sha256": "4124e6f9eab6730d47796a339df6187ec32b215a94638c96b1730c3ee88ea09b",
+      "desensitized_sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+      "removed": [
+        "profile-[0-9a-f]{32}×1",
+        "\"author\"\\s*:\\s*\"[^\"]*\"×1",
+        "\"verifier\"\\s*:\\s*\"[^\"]*\"×1"
+      ]
+    },
+    {
+      "file": "feature-map.desensitized.json",
+      "original_vault_path": "<VAULT>/feature-map.json",
+      "original_sha256": "71bbf5cf2385dc36836eac4d06827f21ed17b5cace6db7ec4034ea4baa213093",
+      "desensitized_sha256": "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b",
+      "removed": [
+        "profile-[0-9a-f]{32}×1",
+        "\"author\"\\s*:\\s*\"[^\"]*\"×1"
+      ]
+    }
+  ]
+}

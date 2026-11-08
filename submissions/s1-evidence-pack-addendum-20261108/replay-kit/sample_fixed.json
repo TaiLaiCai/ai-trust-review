@@ -1,0 +1,17 @@
+[
+  {
+    "status": "PASS"
+  },
+  {
+    "status": "FAIL"
+  },
+  {
+    "status": "BLOCKED"
+  },
+  {
+    "status": "NOT_TESTED"
+  },
+  {
+    "status": "PASS"
+  }
+]

@@ -1,0 +1,115 @@
+{
+  "map_sha256": "71bbf5cf2385dc36836eac4d06827f21ed17b5cace6db7ec4034ea4baa213093",
+  "author": "[已脱敏]",
+  "verifier": "[已脱敏]",
+  "not_a_registered_bot_receipt": true,
+  "steps": [
+    {
+      "id": "T1",
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_status_tool",
+        "-v"
+      ],
+      "exit": 0,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c"
+    },
+    {
+      "id": "T2",
+      "argv": [
+        "python3",
+        "status_tool.py",
+        "--file",
+        "status_input.json"
+      ],
+      "exit": 0,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "T3",
+      "argv": [
+        "python3",
+        "status_tool.py"
+      ],
+      "exit": 0,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "T4",
+      "argv": [
+        "python3",
+        "status_tool.py"
+      ],
+      "exit": 0,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "T5",
+      "argv": [
+        "python3",
+        "status_tool.py"
+      ],
+      "exit": 2,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83"
+    },
+    {
+      "id": "T6",
+      "argv": [
+        "python3",
+        "status_tool.py"
+      ],
+      "exit": 2,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d"
+    },
+    {
+      "id": "TP",
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_preflight",
+        "-v"
+      ],
+      "exit": 0,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221"
+    },
+    {
+      "id": "PREFLIGHT-LOCAL",
+      "argv": [
+        "python3",
+        "preflight.py"
+      ],
+      "exit": 0,
+      "result": "PASS",
+      "cwd_translation": "original map remote root -> isolated trainer temporary copy",
+      "stdout_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "map_step_ids_exact": true,
+  "qualification_credit": false,
+  "grade_change": false
+}
