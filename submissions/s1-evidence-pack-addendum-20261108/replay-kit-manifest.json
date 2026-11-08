@@ -1,8 +1,8 @@
 {
   "pack": "ai-trust-review S1 补证包 · 第二批(addendum) · 地图重放套件 replay-kit",
   "generated_at": "2026-11-08 15:15 +0800 (北京时间)",
-  "vault_base": "/Users/tlc/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian_Vault/02-项目/AI信任审查/",
-  "staging": "/Users/tlc/s1-pack-staging-addendum/replay-kit/",
+  "vault_base": "<VAULT_ROOT>/",
+  "staging": "<STAGING>/replay-kit/",
   "rules": "库只读;不联网;不发 GitHub;所有 SHA 均为对库内文件或导出文件的实测,无预填、无推测值",
   "blocker_a_answer": "源码在库。status_tool 检测器全家(源码+测试+fixture+输入+preflight)在库内存在两份字节精确副本,见 files 与 other_copies。以此套件本地重放地图八步 8/8 成功(见 replay_result)。",
   "locator_files_finding": {

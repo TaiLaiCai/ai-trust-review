@@ -180,10 +180,10 @@
     },
     {
       "merge_path": "replay-kit-manifest.json",
-      "sha256": "70f400a1740975691f75c0a8d42df17aea2de9a6ff37fe50cc7dfd71530742c6",
+      "sha256": "b8482d485f65924143f429dfac74c1b7da9178d5a8e47f55fc66aa60f7e3066b",
       "source_sha256": "f5bb42800b56d39b77c0de06054e791715041fe7900bcf4be7bbd2a628a024d3",
       "status": "入",
-      "note": "JSON 已去私有路径"
+      "note": "JSON 已去私有路径(含 2026-11-08 复扫修正:去 /Users 绝对路径)"
     },
     {
       "merge_path": "feature-map.desensitized.json",
