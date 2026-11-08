@@ -1,7 +1,8 @@
 {
   "generated": "2026-11-08 16:21 北京时间",
   "b_originals_hashlist_digest": "d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6",
-  "note": "不自行宣布 S1 闭合;status_input.json 待 apo 明确公开授权后随合流;排除项不入库",
+  "note": "不自行宣布 S1 闭合;status_input.json 不在本候选,待 apo 明确公开授权后才可能另案补入;排除项不入库;不把历史 8/8 或 16/16 当作本清单的验证",
+  "hash_scope": "entries[].sha256 只覆盖该 merge_path 的入库字节;文件不在本树则为 null,禁止用 source_sha256 填入。source_sha256 是登记或历史源值,不是本清单自身的哈希。merge-manifest.json、README.md 与 check_addendum_boundaries.py 不在 entries 中,避免清单自引用循环。b_originals_hashlist_digest 只覆盖 B-originals-hashlist.txt。",
   "entries": [
     {
       "merge_path": "A2-originals/PREFLIGHT-LOCAL.stderr",
@@ -141,14 +142,14 @@
       "sha256": "79e0d15f5a5729b4fe8afb1b7376d8352d7f4ca08b8534c40faa4d47827df099",
       "source_sha256": "094e5186e657456fdf58c4198b07949237c9370128d6224b9aa165dd6963ac16",
       "status": "入",
-      "note": "JSON 已去私有路径"
+      "note": "入库 SHA 是多行重排的实测值。source_sha256 是历史登记值;历史源文件不在本树,NOT_TESTED。不是路径脱敏。未写回内存重排。"
     },
     {
       "merge_path": "replay-kit/status_input.json",
-      "sha256": "49a428cca57668bcfae5dececca9aeec3caacb40c7bf519d128890fc7b708549",
+      "sha256": null,
       "source_sha256": "49a428cca57668bcfae5dececca9aeec3caacb40c7bf519d128890fc7b708549",
-      "status": "入(待apo授权)",
-      "note": "主人 A 裁定在案(6719172659),正文公开待 apo 明确授权"
+      "status": "未入",
+      "note": "文件不在本候选。source_sha256 只作历史登记引用,源字节未在本环境实测,NOT_TESTED。不生成替代文件。缺此文件时地图 T2(--file status_input.json)与 T3(stdin 为该文件)不能按地图执行。"
     },
     {
       "merge_path": "replay-kit/status_tool.py",
@@ -180,10 +181,10 @@
     },
     {
       "merge_path": "replay-kit-manifest.json",
-      "sha256": "b8482d485f65924143f429dfac74c1b7da9178d5a8e47f55fc66aa60f7e3066b",
+      "sha256": "bbc2cd95dc8e5fc98effa55f1831ecd3ea60c2b6bae59029d99f3c8f9e288f50",
       "source_sha256": "f5bb42800b56d39b77c0de06054e791715041fe7900bcf4be7bbd2a628a024d3",
       "status": "入",
-      "note": "JSON 已去私有路径(含 2026-11-08 复扫修正:去 /Users 绝对路径)"
+      "note": "入库 SHA 是本文件当前字节的实测值,与 source_sha256 不同。source_sha256 的源字节不在本树,NOT_TESTED。相对历史源,旧差异含私有路径清理;本候选另去掉 files[4].flag 的受限正文,并改写 sample_fixed 与公开复跑边界的不实声称。本字段不覆盖 merge-manifest.json。"
     },
     {
       "merge_path": "feature-map.desensitized.json",
