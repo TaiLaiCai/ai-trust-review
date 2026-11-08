@@ -47,6 +47,16 @@
       "tests": [
         "test_version_fingerprint_locks_own_bytes"
       ]
+    },
+    {
+      "id": "evidence-budgets",
+      "command": "python3 -m unittest discover -s capabilities/rerun_receipt/tests -v",
+      "expected": "evidence file over 64MiB or total over 256MiB fails verify (exit 1); exact-limit single file passes; sparse fixtures keep the suite cheap",
+      "tests": [
+        "test_single_file_over_limit_fails",
+        "test_total_budget_over_fails_and_single_files_pass_alone",
+        "test_single_file_exact_limit_passes"
+      ]
     }
   ],
   "independent_verification": {
