@@ -96,19 +96,26 @@ def check_event_shape(obj, where, require_prev=True):
     if "prev_sha256" in obj and (not isinstance(obj["prev_sha256"], str)
                                  or not HEX_RE.match(obj["prev_sha256"])):
         raise ContractError("%s: bad prev_sha256" % where)
-    ev = obj.get("evidence_sha256")
-    if ev is not None and (not isinstance(ev, str) or not HEX_RE.match(ev)):
-        raise ContractError("%s: evidence_sha256 must be 64 lowercase hex or absent" % where)
+    if "evidence_sha256" in obj:
+        ev = obj["evidence_sha256"]
+        if not isinstance(ev, str) or not HEX_RE.match(ev):
+            raise ContractError(
+                "%s: evidence_sha256 must be 64 lowercase hex or absent, not %r"
+                % (where, ev))
     if not isinstance(obj["version"], str):
         raise ContractError("%s: bad version" % where)
 
 
 def verify_chain(events, lines):
-    """校验整条哈希链与 task_index 连续性；返回 (ok, reason)。"""
+    """校验整条哈希链、task_index 连续性与 id 唯一性；返回 (ok, reason)。"""
     prev = GENESIS
     prev_index = -1
+    seen_ids = set()
     for i, (obj, line) in enumerate(zip(events, lines)):
         check_event_shape(obj, "line %d" % (i + 1))
+        if obj["id"] in seen_ids:
+            return False, "duplicate-id at line %d: %s" % (i + 1, obj["id"])
+        seen_ids.add(obj["id"])
         if obj["version"] != SCHEMA:
             return False, "version-drift at line %d: %r" % (i + 1, obj["version"])
         if obj["prev_sha256"] != prev:
@@ -136,15 +143,7 @@ def cmd_apply(args):
         print(json.dumps({"action": "version-drift-invalid", "id": event["id"],
                           "version": event["version"]}, ensure_ascii=False))
         return 1
-    ok, reason = verify_chain(events, lines)
-    if not ok:
-        raise GateFailure("ledger not appendable: %s" % reason)
-    last_index = events[-1]["task_index"] if events else -1
-    last_digest = sha256_hex(lines[-1].encode("utf-8")) if lines else GENESIS
-    record = dict(event)
-    record["prev_sha256"] = last_digest
-    line = canonical(record) + "\n"
-    digest = sha256_hex(line.encode("utf-8"))
+    # 已存在同 id 事件的检测提前到整链校验之前，保证 replay-noop 仍然可达。
     for i, obj in enumerate(events):
         if obj["id"] == event["id"]:
             orig_prev = sha256_hex(lines[i - 1].encode("utf-8")) if i > 0 else GENESIS
@@ -157,6 +156,15 @@ def cmd_apply(args):
                 return 0
             print(json.dumps({"action": "conflict-frozen", "id": event["id"]}, ensure_ascii=False))
             return 1
+    ok, reason = verify_chain(events, lines)
+    if not ok:
+        raise GateFailure("ledger not appendable: %s" % reason)
+    last_index = events[-1]["task_index"] if events else -1
+    last_digest = sha256_hex(lines[-1].encode("utf-8")) if lines else GENESIS
+    record = dict(event)
+    record["prev_sha256"] = last_digest
+    line = canonical(record) + "\n"
+    digest = sha256_hex(line.encode("utf-8"))
     if event["task_index"] != last_index + 1:
         print(json.dumps({"action": "index-gap-rejected", "id": event["id"],
                           "expected_task_index": last_index + 1}, ensure_ascii=False))

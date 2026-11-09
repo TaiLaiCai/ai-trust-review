@@ -183,5 +183,59 @@ class TestGate(unittest.TestCase):
         self.assertEqual(rc, 2)
 
 
+class TestNullEvidenceAndDuplicateId(unittest.TestCase):
+    """裁决 6744643997：null 证据必须 exit 2 零写入；末三条含 null 不得 PASS；重复 id 拒绝。"""
+
+    def setUp(self):
+        self.d = tempfile.TemporaryDirectory()
+        self.led = os.path.join(self.d.name, "l.jsonl")
+        write_ledger(self.led, [ev(0, "a", "a" * 64), ev(1, "b", "b" * 64)])
+
+    def tearDown(self):
+        self.d.cleanup()
+
+    def bytes(self):
+        return open(self.led, "rb").read()
+
+    def test_apply_null_evidence_exit_2_no_write(self):
+        before = self.bytes()
+        rc, _, err = run("apply", self.led,
+                         '{"id":"c","kind":"task","version":"event-gate/v1",'
+                         '"task_index":2,"evidence_sha256":null}')
+        self.assertEqual(rc, 2)
+        self.assertIn("evidence_sha256", err)
+        self.assertEqual(self.bytes(), before)
+
+    def test_gate_rejects_null_evidence_in_tail(self):
+        e = ev(2, "c")
+        e["evidence_sha256"] = None
+        write_ledger(self.led, [ev(0, "a"), ev(1, "b"), e])
+        rc, _, err = run("gate", self.led)
+        self.assertEqual(rc, 2)
+        self.assertIn("evidence_sha256", err)
+
+    def test_gate_fails_on_duplicate_id(self):
+        d = hashlib.sha256
+        prev = "0" * 64
+        lines = []
+        for r in (ev(0, "dup", "a" * 64), ev(1, "dup", "b" * 64), ev(2, "c", "c" * 64)):
+            r = dict(r)
+            r["prev_sha256"] = prev
+            line = canon(r) + "\n"
+            lines.append(line)
+            prev = d(line.encode()).hexdigest()
+        open(self.led, "w").writelines(lines)
+        rc, out, _ = run("gate", self.led)
+        self.assertEqual(rc, 1)
+        self.assertIn("duplicate-id", out)
+
+    def test_apply_conflict_frozen_still_reachable_with_duplicate_id(self):
+        before = self.bytes()
+        rc, out, _ = run("apply", self.led, json.dumps(ev(1, "b", "f" * 64)))
+        self.assertEqual(rc, 1)
+        self.assertEqual(json.loads(out)["action"], "conflict-frozen")
+        self.assertEqual(self.bytes(), before)
+
+
 if __name__ == "__main__":
     unittest.main()
