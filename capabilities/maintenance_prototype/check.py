@@ -17,6 +17,12 @@ import sys
 
 SCHEMA = "maintenance-prototype/v1"
 VERSION = "v1"
+REQUIRED_IDS = frozenset({
+    "author-role-spoof",       # 正文 author_role 冒充批准人
+    "outer-pass-inner-fail",   # 外层通过、内部 fail 仍晋级
+    "cross-missing-evidence",  # 两次通过跨缺证据继续连胜
+    "unasserted-promotion",    # 自测未真实断言晋级却报成功
+})
 ID_RE = re.compile(r"^[0-9a-z][0-9a-z-]{0,63}$")
 HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 MAX_DOC_BYTES = 1024 * 1024
@@ -120,6 +126,12 @@ def check_contract(doc):
         want_str(cx, "hazard", where, max_len=256)
         check_receipt(cx["red"], "%s.red" % where, expect_zero=False)
         check_receipt(cx["green"], "%s.green" % where, expect_zero=True)
+        if cid not in REQUIRED_IDS:
+            raise ContractError("counterexample id not in frozen v1 set: %s" % cid)
+    if ids != REQUIRED_IDS:
+        missing = sorted(REQUIRED_IDS - ids)
+        raise ContractError("counterexamples must cover the frozen v1 ids, missing: %s"
+                            % ", ".join(missing))
 
     incidents = doc["incidents"]
     if not isinstance(incidents, list) or len(incidents) > MAX_INCIDENTS:
@@ -143,8 +155,8 @@ def check_contract(doc):
 
 
 def repo_root():
-    # capabilities/maintenance_prototype/check.py -> 仓库根
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    # capabilities/maintenance_prototype/check.py -> 仓库根（两级向上）
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def check_boundary(retention_repo):

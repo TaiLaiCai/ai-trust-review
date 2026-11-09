@@ -5,7 +5,7 @@
     "contract": [
       "prototype.json: UTF-8, <=1MiB, no duplicate JSON keys, top-level keys exactly schema_version/retention/counterexamples/incidents",
       "schema_version=maintenance-prototype/v1",
-      "counterexamples: exactly 4 items, unique id ^[0-9a-z][0-9a-z-]{0,63}$, hazard string, red+green receipts",
+      "counterexamples: exactly 4 items, ids frozen to the v1 set (author-role-spoof, outer-pass-inner-fail, cross-missing-evidence, unasserted-promotion); replaced/missing ids -> exit 2",
       "red receipt must record nonzero exit_code; green receipt must record exit_code 0",
       "receipt: argv 1..16 strings, exit_code int -128..255, stdout/stderr sha256 64 lowercase hex",
       "incidents <=1024, unique id, counterexample must reference existing id, revision string, green receipt only"

@@ -4,7 +4,7 @@
 
 ## 目标
 
-新增原子能力 `capabilities/maintenance_prototype` v1：只读校验「独立维护原型」文档——恰好四项阻断反例（author_role 冒充、外层通过内部 fail、跨缺证据连胜、未真实断言晋级）与后续事故，红绿两端回执齐全且红端非零、绿端为零；保留集放独立受控仓库并做边界检查（保留集仓库不得在本仓库内、仓库树内不得有 retention 目录）。
+新增原子能力 `capabilities/maintenance_prototype` v1：只读校验「独立维护原型」文档——恰好四项阻断反例（id 冻结为 author-role-spoof、outer-pass-inner-fail、cross-missing-evidence、unasserted-promotion）与后续事故，红绿两端回执齐全且红端非零、绿端为零；保留集放独立受控仓库并做边界检查（保留集仓库不得在本仓库内、仓库树内不得有 retention 目录）。
 
 ## 输入
 
@@ -31,7 +31,7 @@
 
 ## 文件上限
 
-8（check.py、README.md、feature-map.json、example/prototype.json、example/cases.py、tests/test_check.py、capabilities/README.md 表行、本卡）。实际新增 6 + 修改 1。
+8（check.py、README.md、feature-map.json、example/prototype.json、example/cases.py、tests/test_check.py、capabilities/README.md 表行、本卡）。实际新增 7 + 修改 1。
 
 ## 完整上下文
 

@@ -7,7 +7,7 @@ Issue APO-4（C3）的最小原子能力：只读校验一份「独立维护原�
 输入是操作员选定的现有 `prototype.json`（≤1MiB、UTF-8、重复 JSON 键拒绝）。顶层仅允许 `schema_version="maintenance-prototype/v1"`、`retention`、`counterexamples`、`incidents`。
 
 - `retention`：仅 `repo` 与 `ref`。`repo` 必须是绝对路径或远端 URL（`http(s)://`、`git@`），相对路径拒绝（exit 2）；绝对路径若落在本仓库之内 → 边界违反（exit 1）。
-- `counterexamples`：恰好 4 项。每项仅 `id`（`^[0-9a-z][0-9a-z-]{0,63}$`，全局唯一）、`hazard`（非空 ≤256 字节）、`red`、`green` 回执。`red.exit_code` 必须非零，`green.exit_code` 必须为 0——红绿两端都要有真实断言记录。
+- `counterexamples`：恰好 4 项，且 id 集合冻结为 v1 四项：`author-role-spoof`、`outer-pass-inner-fail`、`cross-missing-evidence`、`unasserted-promotion`（替换或缺失任一 → exit 2）。每项仅 `id`（`^[0-9a-z][0-9a-z-]{0,63}$`，全局唯一）、`hazard`（非空 ≤256 字节）、`red`、`green` 回执。`red.exit_code` 必须非零，`green.exit_code` 必须为 0——红绿两端都要有真实断言记录。
 - 回执字段仅 `argv`（1..16 个非空字符串）、`exit_code`（-128..255 整数）、`stdout_sha256`、`stderr_sha256`（64 位小写十六进制）。
 - `incidents`：0..1024 项，每项仅 `id`（唯一）、`counterexample`（必须引用既有反例 id）、`revision`（非空 ≤64 字节）、`green` 回执（exit 0）。修复与后续成功另记 revision，原失败不删除。
 - 边界检查还会遍历本仓库树（排除 `.git`）：出现名为 `retention` 的目录 → exit 1。

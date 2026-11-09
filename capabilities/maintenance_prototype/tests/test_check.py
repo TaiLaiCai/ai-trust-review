@@ -10,7 +10,9 @@ import unittest
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHECK = os.path.join(BASE, "check.py")
 EXAMPLE = os.path.join(BASE, "example", "prototype.json")
-REPO_ROOT = os.path.abspath(os.path.join(BASE, "..", "..", ".."))
+REPO_ROOT = os.path.abspath(os.path.join(BASE, "..", ".."))
+REQUIRED_IDS = {"author-role-spoof", "outer-pass-inner-fail",
+               "cross-missing-evidence", "unasserted-promotion"}
 
 
 def run_check(path):
@@ -101,10 +103,41 @@ class BoundaryTests(unittest.TestCase):
         r = run_check(write_tmp(doc))
         self.assertEqual(r.returncode, 1, r.stdout)
 
+    def test_retention_repo_outside_repo_passes(self):
+        doc = load_example()
+        outside = os.path.join(tempfile.mkdtemp(prefix="retention-outside-"), "retention.git")
+        doc["retention"]["repo"] = outside
+        self.assertEqual(run_check(write_tmp(doc)).returncode, 0)
+
     def test_no_retention_directory_in_repo(self):
         for dirpath, dirnames, _ in os.walk(REPO_ROOT):
             dirnames[:] = [d for d in dirnames if d != ".git"]
             self.assertNotIn("retention", dirnames, dirpath)
+
+    def test_retention_dir_inside_repo_rejected_by_check(self):
+        probe = os.path.join(REPO_ROOT, "retention")
+        os.mkdir(probe)
+        try:
+            r = run_check(EXAMPLE)
+            self.assertEqual(r.returncode, 1, r.stdout)
+            self.assertIn("retention directory found", r.stdout)
+        finally:
+            os.rmdir(probe)
+        self.assertEqual(run_check(EXAMPLE).returncode, 0)
+
+
+class FrozenIdTests(unittest.TestCase):
+    def test_replaced_counterexample_ids_rejected(self):
+        doc = load_example()
+        for i, cid in enumerate(sorted(REQUIRED_IDS)):
+            doc["counterexamples"][i]["id"] = "other-%d" % i
+            doc["incidents"][0]["counterexample"] = "other-0"
+        self.assertEqual(run_check(write_tmp(doc)).returncode, 2)
+
+    def test_missing_one_frozen_id_rejected(self):
+        doc = load_example()
+        doc["counterexamples"][0]["id"] = "extra-fifth"
+        self.assertEqual(run_check(write_tmp(doc)).returncode, 2)
 
 
 class RealAssertionTests(unittest.TestCase):
