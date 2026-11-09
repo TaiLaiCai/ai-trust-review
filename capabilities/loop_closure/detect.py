@@ -111,7 +111,7 @@ def file_lines(raw, path):
     return lines
 
 
-def assess(report_raw, files, outputs, expected_head_sha256, previous_loop_ids):
+def assess(report_raw, files, outputs, expected_head_sha, previous_loop_ids):
     """Return (exit_code, canonical_json_bytes). 0 verified, 1 findings, 5 input error."""
     try:
         report = parse_report(report_raw)
@@ -121,8 +121,8 @@ def assess(report_raw, files, outputs, expected_head_sha256, previous_loop_ids):
         if not isinstance(outputs, dict) or any(not isinstance(k, str) or not isinstance(v, bytes)
                                                 for k, v in outputs.items()):
             raise InputError("outputs must map step id to bytes")
-        if not isinstance(expected_head_sha256, str) or not re.fullmatch(r"[0-9a-f]{40}", expected_head_sha256):
-            raise InputError("trusted expected head sha256 required")
+        if not isinstance(expected_head_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", expected_head_sha):
+            raise InputError("trusted expected head sha (40-hex git commit sha) required")
         if not isinstance(previous_loop_ids, list) or \
                 any(not nonempty(x) for x in previous_loop_ids) or \
                 len(set(previous_loop_ids)) != len(previous_loop_ids):
@@ -131,16 +131,16 @@ def assess(report_raw, files, outputs, expected_head_sha256, previous_loop_ids):
         if not report["steps"]:
             findings.append({"finding": "empty_steps",
                              "detail": "closure claim has no steps; a summary status is not evidence"})
-        verifier, producer = report["verifier"], report["producer"]
+        verifier, producer = report["verifier"].strip(), report["producer"].strip()
         if not verifier:
             findings.append({"finding": "verifier_not_independent",
                              "detail": "missing verifier"})
         elif verifier.casefold() == producer.casefold():
             findings.append({"finding": "verifier_not_independent",
                              "detail": f"verifier {verifier!r} equals producer {producer!r}"})
-        if report["head_sha"] != expected_head_sha256:
+        if report["head_sha"] != expected_head_sha:
             findings.append({"finding": "stale_head_sha",
-                             "detail": f"report head {report['head_sha']} != expected {expected_head_sha256}"})
+                             "detail": f"report head {report['head_sha']} != expected {expected_head_sha}"})
         for loop_id in sorted(set(previous_loop_ids) - set(report["loops"])):
             findings.append({"finding": "history_deleted",
                              "detail": f"previously reported loop absent from current report: {loop_id}"})
