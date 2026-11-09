@@ -45,7 +45,7 @@
         "-v"
       ],
       "cwd": "/tmp/acde4f6/submissions/s1-evidence-pack-addendum-20261108/replay-kit",
-      "map_cwd_not_used": "/home/agentuser/trust-review-r3-20261102/worker",
+      "map_cwd_not_used": "<redacted-vm-worker-path>",
       "stdin_sha256": null,
       "stdin_bytes": 0,
       "expected_exit": 0,
@@ -68,7 +68,7 @@
         "status_tool.py"
       ],
       "cwd": "/tmp/acde4f6/submissions/s1-evidence-pack-addendum-20261108/replay-kit",
-      "map_cwd_not_used": "/home/agentuser/trust-review-r3-20261102/worker",
+      "map_cwd_not_used": "<redacted-vm-worker-path>",
       "stdin_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
       "stdin_bytes": 2,
       "expected_exit": 0,
@@ -90,7 +90,7 @@
         "status_tool.py"
       ],
       "cwd": "/tmp/acde4f6/submissions/s1-evidence-pack-addendum-20261108/replay-kit",
-      "map_cwd_not_used": "/home/agentuser/trust-review-r3-20261102/worker",
+      "map_cwd_not_used": "<redacted-vm-worker-path>",
       "stdin_sha256": "7ccfa1fbf3940e6f0c0375d87c0f9235a50514e14cb427bdfaf5077987b26ccf",
       "stdin_bytes": 8,
       "expected_exit": 2,
@@ -112,7 +112,7 @@
         "status_tool.py"
       ],
       "cwd": "/tmp/acde4f6/submissions/s1-evidence-pack-addendum-20261108/replay-kit",
-      "map_cwd_not_used": "/home/agentuser/trust-review-r3-20261102/worker",
+      "map_cwd_not_used": "<redacted-vm-worker-path>",
       "stdin_sha256": "efcc828b65e169b8066aaac28441a14b8796ae270f66f0444d3180ee5f63ca00",
       "stdin_bytes": 19,
       "expected_exit": 2,
@@ -137,7 +137,7 @@
         "-v"
       ],
       "cwd": "/tmp/acde4f6/submissions/s1-evidence-pack-addendum-20261108/replay-kit",
-      "map_cwd_not_used": "/home/agentuser/trust-review-r3-20261102/worker",
+      "map_cwd_not_used": "<redacted-vm-worker-path>",
       "stdin_sha256": null,
       "stdin_bytes": 0,
       "expected_exit": 0,
@@ -160,7 +160,7 @@
         "preflight.py"
       ],
       "cwd": "/tmp/acde4f6/submissions/s1-evidence-pack-addendum-20261108/replay-kit",
-      "map_cwd_not_used": "/home/agentuser/trust-review-r3-20261102/worker",
+      "map_cwd_not_used": "<redacted-vm-worker-path>",
       "stdin_sha256": null,
       "stdin_bytes": 0,
       "expected_exit": 0,

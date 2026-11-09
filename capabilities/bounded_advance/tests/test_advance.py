@@ -125,5 +125,88 @@ class AdvanceTests(unittest.TestCase):
         self.assertEqual((self.cwd / "marker").read_text(), "U1\n")
 
 
+class Verdict6744651431Tests(unittest.TestCase):
+    """裁决 6744631431/6744651431：改 argv 不得假完成；输入被拒要停；并发不双跑；空 stdin 可声明。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        self.ledger = self.dir / "ledger.jsonl"
+        self.bound = b"bound-version-1"
+        self.cwd = self.dir / "work"
+        self.cwd.mkdir()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_raw(self, raw, delivery="d1", input_bytes=None, stdin=None):
+        return advance.advance(
+            raw, self.bound if input_bytes is None else input_bytes,
+            stdin or {}, self.ledger, delivery, self.cwd, None,
+        )
+
+    def test_changed_argv_is_not_reported_complete(self):
+        first = self.run_raw(plan_for(self.bound, [unit("U1", 0, 0)]))
+        self.assertEqual(first["status"], "complete")
+        marker = self.cwd / "argv-changed-marker"
+        changed_units = [{
+            "id": "U1",
+            "argv": ["touch", str(marker)],
+            "stdin_sha256": None,
+            "expected_exit": 0,
+        }]
+        second = self.run_raw(plan_for(self.bound, changed_units), delivery="d2")
+        self.assertEqual(second["status"], "stopped")
+        self.assertEqual(second["executed"], [])
+        self.assertFalse(marker.exists())
+        self.assertIn("plan changed", second["reason"])
+
+    def test_rejected_input_stops_the_plan(self):
+        raw = plan_for(self.bound, [unit("U1", 0, 0)])
+        rejected = self.run_raw(raw, input_bytes=b"wrong-input")
+        self.assertEqual(rejected["status"], "rejected")
+        rows = advance.read_ledger(self.ledger)
+        # 拒绝记录归档到计划声明的 sha，另记实际 sha
+        self.assertEqual(rows[0]["input_sha256"], advance.sha256(self.bound))
+        self.assertEqual(rows[0]["actual_input_sha256"], advance.sha256(b"wrong-input"))
+        corrected = self.run_raw(raw, delivery="d2")  # 同一投递换正确输入
+        self.assertEqual(corrected["status"], "stopped")
+        self.assertEqual(corrected["executed"], [])
+        self.assertFalse((self.cwd / "marker").exists())
+
+    def test_concurrent_deliveries_run_each_unit_once(self):
+        runs = self.cwd / "runs"
+        slow = [{
+            "id": "U1",
+            "argv": ["/bin/sh", "-c", f"echo run >> {runs}; sleep 1"],
+            "stdin_sha256": None,
+            "expected_exit": 0,
+        }]
+        raw = plan_for(self.bound, slow)
+        plan_path = self.dir / "plan.json"
+        input_path = self.dir / "input.bin"
+        plan_path.write_bytes(raw)
+        input_path.write_bytes(self.bound)
+        procs = [subprocess.Popen(
+            [sys.executable, str(ADVANCE), "--plan", str(plan_path), "--input", str(input_path),
+             "--ledger", str(self.ledger), "--delivery", f"d{i}", "--cwd", str(self.cwd)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        ) for i in range(2)]
+        outs = [p.communicate(timeout=30) for p in procs]
+        for p, (out, err) in zip(procs, outs):
+            self.assertEqual(p.returncode, 0, err)
+            self.assertIn("complete", out)
+        self.assertEqual(runs.read_text().count("run"), 1)
+        ok_rows = [r for r in advance.read_ledger(self.ledger) if r["status"] == "ok"]
+        self.assertEqual(len(ok_rows), 1)
+
+    def test_declared_empty_stdin_is_accepted(self):
+        empty_hash = advance.sha256(b"")
+        u = unit("U1", 0, 0, stdin=b"")
+        self.assertEqual(u["stdin_sha256"], empty_hash)
+        result = self.run_raw(plan_for(self.bound, [u]), stdin={"U1": b""})
+        self.assertEqual(result["status"], "complete")
+
+
 if __name__ == "__main__":
     unittest.main()

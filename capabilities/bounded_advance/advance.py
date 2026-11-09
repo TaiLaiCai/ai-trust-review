@@ -7,6 +7,7 @@ continue the same delivery only when the ledger shows a successful prefix
 and no stop. This does not call an independent reviewer or an external quota.
 """
 import argparse
+import fcntl
 import hashlib
 import json
 import subprocess
@@ -134,8 +135,8 @@ def append_row(path, row):
     return row
 
 
-def plan_rows(rows, plan_id, input_sha):
-    return [row for row in rows if row.get("plan_id") == plan_id and row.get("input_sha256") == input_sha]
+def plan_rows(rows, plan_id, plan_sha):
+    return [row for row in rows if row.get("plan_id") == plan_id and row.get("plan_sha256") == plan_sha]
 
 
 def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd, max_steps=None):
@@ -144,19 +145,42 @@ def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd,
     if not isinstance(input_bytes, bytes):
         raise ContractError("input must be bytes")
     plan = load_plan(plan_raw)
+    # 账本绑定整份计划的规范化指纹：argv/stdin/期望值任一变化即不同计划，拒绝复用进度。
+    plan_sha = sha256(canonical(plan))
     cwd = Path(cwd)
     if not cwd.is_dir():
         raise ContractError("cwd is not a directory")
-    rows = read_ledger(Path(ledger_path))
-    matched = plan_rows(rows, plan["plan_id"], plan["input_sha256"])
+    ledger_path = Path(ledger_path)
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    # 同一账本上的并发投递用排它锁串行化：同一单元不会被两个进程同时执行。
+    with open(str(ledger_path) + ".lock", "a+b") as lock_handle:
+        fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+        try:
+            return _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit,
+                                   ledger_path, delivery_id, cwd, max_steps)
+        finally:
+            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+
+
+def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd, max_steps):
+    rows = read_ledger(ledger_path)
+    matched = plan_rows(rows, plan["plan_id"], plan_sha)
     if any(row.get("status") in {"mismatch", "rejected"} for row in matched):
         return {"status": "stopped", "executed": [], "reason": "plan already stopped"}
+    same_id_other_plan = [row for row in rows
+                          if row.get("plan_id") == plan["plan_id"]
+                          and row.get("plan_sha256") != plan_sha
+                          and row.get("status") == "ok"]
+    if same_id_other_plan:
+        return {"status": "stopped", "executed": [],
+                "reason": "plan changed: existing progress is bound to a different plan fingerprint"}
     done = {row["unit_id"] for row in matched if row.get("status") == "ok"}
     if sha256(input_bytes) != plan["input_sha256"]:
-        if any(row.get("delivery_id") == delivery_id and row.get("status") == "rejected" for row in rows):
-            return {"status": "stopped", "executed": [], "reason": "duplicate rejected delivery"}
-        append_row(Path(ledger_path), {
-            "delivery_id": delivery_id, "plan_id": plan["plan_id"], "input_sha256": sha256(input_bytes),
+        # 拒绝记录按计划声明的 sha 归档，实际输入 sha 另记；同计划随后任何投递都停。
+        append_row(ledger_path, {
+            "delivery_id": delivery_id, "plan_id": plan["plan_id"], "plan_sha256": plan_sha,
+            "input_sha256": plan["input_sha256"],
+            "actual_input_sha256": sha256(input_bytes),
             "unit_id": "-", "status": "rejected", "exit_code": None, "expected_exit": None,
             "stdout_sha256": None, "stderr_sha256": None,
             "detail": "input bytes do not match plan input_sha256",
@@ -172,10 +196,14 @@ def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd,
         if not isinstance(stdin, bytes):
             raise ContractError("stdin must be bytes")
         expected_stdin = unit["stdin_sha256"]
-        actual_stdin = sha256(stdin) if stdin else None
-        if expected_stdin != actual_stdin and not (expected_stdin is None and stdin == b""):
-            append_row(Path(ledger_path), {
-                "delivery_id": delivery_id, "plan_id": plan["plan_id"],
+        if expected_stdin is None:
+            stdin_ok = stdin == b""
+        else:
+            # 显式声明的空 stdin（sha256(b"")）也是合法绑定。
+            stdin_ok = sha256(stdin) == expected_stdin
+        if not stdin_ok:
+            append_row(ledger_path, {
+                "delivery_id": delivery_id, "plan_id": plan["plan_id"], "plan_sha256": plan_sha,
                 "input_sha256": plan["input_sha256"], "unit_id": unit["id"], "status": "rejected",
                 "exit_code": None, "expected_exit": unit["expected_exit"],
                 "stdout_sha256": None, "stderr_sha256": None, "detail": "stdin sha mismatch",
@@ -189,8 +217,9 @@ def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd,
             status, detail = "ok", None
         else:
             status, detail = "mismatch", "exit mismatch"
-        append_row(Path(ledger_path), {
-            "delivery_id": delivery_id, "plan_id": plan["plan_id"], "input_sha256": plan["input_sha256"],
+        append_row(ledger_path, {
+            "delivery_id": delivery_id, "plan_id": plan["plan_id"], "plan_sha256": plan_sha,
+            "input_sha256": plan["input_sha256"],
             "unit_id": unit["id"], "status": status, "exit_code": proc.returncode,
             "expected_exit": unit["expected_exit"], "stdout_sha256": sha256(proc.stdout),
             "stderr_sha256": sha256(proc.stderr), "detail": detail,
