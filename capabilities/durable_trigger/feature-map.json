@@ -1,0 +1,79 @@
+{
+  "capability": "durable_trigger",
+  "version": "v1",
+  "roadmap_item": "APO-7 (7. E04/E06 持久触发与失败恢复)",
+  "standards": [
+    "E04",
+    "E06",
+    "S2-08",
+    "S4-05"
+  ],
+  "features": {
+    "contract": [
+      "trigger: fields id/seq/version/target_bot/candidate_version only, version=durable-trigger/v1",
+      "id ^[0-9a-z][0-9a-z-]{0,63}$, target_bot ^[a-z0-9][a-z0-9-]{0,63}$, candidate_version ^[0-9A-Za-z][0-9A-Za-z._-]{0,63}$",
+      "state: fixed schema, unknown fields and duplicate JSON keys rejected, exit 2",
+      "queue/state/audit budgets: 4MiB each, queue <=4096 triggers, candidate and platform files <=1MiB"
+    ],
+    "persistent_trigger": [
+      "enqueue appends canonical line to queue.jsonl with fsync, exit 0",
+      "duplicate id with identical content -> exit 0 action=duplicate-noop, zero write",
+      "same id with different content -> exit 1 action=conflict-frozen, zero write",
+      "one seq bound to two ids -> exit 1 action=conflict-frozen, zero write",
+      "ordering policy is explicit: admission is append-only and never sorts or drops a late trigger; the consumer is strict FIFO and never skips a gap"
+    ],
+    "lock": [
+      "state.lease = {holder, token, expires_at}; token is a monotonic fencing generation",
+      "live lease held by another holder -> exit 1 action=lease-held, zero write",
+      "caller lease token != current generation -> exit 1 action=stale-lease",
+      "job recorded under an older lease generation -> exit 1 action=stale-lease (fencing)",
+      "expired lease is taken over with token+1; .durable-trigger.lock is a separate process mutex"
+    ],
+    "cursor": [
+      "state.cursor_seq starts at -1 and advances only on a successful apply",
+      "only the trigger at cursor_seq+1 is consumed; strict FIFO, gaps are never skipped",
+      "a gap at the cursor -> exit 1 action=out-of-order-rejected with expected_seq, missing_seq, next_available_seq",
+      "consumed ids are recorded; re-firing a consumed id -> exit 0 action=duplicate-noop",
+      "same id repeated in the queue is consumed exactly once"
+    ],
+    "restart_continuation": [
+      "a failed apply leaves the job at APPLY_PENDING with before_sha256 and before_present",
+      "the next trigger resumes the pending job when it sits at the cursor",
+      "resume re-checks the target bytes against the recorded before_sha256; mismatch -> exit 1 action=conflict-frozen"
+    ],
+    "atomic_apply": [
+      "apply order: lease -> fencing -> kill switch -> approval -> candidate digest -> other bots -> target drift -> record before-state -> atomic replace -> platform readback -> other bots again -> state -> audit",
+      "atomic replace = temp file -> fsync -> rename -> fsync directory",
+      "approval records the candidate byte digest; candidate bytes changed after approval -> exit 1 action=stale-candidate",
+      "readback re-reads the target file and compares SHA256 to the candidate digest; mismatch -> atomic restore, exit 1 action=readback-mismatch, never reports applied"
+    ],
+    "other_bots_unchanged": [
+      "every baselined bot other than the target is compared before and after the apply",
+      "a drifted bot or a bot outside the baseline -> exit 1 action=other-bot-changed, zero apply",
+      "a drift detected after the apply -> atomic restore of the target, exit 1 action=other-bot-changed"
+    ],
+    "failure_recovery": [
+      "approval-missing, stale-candidate, baseline-missing, readback-mismatch, other-bot-changed, injected failure, stale-lease -> job status APPLY_PENDING, never 'applied'",
+      "rollback restores the pre-apply bytes atomically and verifies the readback; mismatch -> exit 1 action=rollback-failed",
+      "rollback of a never-applied job -> exit 1 action=rollback-unavailable; second rollback -> exit 0 action=already-rolled-back",
+      "kill-switch --engage blocks new applies (exit 1 action=kill-switch-engaged) but still allows rollback"
+    ],
+    "audit": [
+      "append-only audit.jsonl records apply, refuse, rollback, approve, baseline and kill-switch events",
+      "each entry carries timestamp, action, trigger id, seq, target bot, result, digests and lease generation"
+    ],
+    "verify": [
+      "read-only consistency check across state, queue, platform and audit",
+      "detects duplicate queue ids, consumed ids without a job, APPLIED jobs without after_sha256, platform drift, unknown and missing bots",
+      "exit 0 verdict=PASS scope=state-queue-platform-audit-bytes-only; exit 1 verdict=FAIL with problems"
+    ],
+    "cli": [
+      "--version prints v1 and the sha256 of this capability README without reading any input",
+      "exit 0 = completed per contract, 1 = runtime rejection, 2 = usage and contract errors"
+    ]
+  },
+  "rollback": "delete capabilities/durable_trigger/ directory; CI capability-tests auto-shrinks",
+  "tests": [
+    "tests/test_check.py"
+  ]
+}
