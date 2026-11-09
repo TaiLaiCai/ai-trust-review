@@ -103,6 +103,14 @@ class BoundaryTests(unittest.TestCase):
         r = run_check(write_tmp(doc))
         self.assertEqual(r.returncode, 1, r.stdout)
 
+    def test_retention_repo_sibling_of_repo_root_passes(self):
+        # git 根父目录下的兄弟绝对路径：必须 PASS；若 repo_root 退回三级上移，本用例变红
+        doc = load_example()
+        sibling = os.path.join(os.path.dirname(REPO_ROOT),
+                               os.path.basename(REPO_ROOT) + "-retention-sibling.git")
+        doc["retention"]["repo"] = sibling
+        self.assertEqual(run_check(write_tmp(doc)).returncode, 0)
+
     def test_retention_repo_outside_repo_passes(self):
         doc = load_example()
         outside = os.path.join(tempfile.mkdtemp(prefix="retention-outside-"), "retention.git")
@@ -137,7 +145,10 @@ class FrozenIdTests(unittest.TestCase):
     def test_missing_one_frozen_id_rejected(self):
         doc = load_example()
         doc["counterexamples"][0]["id"] = "extra-fifth"
-        self.assertEqual(run_check(write_tmp(doc)).returncode, 2)
+        doc["incidents"][0]["counterexample"] = "outer-pass-inner-fail"  # 仍指向存在的冻结 id
+        r = run_check(write_tmp(doc))
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("frozen", r.stdout)
 
 
 class RealAssertionTests(unittest.TestCase):
