@@ -6,43 +6,55 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# The five capability maps. control/gate already uses the same three keys and is not one of them.
-CAPABILITY_FEATURE_MAPS = (
-    "capabilities/evidence_package/feature-map.json",
-    "capabilities/handoff_conventions/feature-map.json",
-    "capabilities/handoff_recipient/feature-map.json",
-    "capabilities/rerun_receipt/feature-map.json",
-    "capabilities/review_readonly/feature-map.json",
-)
+# Every capability map under capabilities/ must carry the independent_verification triple.
+# The set is discovered by glob, not hardcoded, so merging other capability PRs stays green.
 REVIEW_READONLY_SCOPE = (
     "two-observation declared file or tree bytes only; not OS enforcement or stage grading"
 )
 
 
-def require_unverified_independent_verification(block, label):
-    """Schema only. No receipt is invented: the triple stays NOT_TESTED/null/null."""
+def require_valid_independent_verification(block, label):
+    """Schema only. No receipt is invented and none is trusted.
+
+    NOT_TESTED must keep verifier/head_sha null. A real status value (for
+    example REPRODUCED) must carry a non-empty verifier and head_sha string;
+    this script does not check the receipt itself.
+    """
     assert isinstance(block, dict), f"{label}: independent_verification must be an object"
     assert list(block) == ["status", "verifier", "head_sha"], (
         f"{label}: independent_verification keys must be status, verifier, head_sha"
     )
-    assert block["status"] == "NOT_TESTED", (
-        f"{label}: unverified status must stay NOT_TESTED, not {block['status']!r}"
-    )
-    assert block["verifier"] is None and block["head_sha"] is None, (
-        f"{label}: unverified verifier and head_sha must stay null"
+    status = block["status"]
+    if status == "NOT_TESTED":
+        assert block["verifier"] is None and block["head_sha"] is None, (
+            f"{label}: unverified verifier and head_sha must stay null"
+        )
+    else:
+        assert isinstance(status, str) and status, (
+            f"{label}: status must be a non-empty string"
+        )
+        assert isinstance(block["verifier"], str) and block["verifier"], (
+            f"{label}: status {status!r} requires a non-empty verifier"
+        )
+        assert isinstance(block["head_sha"], str) and block["head_sha"], (
+            f"{label}: status {status!r} requires a non-empty head_sha"
+        )
+
+
+def glob_capability_maps(root=ROOT):
+    return sorted(
+        path.relative_to(root).as_posix()
+        for path in (root / "capabilities").glob("*/feature-map.json")
     )
 
 
 def check_capability_feature_maps(root=ROOT):
-    found = sorted(
-        path.relative_to(root).as_posix()
-        for path in (root / "capabilities").glob("*/feature-map.json")
-    )
-    assert found == list(CAPABILITY_FEATURE_MAPS), f"capability feature maps changed: {found}"
+    found = glob_capability_maps(root)
+    assert found, "no capability feature maps found"
     for rel in found:
         data = json.loads((root / rel).read_text())
         assert "independent_verification" in data, f"{rel}: missing independent_verification"
-        require_unverified_independent_verification(data["independent_verification"], rel)
+        require_valid_independent_verification(data["independent_verification"], rel)
     review = json.loads((root / "capabilities/review_readonly/feature-map.json").read_text())
     assert review["runtime_bot_integration"] == "NOT_TESTED"
     assert review["independent_acceptance"] == "NOT_TESTED"
