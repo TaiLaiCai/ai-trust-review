@@ -8,6 +8,7 @@ Each directory is one atomic capability with an explicit contract, its own tests
 | [evidence_package](evidence_package/README.md) | 只读核对证据包字节与 SHA256 · read-only byte/SHA-256 verification of an evidence package |
 | [handoff_recipient](handoff_recipient/README.md) | 开工前收件人检查 · pre-start recipient check (misaddressed → exit 4) |
 | [handoff_conventions](handoff_conventions/README.md) | 未定义约定须回问 · undefined conventions must be clarified (exit 3) |
+| [message_identity](message_identity/README.md) | 真实平台消息身份适配器 · binds a platform message to the sender the platform machine fields assert (body `author_role` never authenticates) |
 | [review_readonly](review_readonly/README.md) | 审查前后字节/SHA256；`--tree` 能看见目录内新增文件 · before/after bytes; `--tree` catches files added inside the review directory |
 | [rerun_receipt](rerun_receipt/README.md) | 复跑产生并只读核验回执 · emit records a re-run at a bound head, verify re-checks receipts and evidence bytes |
 
