@@ -9,6 +9,7 @@ import hashlib
 import json
 import re
 import sys
+import unicodedata
 
 VERSION = "v1"
 SCHEMA = "loop-closure/v1"
@@ -45,6 +46,19 @@ def load(raw, what):
 
 def nonempty(value):
     return isinstance(value, str) and bool(value) and value == value.strip()
+
+
+def normalize_name(value):
+    """Normalize an agent name for the independence comparison.
+
+    Remove every Unicode format (Cf) character — including zero-width spaces —
+    before applying NFKC (so full-width Latin folds back) and casefold.
+    A name that normalizes to empty counts as missing.
+    """
+    if not isinstance(value, str):
+        return ""
+    stripped = "".join(ch for ch in value if unicodedata.category(ch) != "Cf")
+    return unicodedata.normalize("NFKC", stripped).strip().casefold()
 
 
 def parse_report(raw):
@@ -131,11 +145,11 @@ def assess(report_raw, files, outputs, expected_head_sha, previous_loop_ids):
         if not report["steps"]:
             findings.append({"finding": "empty_steps",
                              "detail": "closure claim has no steps; a summary status is not evidence"})
-        verifier, producer = report["verifier"].strip(), report["producer"].strip()
+        verifier, producer = normalize_name(report["verifier"]), normalize_name(report["producer"])
         if not verifier:
             findings.append({"finding": "verifier_not_independent",
                              "detail": "missing verifier"})
-        elif verifier.casefold() == producer.casefold():
+        elif verifier == producer:
             findings.append({"finding": "verifier_not_independent",
                              "detail": f"verifier {verifier!r} equals producer {producer!r}"})
         if report["head_sha"] != expected_head_sha:

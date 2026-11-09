@@ -38,4 +38,4 @@ python3 capabilities/loop_closure/detect.py --version
 
 ## 当前验收状态
 
-本地测试 18 项通过；独立主体复跑 NOT_TESTED，不能自签验收；真实闭环报告上的实测 NOT_TESTED；与 loop_status 棘轮的联合接入（受控调用方同时喂两件）待后续控制面候选。
+本地测试 21 项通过（裁决 6744631746 要求的零宽/全角绕过回归已补）；独立主体复跑 NOT_TESTED，不能自签验收；真实闭环报告上的实测 NOT_TESTED；与 loop_status 棘轮的联合接入（受控调用方同时喂两件）待后续控制面候选。

@@ -66,6 +66,47 @@ class DetectTests(unittest.TestCase):
         del rep["verifier"]
         self.assertEqual(run(rep)[0], 5)
 
+    def test_unicode_bypasses_of_name_comparison_rejected(self):
+        """裁决 6744631746：零宽/全角绕过同名检查必须拒绝，纯零宽视为缺 verifier。"""
+        cases = [
+            # (verifier, producer, expect_missing)
+            ("\u200b", "生产方", True),            # 仅零宽：视为缺失 verifier
+            ("\ufeff", "生产方", True),            # 仅 BOM(Cf)：视为缺失
+            ("生产方\u200b", "生产方", False),      # 尾零宽：同名，拒绝
+            ("生\u200b产方", "生产方", False),      # 中间零宽：同名，拒绝
+            ("\u200d生产方", "生产方", False),      # ZWJ 前缀：同名，拒绝
+        ]
+        for verifier, producer, missing in cases:
+            rep = report([step()], verifier=verifier)
+            rep["producer"] = producer
+            code, raw = run(rep)
+            self.assertEqual(code, 1, (verifier, producer))
+            fs = findings((code, raw))
+            if missing:
+                self.assertIn("verifier_not_independent", fs)
+                self.assertTrue(any("missing verifier" in f["detail"]
+                                    for f in json.loads(raw)["findings"]))
+
+    def test_fullwidth_and_nfkc_bypasses_rejected(self):
+        rep = report([step()], verifier="\uff50roducer")  # 全角 p
+        rep["producer"] = "producer"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_real_case_difference_still_rejected(self):
+        rep = report([step()], verifier="Producer")
+        rep["producer"] = "producer"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_distinct_names_still_pass_after_normalization(self):
+        rep = report([step()], verifier="验收方\u200b")
+        rep["producer"] = "生产方"
+        code, _ = run(rep)
+        self.assertEqual(code, 0)
+
     def test_stale_head_sha(self):
         code, raw = run(report([step()]), expected=OTHER_HEAD)
         self.assertEqual(code, 1)
