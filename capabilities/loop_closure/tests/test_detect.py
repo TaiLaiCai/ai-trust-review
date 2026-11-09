@@ -54,7 +54,7 @@ class DetectTests(unittest.TestCase):
         self.assertIn("empty_steps", findings((code, raw)))
 
     def test_missing_or_nonindependent_verifier(self):
-        for verifier in ("", "生产方", "PRODUCER".lower()):
+        for verifier in ("", " ", "\t", "生产方", "生产方 ", "PRODUCER".lower()):
             rep = report([step()], verifier=verifier)
             rep["producer"] = "producer" if verifier == "PRODUCER".lower() else "生产方"
             code, raw = run(rep)

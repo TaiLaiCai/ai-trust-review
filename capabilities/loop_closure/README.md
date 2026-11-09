@@ -4,16 +4,16 @@ Refs APO-5 / docs/ROADMAP.md 第 5 项。把「闭环是否闭合」从 Bot 自�
 
 ## 冻结契约
 
-纯函数 `assess(report_raw, files, outputs, expected_head_sha256, previous_loop_ids)` 返回 `(exit_code, canonical_json_bytes)`。不读文件系统、不联网、不读时钟、不写状态；`--version` 打印 `v1` 与本文件自身 sha256。只用 Python 标准库。
+纯函数 `assess(report_raw, files, outputs, expected_head_sha, previous_loop_ids)` 返回 `(exit_code, canonical_json_bytes)`。不读文件系统、不联网、不读时钟、不写状态；`--version` 打印 `v1` 与本文件自身 sha256。只用 Python 标准库。
 
 - `report_raw`：闭环报告的原始 JSON 字节（≤1MiB，严格字段、拒绝重复键）。字段：`schema_version="loop-closure/v1"`、`head_sha`（40 位小写十六进制）、`producer`、`verifier`（字符串，可为空）、`status`（ informational，永不参与判定，输出里原样回显为 `status_ignored`）、`loops`（非空、唯一）、`steps`。每个 step 严格为 `id`、`command`（非空 argv）、`exit_code`、`output_sha256`、`citations`；每条 citation 严格为 `path`、`line`、`excerpt`。
 - `files`：`{路径: 原始字节}`，供行号引用核对；`outputs`：`{step_id: 原始输出字节}`，供输出摘要核对。两者均由受控调用方提供。
-- `expected_head_sha256`：受控调用方保存的当前提交，缺省/格式错退出 5。`previous_loop_ids`：历史上已报告过的闭环键列表。
+- `expected_head_sha`：受控调用方保存的当前提交（40 位小写十六进制 git 提交 SHA，非 sha256），缺省/格式错退出 5。`previous_loop_ids`：历史上已报告过的闭环键列表。
 
 | finding | 触发 |
 |---|---|
 | `empty_steps` | steps 为空；摘要 closed 不是证据 |
-| `verifier_not_independent` | verifier 缺失，或与 producer 同名（casefold 比较） |
+| `verifier_not_independent` | verifier 缺失（含纯空白），或与 producer 同名（两侧先去首尾空白再 casefold 比较） |
 | `stale_head_sha` | 报告 head 与受控期望不符（旧 SHA） |
 | `history_deleted` | 既往闭环键从当前报告 loops 中消失 |
 | `step_failed` / `missing_output` / `output_digest_mismatch` | 步骤失败 / 无输出字节 / 输出 sha256 不符 |
@@ -38,4 +38,4 @@ python3 capabilities/loop_closure/detect.py --version
 
 ## 当前验收状态
 
-本地测试 17 项通过；独立主体复跑 NOT_TESTED，不能自签验收；真实闭环报告上的实测 NOT_TESTED；与 loop_status 棘轮的联合接入（受控调用方同时喂两件）待后续控制面候选。
+本地测试 18 项通过；独立主体复跑 NOT_TESTED，不能自签验收；真实闭环报告上的实测 NOT_TESTED；与 loop_status 棘轮的联合接入（受控调用方同时喂两件）待后续控制面候选。
