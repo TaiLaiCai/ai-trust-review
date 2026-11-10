@@ -530,13 +530,16 @@ def decide_tool_call(policy, sender, tool, stage, now):
     if tool not in tools:
         return False, "tool-not-in-sender-scope"
 
-    max_stage = sender.get("max_stage")
-    if max_stage is not None and stage > max_stage:
-        return False, "stage-above-sender-max-stage"
-
+    # The stage has to exist in the policy before it can be compared with the
+    # sender's ceiling: a stage the policy never mentions is not a stage
+    # escalation, it is an unknown stage.
     stage_key = str(stage)
     if stage_key not in policy["stages"]:
         return False, "stage-not-in-policy"
+
+    max_stage = sender.get("max_stage")
+    if max_stage is not None and stage > max_stage:
+        return False, "stage-above-sender-max-stage"
 
     stage_tools = policy["stages"][stage_key].get("tools", [])
     if tool not in stage_tools:

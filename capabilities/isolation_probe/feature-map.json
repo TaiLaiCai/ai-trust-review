@@ -1,0 +1,83 @@
+{
+  "capability": "isolation-probe/v1",
+  "issue": 6,
+  "revision": "R-6-1 E02 write isolation and E03 tool permission probe",
+  "author": "执行·Hermes (hermes_local) on the shared TaiLaiCai account; this is the producer, not an independent verifier",
+  "steps": [
+    {
+      "id": "VERSION",
+      "command": "python3 capabilities/isolation_probe/probe.py --version",
+      "expected": "exit 0; prints 'v1 <sha256 of probe.py>'",
+      "actual_source": "tests/test_probe.py::VersionTest::test_version_prints_fingerprint_and_exits_zero; ::test_version_digest_is_the_sha256_of_probe_py"
+    },
+    {
+      "id": "E02-SEATBELT",
+      "command": "python3 capabilities/isolation_probe/probe.py write --root ROOT --backend seatbelt --fresh",
+      "expected": "exit 0; verdict PASS; strength kernel-enforced; workspace write succeeds; control-plane write, ledger append, new control file, symlink escape, reserved-bank read and secret read are all refused by the kernel (EPERM/EACCES); chmod escape refused; control-plane sha256 unchanged",
+      "actual_source": "tests/test_probe.py::SeatbeltWriteIsolationTest::test_seatbelt_backend_passes_and_control_plane_is_untouched; ::test_control_plane_files_still_hold_their_original_bytes; ::test_workspace_write_actually_landed"
+    },
+    {
+      "id": "E02-POSIX-WEAK",
+      "command": "python3 capabilities/isolation_probe/probe.py write --root ROOT --backend posix --fresh",
+      "expected": "exit 3; verdict WEAK; strength guard-against-mistakes-only; naive writes denied with EACCES but the owner can change the mode and write the control plane, which is why permission bits are not an H1 boundary",
+      "actual_source": "tests/test_probe.py::PosixWriteIsolationTest::test_posix_backend_reports_weak_with_exit_three; ::test_posix_naive_writes_are_denied_by_the_filesystem; ::test_posix_owner_can_change_the_mode_and_write"
+    },
+    {
+      "id": "E02-NEGATIVE-CONTROL",
+      "command": "python3 capabilities/isolation_probe/probe.py write --root ROOT --backend posix --fresh --control-permissions keep",
+      "expected": "exit 1; verdict FAIL; the same write is reported as 'written' when it really is allowed, so a probe that always said 'denied' cannot pass",
+      "actual_source": "tests/test_probe.py::PosixWriteIsolationTest::test_negative_control_reports_written_when_the_write_is_allowed"
+    },
+    {
+      "id": "E03-ALLOW",
+      "command": "python3 capabilities/isolation_probe/probe.py tool --policy POLICY --tool read_repo --stage 1",
+      "expected": "exit 0; verdict ALLOW; sender resolved from the process uid/gid",
+      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_allowed_call_exits_zero"
+    },
+    {
+      "id": "E03-DENY-PATHS",
+      "command": "python3 capabilities/isolation_probe/probe.py tool --policy POLICY --tool TOOL --stage STAGE",
+      "expected": "exit 1; verdict DENY for unknown sender, tool outside sender scope, stage above the sender ceiling, stage absent from the policy, tool absent from the stage whitelist, expired sender, and reserved tool",
+      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_unknown_sender_is_denied; ::test_tool_outside_sender_scope_is_denied; ::test_stage_above_sender_max_stage_is_denied; ::test_stage_not_in_policy_is_denied; ::test_tool_not_in_stage_whitelist_is_denied; ::test_expired_sender_is_denied; ::test_reserved_tool_is_never_authorized"
+    },
+    {
+      "id": "E03-CLAIM-IGNORED",
+      "command": "python3 capabilities/isolation_probe/probe.py tool --policy POLICY --tool promote --stage 3 --claimed-sender other --claimed-tool promote --claimed-stage 3",
+      "expected": "exit 1; the claimed sender/tool/stage are echoed but never used for the decision (claim_used_for_decision=false)",
+      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_claimed_identity_does_not_change_the_decision"
+    },
+    {
+      "id": "E03-POLICY-HOLDER",
+      "command": "python3 capabilities/isolation_probe/probe.py tool --policy POLICY --tool read_repo --stage 1",
+      "expected": "exit 5; verdict REFUSED_TO_JUDGE when the policy file or its directory is writable by the caller, because a rewritable policy cannot bind an identity",
+      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_writable_policy_is_refused_to_judge; ::test_writable_policy_directory_is_refused_to_judge; ::test_locked_down_policy_is_judged"
+    },
+    {
+      "id": "E03-READBACK",
+      "command": "python3 capabilities/isolation_probe/probe.py readback --policy POLICY --stage 2",
+      "expected": "exit 0; the effective whitelist in force for that stage, with reserved tools excluded",
+      "actual_source": "tests/test_probe.py::ReadbackTest::test_readback_reports_effective_whitelist_without_reserved_tools"
+    },
+    {
+      "id": "BOUNDARY",
+      "command": "python3 -m unittest discover -s capabilities/isolation_probe/tests -v",
+      "expected": "35 tests pass; missing roots, overlapping roots, broken policy and missing policy keys exit 5",
+      "actual_source": "tests/test_probe.py::LayoutTest; ::ToolPermissionTest::test_broken_policy_exits_five; ::test_missing_policy_key_exits_five; ::ReadbackTest::test_readback_refuses_a_writable_policy"
+    }
+  ],
+  "scope": "observed kernel refusal and observed policy lookup on this host; not an H1/H2 deployment, not a cross-uid controlled party, not a stage grade",
+  "ask_before_in_place_fix": "training rule, not this tool",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "runtime_bot_integration": "NOT_TESTED",
+  "independent_acceptance": "NOT_TESTED",
+  "not_tested": [
+    "cross-uid controlled party (this host has no sudo and no second uid)",
+    "Linux backends (seccomp, namespaces, Landlock); only macOS seatbelt and POSIX bits were exercised",
+    "a real Bot host running the probe in its own sandbox",
+    "the independent re-run receipt bound to this head"
+  ]
+}
