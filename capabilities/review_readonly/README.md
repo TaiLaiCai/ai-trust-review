@@ -59,4 +59,4 @@ python3 -m unittest discover -s capabilities/review_readonly/tests -v
 
 测试含同长度改写、追加、删除/改名、基线替换、根替换、路径与符号链接、FIFO、坏 JSON/预算、惰性正文、真实 shell 的退出码门控，以及目录清单的新增/删除/改名/子目录新增/目录本身为符号链接、读取中被改、LF→CRLF。既有 capability-tests 自动发现本目录，无需改工作流；远端实际结果见 PR 回执。
 
-地图见 feature-map.json。撤回本修订或整个目录即可回滚候选；不覆盖旧失败、原件或其他 Agent 文件。独立复核与正式接入须另行完成。
+地图见 feature-map.json。`independent_verification` 三键为 `NOT_TESTED`、`verifier=null`、`head_sha=null`：没有独立复跑回执，补字段不能写成 REPRODUCED。`runtime_bot_integration` 与 `independent_acceptance` 仍为 `NOT_TESTED`。撤回本修订或整个目录即可回滚候选；不覆盖旧失败、原件或其他 Agent 文件。独立复核与正式接入须另行完成。
