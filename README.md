@@ -144,6 +144,8 @@ Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.
 | [capabilities/handoff_conventions](capabilities/handoff_conventions/README.md) | 正文命中未定义约定词、又没有唯一一行明确的 `约定定义：` JSON 时退出 3，要求回问；词法通过不等于授权。 |
 | [capabilities/review_readonly](capabilities/review_readonly/README.md) | 审查前后比较点名文件或 `--tree` 目录中的普通文件；只有 `verify` 退出 0 且 `delivery_allowed` 为 true 才允许交付。 |
 | [capabilities/rerun_receipt](capabilities/rerun_receipt/README.md) | `emit` 按清单在绑定的 head 上执行命令并记录输出摘要，`verify` 只读核验回执与证据字节；退出 0 只证明这次读到的回执与证据一致。 |
+| [capabilities/loop_closure](capabilities/loop_closure/README.md) | C6 闭环检测器：只认步骤证据，不认摘要 closed；退出 0 只证明本次证据核对通过，不写等级。 |
+| [capabilities/bounded_advance](capabilities/bounded_advance/README.md) | 有限计划串行推进、重复投递不重跑、失败停止。 |
 | [control/gate](control/gate/README.md) | 把带哈希链的事件日志折叠成确定性状态，候选阶段最高到 2，`effective_stage` 恒为 null，并能与账本逐字节对照。 |
 | [control/loop_status](control/loop_status/README.md) | C6 的历史棘轮纯函数：曾经 closed 的键若退回或消失就持续报回归；退出 0 表示未发现历史回归。 |
 
@@ -237,7 +239,7 @@ rm -f "$tampered"
 以下只写仓库里已经有的记录。没有新的审查文件时，不把后来的代码合入算成等级变化。
 
 - **等级。** [2026-11-02 训练进度](docs/reviews/2026-11-02-lightvela-training.md) 与 [执行者试点](docs/reviews/2026-11-02-worker-stage2-pilot.md) 写明：所记录 Bot 的 `evidence_stage` 与 `effective_stage` 为 null，按阶段 1 的方式监督工作，连胜未形成。此后合入了收件人检查 v1.2/v1.3、`review_readonly`、`loop_status` 和第四项 CI，仓库里没有更新的审查记录把这些等级改掉。本页不改等级。
-- **独立复跑。** `NOT_TESTED`： [evidence_package](capabilities/evidence_package/feature-map.json)、[handoff_recipient](capabilities/handoff_recipient/feature-map.json)、[handoff_conventions](capabilities/handoff_conventions/feature-map.json)、[control/gate](control/gate/feature-map.json) 的 `independent_verification.status`。 [review_readonly](capabilities/review_readonly/feature-map.json) 的 `runtime_bot_integration` 与 `independent_acceptance` 同为 `NOT_TESTED`。 [handoff_conventions](capabilities/handoff_conventions/feature-map.json) 另记 `remote_capability_tests: NOT_TESTED`、`deployment: NOT_DEPLOYED`。 [loop_status](control/loop_status/README.md) 写明独立审阅待完成，旧检测器上的变红证据为 `NOT_TESTED`，不能用新测试代替。
+- **独立复跑。** `NOT_TESTED`：五份能力地图 [evidence_package](capabilities/evidence_package/feature-map.json)、[handoff_recipient](capabilities/handoff_recipient/feature-map.json)、[handoff_conventions](capabilities/handoff_conventions/feature-map.json)、[rerun_receipt](capabilities/rerun_receipt/feature-map.json)、[review_readonly](capabilities/review_readonly/feature-map.json) 的 `independent_verification` 均为 `status=NOT_TESTED`、`verifier=null`、`head_sha=null`。 [control/gate](control/gate/feature-map.json) 的 `independent_verification.status` 同为 `NOT_TESTED`。 [review_readonly](capabilities/review_readonly/feature-map.json) 的 `runtime_bot_integration` 与 `independent_acceptance` 同为 `NOT_TESTED`。 [handoff_conventions](capabilities/handoff_conventions/feature-map.json) 另记 `remote_capability_tests: NOT_TESTED`、`deployment: NOT_DEPLOYED`。 [loop_status](control/loop_status/README.md) 写明独立审阅待完成，旧检测器上的变红证据为 `NOT_TESTED`，不能用新测试代替。
 - **身份与隔离。** 平台 sender 认证（C4）未做；H1/H2 写隔离未作为已实现项记录。收件人检查在训练记录中的强制力是 `text_only`。同账号不能证明独立性，见 [CODEOWNERS](.github/CODEOWNERS) 与训练记录。
 - **已部署副本与发布包。** 主机上的收件人检查，记录中的版本是 v1，不是本树的 v1.3。 [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) 来自 main `e3f532a12a5a5219af451471d2452444bc178f79`，其中收件人检查为 v1.1，不含当前的 `review_readonly` 与 `loop_status`。
 - **规则集读回。** 2026-11-04 的只读查询里，四项 CI 都是规则集 `main` 的必需状态检查，见上文。
