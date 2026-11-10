@@ -12,6 +12,11 @@
   ],
   "scope": "two-observation declared file or tree bytes only; not OS enforcement or stage grading",
   "ask_before_in_place_fix": "training rule, not this tool",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
   "runtime_bot_integration": "NOT_TESTED",
   "independent_acceptance": "NOT_TESTED"
 }
