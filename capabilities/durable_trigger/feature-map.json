@@ -1,6 +1,6 @@
 {
   "capability": "durable_trigger",
-  "version": "v1",
+  "version": "v2",
   "roadmap_item": "APO-7 (7. E04/E06 持久触发与失败恢复)",
   "standards": [
     "E04",
@@ -8,11 +8,20 @@
     "S2-08",
     "S4-05"
   ],
+  "trigger_schema_version": "durable-trigger/v1",
+  "state_schema_version": "durable-trigger-state/v2",
+  "v2_changes": [
+    "v1 fenced a pending job into its old lease generation, so an expired lease left the job unresumable (stale-lease) and unrollbackable (rollback-unavailable): the cursor was stuck forever",
+    "v2 lets a new holder take over and resume a pending job after the old lease expires (resumed=true, audit action lease-resumed-after-expiry)",
+    "v2 adds abort --trigger-id to release a stuck APPLY_PENDING job and advance the cursor past it (ABORTED)",
+    "v2 records candidate_sha256 before the atomic replace so a crash between rename and state write is recognized and completed instead of frozen (recovered_after_crash=true)",
+    "v2 makes a non-UTF-8 audit file a verify FAIL instead of an uncaught UnicodeDecodeError"
+  ],
   "features": {
     "contract": [
       "trigger: fields id/seq/version/target_bot/candidate_version only, version=durable-trigger/v1",
       "id ^[0-9a-z][0-9a-z-]{0,63}$, target_bot ^[a-z0-9][a-z0-9-]{0,63}$, candidate_version ^[0-9A-Za-z][0-9A-Za-z._-]{0,63}$",
-      "state: fixed schema, unknown fields and duplicate JSON keys rejected, exit 2",
+      "state: fixed schema durable-trigger-state/v2, unknown fields and duplicate JSON keys rejected, exit 2",
       "queue/state/audit budgets: 4MiB each, queue <=4096 triggers, candidate and platform files <=1MiB"
     ],
     "persistent_trigger": [
@@ -26,11 +35,11 @@
       "state.lease = {holder, token, expires_at}; token is a monotonic fencing generation",
       "live lease held by another holder -> exit 1 action=lease-held, zero write",
       "caller lease token != current generation -> exit 1 action=stale-lease",
-      "job recorded under an older lease generation -> exit 1 action=stale-lease (fencing)",
-      "expired lease is taken over with token+1; .durable-trigger.lock is a separate process mutex"
+      "an expired lease is taken over with token+1 and the pending job it left behind IS resumable under the new generation (resumed=true)",
+      "fencing blocks a live lease, not an expired one; .durable-trigger.lock is a separate process mutex"
     ],
     "cursor": [
-      "state.cursor_seq starts at -1 and advances only on a successful apply",
+      "state.cursor_seq starts at -1 and advances only on a successful apply or an abort",
       "only the trigger at cursor_seq+1 is consumed; strict FIFO, gaps are never skipped",
       "a gap at the cursor -> exit 1 action=out-of-order-rejected with expected_seq, missing_seq, next_available_seq",
       "consumed ids are recorded; re-firing a consumed id -> exit 0 action=duplicate-noop",
@@ -38,8 +47,9 @@
     ],
     "restart_continuation": [
       "a failed apply leaves the job at APPLY_PENDING with before_sha256 and before_present",
-      "the next trigger resumes the pending job when it sits at the cursor",
-      "resume re-checks the target bytes against the recorded before_sha256; mismatch -> exit 1 action=conflict-frozen"
+      "the next trigger resumes the pending job when it sits at the cursor, under the same or a newer lease generation",
+      "resume re-checks the target bytes against the recorded before_sha256; mismatch -> exit 1 action=conflict-frozen",
+      "a crash between the atomic rename and the state write is recognized via the recorded candidate_sha256 and completed with recovered_after_crash=true, never frozen and never applied twice"
     ],
     "atomic_apply": [
       "apply order: lease -> fencing -> kill switch -> approval -> candidate digest -> other bots -> target drift -> record before-state -> atomic replace -> platform readback -> other bots again -> state -> audit",
@@ -54,23 +64,31 @@
     ],
     "failure_recovery": [
       "approval-missing, stale-candidate, baseline-missing, readback-mismatch, other-bot-changed, injected failure, stale-lease -> job status APPLY_PENDING, never 'applied'",
+      "abort --trigger-id releases a stuck APPLY_PENDING job -> ABORTED, cursor advances past it; a second abort -> exit 0 action=already-aborted; a non-pending job -> exit 1 action=abort-unavailable",
       "rollback restores the pre-apply bytes atomically and verifies the readback; mismatch -> exit 1 action=rollback-failed",
       "rollback of a never-applied job -> exit 1 action=rollback-unavailable; second rollback -> exit 0 action=already-rolled-back",
       "kill-switch --engage blocks new applies (exit 1 action=kill-switch-engaged) but still allows rollback"
     ],
     "audit": [
-      "append-only audit.jsonl records apply, refuse, rollback, approve, baseline and kill-switch events",
+      "append-only audit.jsonl records apply, refuse, rollback, abort, approve, baseline and kill-switch events",
       "each entry carries timestamp, action, trigger id, seq, target bot, result, digests and lease generation"
     ],
     "verify": [
       "read-only consistency check across state, queue, platform and audit",
       "detects duplicate queue ids, consumed ids without a job, APPLIED jobs without after_sha256, platform drift, unknown and missing bots",
+      "detects a pending job stuck at the cursor with no live lease to resume it",
+      "a non-UTF-8 audit file is reported as a FAIL problem, not an uncaught decode error",
       "exit 0 verdict=PASS scope=state-queue-platform-audit-bytes-only; exit 1 verdict=FAIL with problems"
     ],
     "cli": [
-      "--version prints v1 and the sha256 of this capability README without reading any input",
+      "--version prints v2 and the sha256 of this capability README without reading any input",
       "exit 0 = completed per contract, 1 = runtime rejection, 2 = usage and contract errors"
     ]
+  },
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
   },
   "rollback": "delete capabilities/durable_trigger/ directory; CI capability-tests auto-shrinks",
   "tests": [

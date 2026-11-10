@@ -26,9 +26,11 @@ import sys
 import time
 from pathlib import Path
 
-VERSION = "v1"
+VERSION = "v2"
+# 触发记录本身的字段格式未变，沿用 durable-trigger/v1；变的是本工具的行为
+# （作业续作与中止语义）与状态文件格式（新增作业字段）。
 SCHEMA = "durable-trigger/v1"
-STATE_SCHEMA = "durable-trigger-state/v1"
+STATE_SCHEMA = "durable-trigger-state/v2"
 
 MAX_QUEUE_BYTES = 4 * 1024 * 1024
 MAX_EVENTS = 4096
@@ -43,7 +45,7 @@ HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 
 TRIGGER_FIELDS = ("id", "seq", "version", "target_bot", "candidate_version")
 CANDIDATE_FIELDS = ("candidate_version", "bot", "stage", "config")
-JOB_STATUSES = ("APPLY_PENDING", "APPLIED", "ROLLED_BACK")
+JOB_STATUSES = ("APPLY_PENDING", "APPLIED", "ROLLED_BACK", "ABORTED")
 INJECT_POINTS = ("APPLY", "READBACK", "OTHER_BOT")
 
 LOCK_NAME = ".durable-trigger.lock"
@@ -265,6 +267,12 @@ def validate_state(state):
             raise ContractError("state: job %s must be an object" % jid)
         if job.get("status") not in JOB_STATUSES:
             raise ContractError("state: job %s has unknown status %r" % (jid, job.get("status")))
+        if "aborted" in job and not isinstance(job["aborted"], bool):
+            raise ContractError("state: job %s aborted must be a boolean" % jid)
+        if job.get("candidate_sha256") is not None \
+                and not (isinstance(job["candidate_sha256"], str)
+                         and HEX_RE.match(job["candidate_sha256"])):
+            raise ContractError("state: job %s candidate_sha256 must be a sha256 digest" % jid)
     for bot, digest in state["platform_baseline"].items():
         if not isinstance(digest, str) or not HEX_RE.match(digest):
             raise ContractError("state: platform_baseline[%s] must be a sha256 digest" % bot)
@@ -426,7 +434,10 @@ def load_audit(root):
     raw = read_file_bytes(path, "audit", MAX_AUDIT_BYTES)
     if not raw:
         return []
-    text = raw.decode("utf-8")
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        raise ContractError("audit: not valid UTF-8")
     if not text.endswith("\n"):
         raise ContractError("audit: must end with a newline")
     entries = []
@@ -551,10 +562,17 @@ def _trigger_locked(root, args):
         raise Rejected({"action": "lease-held", "holder": lease["holder"],
                         "expires_at": lease["expires_at"]})
 
-    if lease["holder"] == args.holder and lease["expires_at"] > now:
-        token = lease["token"]
+    # 租约世代推进的两种情形，必须分开对待：
+    #   - 租约仍然活着且属于别人 → 已在上面拒绝（lease-held）。
+    #   - 租约已经过期 → 新持有者接管，旧世代的作业必须能被续作，
+    #     否则一次崩溃就会让作业永远卡在 APPLY_PENDING（游标再也走不动）。
+    # 因此 fencing 只拦「活着的租约被冒充」，不拦「过期后的接管」。
+    old_lease = dict(lease)
+    lease_expired = bool(old_lease["holder"]) and old_lease["expires_at"] <= now
+    if old_lease["holder"] == args.holder and old_lease["expires_at"] > now:
+        token = old_lease["token"]
     else:
-        token = lease["token"] + 1
+        token = old_lease["token"] + 1
     state["lease"] = {"holder": args.holder, "token": token,
                       "expires_at": now + args.lease_seconds}
     save_state(root, state)
@@ -592,7 +610,8 @@ def _trigger_locked(root, args):
         if not match:
             raise Rejected({"action": "conflict-frozen", "id": jid,
                             "reason": "pending job has no trigger in the queue"})
-        return _execute(root, state, match, token, resumed=True, inject=args.inject)
+        return _execute(root, state, match, token, resumed=True, inject=args.inject,
+                        lease_expired=lease_expired)
 
     if next_seq not in by_seq:
         ahead = sorted(s for s in by_seq if s > next_seq)
@@ -617,10 +636,11 @@ def _trigger_locked(root, args):
         emit({"action": "duplicate-noop", "id": trigger["id"],
               "note": "trigger already consumed exactly once"})
         return EXIT_OK
-    return _execute(root, state, trigger, token, resumed=False, inject=args.inject)
+    return _execute(root, state, trigger, token, resumed=False, inject=args.inject,
+                    lease_expired=lease_expired)
 
 
-def _execute(root, state, trigger, token, resumed, inject):
+def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
     jid = trigger["id"]
     target = trigger["target_bot"]
     version = trigger["candidate_version"]
@@ -629,26 +649,37 @@ def _execute(root, state, trigger, token, resumed, inject):
         "target_bot": target, "candidate_version": version,
         "before_sha256": None, "before_present": None, "after_sha256": None,
         "lease_token": token, "updated_at": now_iso(),
+        "candidate_sha256": None, "aborted": False,
     }
     recorded_lease = job.get("lease_token")
     if recorded_lease is not None and recorded_lease != token:
-        # fencing：作业是在更早的租约世代里开始的，当前租约不能替它续作。
-        job["status"] = "APPLY_PENDING"
-        job["reason"] = "stale-lease"
-        job["updated_at"] = now_iso()
-        state["jobs"][jid] = job
-        save_state(root, state)
-        audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
-                     "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
-                     "reason": "stale-lease", "recorded_lease_token": recorded_lease,
+        # 租约世代推进了。只有「旧租约已过期、作业因此被接管」是合法的续作；
+        # 旧租约仍然活着时，当前调用者无权替别人续作。
+        # （活着的他人租约在进入这里之前就已经被 lease-held 挡下，
+        #   所以这一分支是纵深防御：防止将来改动流程时把 fencing 拆掉。）
+        if not lease_expired:
+            job["status"] = "APPLY_PENDING"
+            job["reason"] = "stale-lease"
+            job["updated_at"] = now_iso()
+            state["jobs"][jid] = job
+            save_state(root, state)
+            audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
+                         "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
+                         "reason": "stale-lease", "recorded_lease_token": recorded_lease,
+                         "current_lease_token": token})
+            raise Rejected({"action": "stale-lease", "id": jid, "result": "APPLY_PENDING",
+                            "recorded_lease_token": recorded_lease,
+                            "current_lease_token": token})
+        # 旧租约已过期：接管续作，记录新的租约世代。
+        audit(root, {"ts": now_iso(), "action": "lease-resumed-after-expiry",
+                     "trigger_id": jid, "seq": trigger["seq"], "target_bot": target,
+                     "result": "RESUMED", "recorded_lease_token": recorded_lease,
                      "current_lease_token": token})
-        raise Rejected({"action": "stale-lease", "id": jid, "result": "APPLY_PENDING",
-                        "recorded_lease_token": recorded_lease,
-                        "current_lease_token": token})
     job["seq"] = trigger["seq"]
     job["target_bot"] = target
     job["candidate_version"] = version
     job["lease_token"] = token
+    job.setdefault("aborted", False)
 
     if state["kill_switch"]["engaged"]:
         job["status"] = "APPLY_PENDING"
@@ -660,6 +691,21 @@ def _execute(root, state, trigger, token, resumed, inject):
                      "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
                      "reason": "kill-switch-engaged", "lease_token": token})
         raise Rejected({"action": "kill-switch-engaged", "id": jid, "result": "APPLY_PENDING"})
+
+    # 崩溃恢复窗口：原子替换（rename）已经落地，但进程在写状态之前中断。
+    # 此时平台字节等于「当时批准的候选字节」——不能当成「别人改了目标」而拒绝
+    # （那会把游标永久卡死），也不能再应用一次；应当读回确认并补齐状态。
+    recorded_digest = job.get("candidate_sha256")
+    if job.get("status") == "APPLY_PENDING" and recorded_digest:
+        approval = state["approvals"].get(version)
+        if approval and approval["candidate_sha256"] == recorded_digest \
+                and platform_digest(root, target) == recorded_digest:
+            return _complete_apply(root, state, trigger, job, token, resumed=True,
+                                   digest=recorded_digest,
+                                   before_digest=job.get("before_sha256"),
+                                   others=sorted(b for b in expected_state(state)
+                                                 if b != target),
+                                   recovered=True)
 
     raw, cand = load_candidate(root, version)
     digest = sha256_hex(raw)
@@ -772,6 +818,13 @@ def _execute(root, state, trigger, token, resumed, inject):
         job["before_present"] = before_present
         write_atomic(root / "backups" / ("%s.json" % jid), before_bytes)
 
+    # 在原子替换之前把「将要写入的候选字节摘要」记进作业台账。
+    # 这样即使进程在 rename 之后、写状态之前崩溃，下一次 trigger 也能靠这个
+    # 摘要认出「替换已经落地」，而不是把目标当成被外人改动而永久卡死游标。
+    job["candidate_sha256"] = digest
+    state["jobs"][jid] = job
+    save_state(root, state)
+
     if inject == "APPLY":
         # 模拟在原子替换前崩溃：候选字节只落到临时文件，平台文件未被替换，
         # 状态留在 APPLY_PENDING，等下一次 trigger 续作。
@@ -843,6 +896,18 @@ def _execute(root, state, trigger, token, resumed, inject):
         raise Rejected({"action": "other-bot-changed", "id": jid, "result": "APPLY_PENDING",
                         "drifted_bots": post_drifted})
 
+    return _complete_apply(root, state, trigger, job, token, resumed=resumed,
+                           digest=digest, before_digest=before_digest,
+                           others=others)
+
+
+def _complete_apply(root, state, trigger, job, token, resumed, digest, before_digest,
+                    others, recovered=False):
+    """把一次成功读回的应用落账：标 APPLIED、推进游标、写审计。"""
+    jid = trigger["id"]
+    target = trigger["target_bot"]
+    version = trigger["candidate_version"]
+    readback = platform_digest(root, target)
     job["status"] = "APPLIED"
     job["reason"] = None
     job["after_sha256"] = digest
@@ -856,11 +921,13 @@ def _execute(root, state, trigger, token, resumed, inject):
                  "result": "APPLIED", "before_sha256": before_digest,
                  "after_sha256": digest, "readback_sha256": readback,
                  "other_bots_unchanged": True, "other_bots": others,
-                 "resumed": resumed, "lease_token": token})
+                 "resumed": resumed, "recovered_after_crash": recovered,
+                 "lease_token": token})
     emit({"action": "applied", "id": jid, "seq": trigger["seq"], "target_bot": target,
           "candidate_version": version, "before_sha256": before_digest,
           "after_sha256": digest, "readback_sha256": readback,
           "other_bots_unchanged": True, "other_bots": others, "resumed": resumed,
+          "recovered_after_crash": recovered,
           "cursor_seq": state["cursor_seq"], "lease_token": token})
     return EXIT_OK
 
@@ -879,6 +946,59 @@ def _restore(root, target, job, jid):
             if exc.errno != errno.ENOENT:
                 raise
         fsync_dir(path.parent)
+
+
+def cmd_abort(args):
+    """把一个卡住的 APPLY_PENDING 作业标记为 ABORTED，让游标能继续往前走。
+
+    这是「租约过期后作业无人续作」的最后一道人工出口：没有它，一个失败的
+    作业会把游标永久钉在它那一格，后面所有触发都出不来。
+    """
+    root = Path(args.root).resolve()
+    ensure_layout(root)
+    with_lock(root, lambda: _abort_locked(root, args))
+    return EXIT_OK
+
+
+def _abort_locked(root, args):
+    state = load_state(root)
+    jid = args.trigger_id
+    job = state["jobs"].get(jid)
+    if not job:
+        raise Rejected({"action": "abort-unavailable", "id": jid,
+                        "reason": "no such job"})
+    if job.get("status") == "ABORTED":
+        emit({"action": "already-aborted", "id": jid})
+        return EXIT_OK
+    if job.get("status") != "APPLY_PENDING":
+        raise Rejected({"action": "abort-unavailable", "id": jid,
+                        "reason": "job is not pending", "status": job.get("status")})
+    target = job.get("target_bot")
+    seq = job.get("seq")
+    # 中止只解除「这一格被卡住」的占位，不动平台字节：
+    # 目标若仍等于应用前字节，说明什么都没写进去，无需回滚。
+    current = platform_digest(root, target) if target else None
+    if current is not None and current == job.get("before_sha256"):
+        restored = False
+    else:
+        _restore(root, target, job, jid)
+        restored = True
+    job["status"] = "ABORTED"
+    job["reason"] = args.reason or "aborted-by-operator"
+    job["aborted"] = True
+    job["updated_at"] = now_iso()
+    state["jobs"][jid] = job
+    state["consumed"][jid] = {"seq": seq, "result": "ABORTED", "at": now_iso()}
+    if isinstance(seq, int) and seq > state["cursor_seq"]:
+        state["cursor_seq"] = seq
+    save_state(root, state)
+    audit(root, {"ts": now_iso(), "action": "aborted", "trigger_id": jid,
+                 "seq": seq, "target_bot": target, "result": "ABORTED",
+                 "reason": job["reason"], "platform_restored": restored,
+                 "holder": args.holder})
+    emit({"action": "aborted", "id": jid, "seq": seq, "target_bot": target,
+          "platform_restored": restored, "cursor_seq": state["cursor_seq"]})
+    return EXIT_OK
 
 
 def cmd_rollback(args):
@@ -986,6 +1106,18 @@ def cmd_verify(args):
     for jid, job in state["jobs"].items():
         if job.get("status") == "APPLIED" and not job.get("after_sha256"):
             problems.append("job %s is APPLIED without after_sha256" % jid)
+    # 卡死的游标：一个 APPLY_PENDING 作业坐在游标位上，却已经没有任何在世
+    # 的租约可以续作它 —— 这就是「租约过期后无人接管」的死锁，必须报出来。
+    if state["lease"]["holder"] is None or \
+            state["lease"]["expires_at"] <= time.time():
+        stuck = sorted(
+            (jid for jid, job in state["jobs"].items()
+             if job.get("status") == "APPLY_PENDING"
+             and job.get("seq") == state["cursor_seq"] + 1),
+            key=lambda jid: jid)
+        for jid in stuck:
+            problems.append("job %s is pending at the cursor with no live lease to resume it"
+                            % jid)
     expected = expected_state(state)
     current = {}
     for bot in platform_bots(root):
@@ -1052,6 +1184,13 @@ def build_parser():
     tr.add_argument("--lease-token", type=int, default=None)
     tr.add_argument("--inject-failure", dest="inject", choices=INJECT_POINTS, default=None)
     tr.set_defaults(func=cmd_trigger)
+
+    ab = sub.add_parser("abort")
+    ab.add_argument("--root", required=True)
+    ab.add_argument("--trigger-id", required=True)
+    ab.add_argument("--holder", default="operator")
+    ab.add_argument("--reason", default=None)
+    ab.set_defaults(func=cmd_abort)
 
     rb = sub.add_parser("rollback")
     rb.add_argument("--root", required=True)

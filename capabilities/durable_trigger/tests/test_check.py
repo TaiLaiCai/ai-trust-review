@@ -87,11 +87,11 @@ class Base(unittest.TestCase):
 
 
 class TestVersion(Base):
-    def test_version_prints_v1_and_readme_sha256(self):
+    def test_version_prints_v2_and_readme_sha256(self):
         proc = run("--version")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         parts = proc.stdout.strip().split()
-        self.assertEqual(parts[0], "v1")
+        self.assertEqual(parts[0], "v2")
         self.assertEqual(len(parts), 2)
         self.assertEqual(len(parts[1]), 64)
         int(parts[1], 16)
@@ -187,22 +187,69 @@ class TestLeaseLock(Base):
         self.assertEqual(lease["holder"], "worker-2")
         self.assertGreater(lease["token"], first_token)
 
-    def test_fencing_blocks_a_job_recorded_under_an_older_generation(self):
+    def test_a_pending_job_is_resumed_after_the_lease_expires(self):
+        # 回归用例（预审复现）：租约立刻过期且 APPLY 被注入失败后，
+        # 作业停在 APPLY_PENDING。旧实现在这里把作业锁死在旧世代：
+        # 再 trigger 得 stale-lease，rollback 得 rollback-unavailable，
+        # 游标永远走不动。正确行为是：过期租约可以被接管并续作。
         self.prepare()
         self.enqueue("t1", 0, "bot-a", "v1")
-        # Fail the apply so the job stays APPLY_PENDING under generation 1.
         failed = self.trigger("--lease-seconds", "0", "--inject-failure", "APPLY")
         self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
         state = payload(run("status", "--root", self.root))
-        recorded = state["jobs"]["t1"]["lease_token"]
-        # A new holder takes a fresh generation; the pending job must not be
-        # continued under it.
+        self.assertEqual(state["jobs"]["t1"]["status"], "APPLY_PENDING")
+        self.assertEqual(state["cursor_seq"], -1)
+        original = self.platform_bytes("bot-a")
+
+        # 租约已过期：新持有者接管，作业必须能续作，而不是 stale-lease。
         resumed = self.trigger("--lease-seconds", "300", holder="worker-2")
-        self.assertEqual(resumed.returncode, 1, resumed.stdout + resumed.stderr)
+        self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
         out = payload(resumed)
-        self.assertEqual(out["action"], "stale-lease")
-        self.assertEqual(out["recorded_lease_token"], recorded)
-        self.assertGreater(out["current_lease_token"], recorded)
+        self.assertEqual(out["action"], "applied")
+        self.assertTrue(out["resumed"])
+        self.assertEqual(out["seq"], 0)
+        self.assertNotEqual(self.platform_bytes("bot-a"), original)
+        state = payload(run("status", "--root", self.root))
+        self.assertEqual(state["jobs"]["t1"]["status"], "APPLIED")
+        self.assertEqual(state["cursor_seq"], 0)
+
+    def test_a_pending_job_resumed_after_expiry_can_be_rolled_back(self):
+        # 回归用例（预审复现）：续作成功后，rollback 必须可用，
+        # 不能再返回 rollback-unavailable。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        before = self.platform_bytes("bot-a")
+        self.assertEqual(self.trigger("--lease-seconds", "0",
+                                      "--inject-failure", "APPLY").returncode, 1)
+        self.assertEqual(self.trigger("--lease-seconds", "300",
+                                      holder="worker-2").returncode, 0)
+        proc = run("rollback", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["action"], "rolled-back")
+        self.assertEqual(self.platform_bytes("bot-a"), before)
+
+    def test_a_live_lease_still_blocks_a_second_holder(self):
+        # fencing 的真正含义：租约还活着时，别人不能接管、不能续作。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        first = self.trigger("--lease-seconds", "300")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        second = self.trigger("--lease-seconds", "300", holder="worker-2")
+        self.assertEqual(second.returncode, 1, second.stdout + second.stderr)
+        self.assertEqual(payload(second)["action"], "lease-held")
+
+    def test_verify_reports_a_pending_job_with_no_live_lease(self):
+        # 死锁必须能被 verify 看见，而不是静悄悄卡住。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.assertEqual(self.trigger("--lease-seconds", "0",
+                                      "--inject-failure", "APPLY").returncode, 1)
+        proc = run("verify", "--root", self.root)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["verdict"], "FAIL")
+        self.assertTrue(any("no live lease" in p for p in out["problems"]),
+                        out["problems"])
 
 
 class TestCursor(Base):
@@ -507,6 +554,109 @@ class TestFailureRecovery(Base):
         self.assertNotEqual(out.get("result"), "APPLIED")
         state = payload(run("status", "--root", self.root))
         self.assertEqual(state["jobs"]["t1"]["status"], "APPLY_PENDING")
+
+
+class TestAbort(Base):
+    def test_abort_unblocks_a_pending_job_and_advances_the_cursor(self):
+        # 最后一道人工出口：卡住的作业必须能被中止，游标才能继续往前走。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        before = self.platform_bytes("bot-a")
+        self.assertEqual(self.trigger("--lease-seconds", "0",
+                                      "--inject-failure", "APPLY").returncode, 1)
+        proc = run("abort", "--root", self.root, "--trigger-id", "t1",
+                   "--reason", "operator-gave-up")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["action"], "aborted")
+        state = payload(run("status", "--root", self.root))
+        self.assertEqual(state["jobs"]["t1"]["status"], "ABORTED")
+        self.assertEqual(state["cursor_seq"], 0)
+        # 平台字节没有被改动过（中止不写入候选）。
+        self.assertEqual(self.platform_bytes("bot-a"), before)
+
+    def test_the_cursor_moves_past_an_aborted_job(self):
+        self.prepare()
+        for version, stage in (("v2", 3),):
+            self.write_candidate(version, "bot-a", stage)
+            run("approve", "--root", self.root,
+                "--candidate-version", version, "--approver", "tester")
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.enqueue("t2", 1, "bot-a", "v2")
+        self.assertEqual(self.trigger("--lease-seconds", "0",
+                                      "--inject-failure", "APPLY").returncode, 1)
+        self.assertEqual(run("abort", "--root", self.root,
+                             "--trigger-id", "t1").returncode, 0)
+        # 下一格现在可以正常消费。
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["seq"], 1)
+
+    def test_abort_of_a_non_pending_job_is_unavailable(self):
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.assertEqual(self.trigger().returncode, 0)
+        proc = run("abort", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["action"], "abort-unavailable")
+
+    def test_a_second_abort_is_a_noop(self):
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.assertEqual(self.trigger("--lease-seconds", "0",
+                                      "--inject-failure", "APPLY").returncode, 1)
+        self.assertEqual(run("abort", "--root", self.root,
+                             "--trigger-id", "t1").returncode, 0)
+        proc = run("abort", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["action"], "already-aborted")
+
+
+class TestCrashRecoveryAndAudit(Base):
+    def test_a_crash_after_the_rename_is_recovered_not_frozen(self):
+        # 崩溃窗口：rename 已落地、状态还没写。此时平台字节等于候选字节，
+        # 不能当成「别人改了目标」而拒绝（那会把游标永久卡死），
+        # 也不能重复应用；必须读回确认后补齐状态。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.assertEqual(self.trigger().returncode, 0)
+        applied_bytes = self.platform_bytes("bot-a")
+        # 把状态倒回「应用前 + APPLY_PENDING」，模拟状态写入前崩溃。
+        state_path = os.path.join(self.root, "state.json")
+        with open(state_path, encoding="utf-8") as fh:
+            state = json.load(fh)
+        job = state["jobs"]["t1"]
+        job["status"] = "APPLY_PENDING"
+        job["after_sha256"] = None
+        job["reason"] = "crashed-before-state-write"
+        state["cursor_seq"] = -1
+        state["consumed"] = {}
+        with open(state_path, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, sort_keys=True, separators=(",", ":"))
+
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["action"], "applied")
+        self.assertTrue(out["recovered_after_crash"])
+        # 平台字节没有被重复写入，也没有被回滚。
+        self.assertEqual(self.platform_bytes("bot-a"), applied_bytes)
+        state = payload(run("status", "--root", self.root))
+        self.assertEqual(state["jobs"]["t1"]["status"], "APPLIED")
+        self.assertEqual(state["cursor_seq"], 0)
+
+    def test_verify_reports_a_non_utf8_audit_instead_of_crashing(self):
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.assertEqual(self.trigger().returncode, 0)
+        with open(os.path.join(self.root, "audit.jsonl"), "ab") as fh:
+            fh.write(b'{"action":"x","ts":"\xff\xfe"}\n')
+        proc = run("verify", "--root", self.root)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertEqual(proc.stderr, "")
+        out = payload(proc)
+        self.assertEqual(out["verdict"], "FAIL")
+        self.assertTrue(any("UTF-8" in p for p in out["problems"]), out["problems"])
 
 
 class TestVerify(Base):

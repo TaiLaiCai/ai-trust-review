@@ -9,6 +9,11 @@
 
 两项均为 0，可以开工。
 
+## 修订记录
+
+- **v1（提交 806ceba，PR #73）**：预审结论「需修改」。复现的缺陷：租约过期后 `APPLY_PENDING` 作业被作业级 fencing 锁死在旧世代 → 再 trigger 得 `stale-lease`，rollback 得 `rollback-unavailable`，游标永久卡死。仓库自带用例把该错误行为写成了期望。
+- **v2（本次修订）**：按预审意见修改上述行为，并补齐 `abort` 出口、崩溃窗口恢复、非 UTF-8 审计的 verify 失败，以及 PR #65 要求的 `independent_verification` 三元组。触发记录格式不变（仍 `durable-trigger/v1`），状态文件升到 `durable-trigger-state/v2`。
+
 ## 目标
 
 新增原子能力 `capabilities/durable_trigger` v1：把 ROADMAP 第 7 项「持久触发、锁、游标、重启续作、原子应用与读回、其他 Bot 不变、失败恢复」落成可执行、可复跑的最小实现。
@@ -28,10 +33,15 @@ E06 原文：「版本化候选→批准→应用→实际平台读回→其他B
 
 ## 验收项
 
-- `python3 capabilities/durable_trigger/check.py --version` 退出 0，打印 `v1 <README sha256>`。
+- `python3 capabilities/durable_trigger/check.py --version` 退出 0，打印 `v2 <README sha256>`。
 - `python3 -m unittest discover -s capabilities/durable_trigger/tests -v` 全绿，套件真实跑 CLI 子进程，断言真实退出码。
 - 七项属性各有独立断言：持久触发（跨进程读回队列）、锁（占用拒绝／续租／过期接管／fencing 拒绝旧 token）、游标（消费位点与幂等 no-op）、重启续作（失败位点续作）、原子应用与读回（读回命中／篡改读回 FAIL）、其他 Bot 不变（基线比对，外部改动被拒并回退目标）、失败恢复（APPLY_PENDING、急停、回滚）。
-- 契约负例退出码固定：契约/schema 错误 2；运行期拒绝（lease-held／stale-lease／kill-switch-engaged／out-of-order-rejected／conflict-frozen／other-bot-changed／stale-candidate／readback-mismatch）1。
+- **（v2 新增）租约过期后可续作**：租约过期 + 应用失败后，下一次 trigger 必须能接管并续作（`applied`、`resumed=true`），续作后 rollback 必须可用。这是预审复现的缺陷路径，须有独立回归用例。
+- **（v2 新增）作业级出口**：卡在 `APPLY_PENDING` 的作业可被 `abort` 中止，游标随后继续前进。
+- **（v2 新增）崩溃窗口**：rename 已落地、状态未写时，续作不得把目标当成被外人改动而永久冻结。
+- **（v2 新增）死锁可见**：`verify` 必须报出「卡在游标位且无在世租约可续作」的作业。
+- 契约负例退出码固定：契约/schema 错误 2；运行期拒绝（lease-held／stale-lease／kill-switch-engaged／out-of-order-rejected／conflict-frozen／other-bot-changed／stale-candidate／readback-mismatch／abort-unavailable）1。
+- 能力地图带 `independent_verification` 三元组（PR #65 的 `check_repository` 按 glob 校验），值为 `NOT_TESTED`／`null`／`null`。
 - 不改 `control/`、CI 工作流、保留题库与验收期望值；不改他人工作区。
 
 ## 轮次预算
