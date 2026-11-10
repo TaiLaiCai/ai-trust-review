@@ -66,28 +66,36 @@ class DetectTests(unittest.TestCase):
         del rep["verifier"]
         self.assertEqual(run(rep)[0], 5)
 
-    def test_unicode_bypasses_of_name_comparison_rejected(self):
-        """裁决 6744631746：零宽/全角绕过同名检查必须拒绝，纯零宽视为缺 verifier。"""
-        cases = [
-            # (verifier, producer, expect_missing)
-            ("\u200b", "生产方", True),            # 仅零宽：视为缺失 verifier
-            ("\ufeff", "生产方", True),            # 仅 BOM(Cf)：视为缺失
-            ("生产方\u200b", "生产方", False),      # 尾零宽：同名，拒绝
-            ("生\u200b产方", "生产方", False),      # 中间零宽：同名，拒绝
-            ("\u200d生产方", "生产方", False),      # ZWJ 前缀：同名，拒绝
-        ]
-        for verifier, producer, missing in cases:
+    def test_bypass1_pure_zero_width_verifier_treated_as_missing(self):
+        """类型1：纯零宽/纯 Cf 字符的 verifier 视为缺失，verifier_not_independent + missing verifier。"""
+        for verifier in ("\u200b", "\ufeff"):
             rep = report([step()], verifier=verifier)
-            rep["producer"] = producer
+            rep["producer"] = "生产方"
             code, raw = run(rep)
-            self.assertEqual(code, 1, (verifier, producer))
+            self.assertEqual(code, 1, verifier)
             fs = findings((code, raw))
-            if missing:
-                self.assertIn("verifier_not_independent", fs)
-                self.assertTrue(any("missing verifier" in f["detail"]
-                                    for f in json.loads(raw)["findings"]))
+            self.assertIn("verifier_not_independent", fs)
+            self.assertTrue(any("missing verifier" in f["detail"]
+                                for f in json.loads(raw)["findings"]))
 
-    def test_fullwidth_and_nfkc_bypasses_rejected(self):
+    def test_bypass2_zero_width_embedded_in_name_rejected(self):
+        """类型2：名字尾部或中间夹零宽，规范化后与 producer 同名，拒绝。"""
+        for verifier in ("生产方\u200b", "生\u200b产方"):
+            rep = report([step()], verifier=verifier)
+            rep["producer"] = "生产方"
+            code, raw = run(rep)
+            self.assertEqual(code, 1, verifier)
+            self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_bypass3_cf_prefix_zwj_same_name_rejected(self):
+        """类型3：ZWJ 等 Cf 前缀，规范化后与 producer 同名，拒绝。"""
+        rep = report([step()], verifier="\u200d生产方")
+        rep["producer"] = "生产方"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_bypass4_fullwidth_nfkc_same_name_rejected(self):
         rep = report([step()], verifier="\uff50roducer")  # 全角 p
         rep["producer"] = "producer"
         code, raw = run(rep)
