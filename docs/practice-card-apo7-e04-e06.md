@@ -12,7 +12,8 @@
 ## 修订记录
 
 - **v1（提交 806ceba，PR #73）**：预审结论「需修改」。复现的缺陷：租约过期后 `APPLY_PENDING` 作业被作业级 fencing 锁死在旧世代 → 再 trigger 得 `stale-lease`，rollback 得 `rollback-unavailable`，游标永久卡死。仓库自带用例把该错误行为写成了期望。
-- **v2（本次修订）**：按预审意见修改上述行为，并补齐 `abort` 出口、崩溃窗口恢复、非 UTF-8 审计的 verify 失败，以及 PR #65 要求的 `independent_verification` 三元组。触发记录格式不变（仍 `durable-trigger/v1`），状态文件升到 `durable-trigger-state/v2`。
+- **v2（提交 b9f623a）**：按预审意见修改上述行为，并补齐 `abort` 出口、崩溃窗口恢复、非 UTF-8 审计的 verify 失败，以及 PR #65 要求的 `independent_verification` 三元组。触发记录格式不变（仍 `durable-trigger/v1`），状态文件升到 `durable-trigger-state/v2`。
+- **v2 复核（提交 daa19ae，合并 main）**：执行·Hermes 独立复现预审缺陷路径，v1 复现 `stale-lease` + `rollback-unavailable`、游标停在 -1；v2 接管续作（`applied`、`resumed=true`）且 rollback 可用、verify PASS。同时把 `origin/main` 合并进本分支（唯一冲突 `capabilities/README.md`，两行能力条目均保留），使 PR #73 与 main 不再冲突，并让 main 已合入的 `check_repository` feature-map glob 校验（#65）在本分支真实跑通。
 
 ## 目标
 
@@ -42,6 +43,8 @@ E06 原文：「版本化候选→批准→应用→实际平台读回→其他B
 - **（v2 新增）死锁可见**：`verify` 必须报出「卡在游标位且无在世租约可续作」的作业。
 - 契约负例退出码固定：契约/schema 错误 2；运行期拒绝（lease-held／stale-lease／kill-switch-engaged／out-of-order-rejected／conflict-frozen／other-bot-changed／stale-candidate／readback-mismatch／abort-unavailable）1。
 - 能力地图带 `independent_verification` 三元组（PR #65 的 `check_repository` 按 glob 校验），值为 `NOT_TESTED`／`null`／`null`。
+- **（v2 复核补测）** 预审裁决里列为 NOT_TESTED 的三项，本轮已实测并记录真实退出码与输出：基线外 `bot-new`（目标本身在基线外 → apply 前即被 `conflict-frozen` 拒绝、目标字节未变；基线外的 bot-new 作为「其他 Bot」→ `other-bot-changed` 且零应用）、非 UTF-8 审计（`verify` → `verdict=FAIL`、问题 `audit: not valid UTF-8`、退出 1）、consume-once（重复 enqueue → `duplicate-noop` 且队列仍 1 行，再 trigger → `no-work` 未重复消费）。
+- **（v2 复核补测）** 预审复现的缺陷路径须同时在 v1 上复现、在 v2 上修复：同一脚本跑 v1 得 `stale-lease` + `rollback-unavailable`、游标停在 -1；跑 v2 得 `applied`（`resumed=true`）→ `rolled-back` → `verify` PASS。
 - 不改 `control/`、CI 工作流、保留题库与验收期望值；不改他人工作区。
 
 ## 轮次预算
