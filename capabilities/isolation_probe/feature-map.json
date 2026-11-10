@@ -61,8 +61,14 @@
     {
       "id": "BOUNDARY",
       "command": "python3 -m unittest discover -s capabilities/isolation_probe/tests -v",
-      "expected": "35 tests pass; missing roots, overlapping roots, broken policy and missing policy keys exit 5",
-      "actual_source": "tests/test_probe.py::LayoutTest; ::ToolPermissionTest::test_broken_policy_exits_five; ::test_missing_policy_key_exits_five; ::ReadbackTest::test_readback_refuses_a_writable_policy"
+      "expected": "43 tests pass; missing roots, overlapping roots, broken policy and missing policy keys exit 5; --fresh re-runs against a root the probe already locked down",
+      "actual_source": "tests/test_probe.py::LayoutTest; ::ToolPermissionTest::test_broken_policy_exits_five; ::test_missing_policy_key_exits_five; ::ReadbackTest::test_readback_refuses_a_writable_policy; ::FreshRerunTest"
+    },
+    {
+      "id": "E02-FRESH-RERUN",
+      "command": "python3 capabilities/isolation_probe/probe.py write --root ROOT --backend posix --fresh",
+      "expected": "exit 3; verdict WEAK on the first run AND on every re-run against the same root; the probe rebuilds the layout it locked down instead of failing with EACCES, and never prints a traceback",
+      "actual_source": "tests/test_probe.py::FreshRerunTest::test_fresh_reruns_against_the_same_root; ::test_fresh_rerun_does_not_raise_a_traceback; ::test_fresh_removes_the_previous_layout"
     }
   ],
   "scope": "observed kernel refusal and observed policy lookup on this host; not an H1/H2 deployment, not a cross-uid controlled party, not a stage grade",

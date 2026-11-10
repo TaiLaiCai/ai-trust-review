@@ -123,7 +123,13 @@ python3 capabilities/isolation_probe/probe.py readback \
 python3 -m unittest discover -s capabilities/isolation_probe/tests -v
 ```
 
-35 项测试，全部起真实子进程、断言真实退出码与真实 errno。其中带 `POSIX` 的用例断言的是**逃逸成功**（owner 改权限后写进去了）——那正是 `posix` 后端必须报 `WEAK` 的原因；带 `seatbelt` 的用例断言 chmod 逃逸**被拒**。
+43 项测试，全部起真实子进程、断言真实退出码与真实 errno。其中带 `POSIX` 的用例断言的是**逃逸成功**（owner 改权限后写进去了）——那正是 `posix` 后端必须报 `WEAK` 的原因；带 `seatbelt` 的用例断言 chmod 逃逸**被拒**。
+
+### 复跑：探针必须能重建自己锁死的布局
+
+探针会**故意**把控制面、保留集和密钥目录收紧（`0o500` / `0o300`）。这些权限位挡住 owner 列目录和删文件，所以对同一个 root 再跑一次 `--fresh` 时，普通 `rmtree` 会以 `EACCES` 失败。
+
+探针自己知道这一点，因此它先把这些目录的属主权限恢复回来再删（符号链接不动，删的只是链接本身）。这条的实测后果是：**对同一个 root 连跑三次 `--fresh`，三次都出同一份判定**，不会因为上一轮留下的收紧目录而崩掉。构建不了边界时探针退出 5 并打印 `PROBE_ERROR`，不会抛 traceback——「探针没跑起来」和「边界没生效」必须是两回事。
 
 回滚：删除 `capabilities/isolation_probe/` 目录即可；CI 的 `capability-tests` 按 glob 自动发现能力目录，目录删除后自动少跑一个套件。
 

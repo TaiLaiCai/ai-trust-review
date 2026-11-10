@@ -64,6 +64,33 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+def remove_tree(path):
+    """Remove a tree the probe itself locked down.
+
+    The probe deliberately sets restrictive modes on the control, reserved
+    and secrets roots (0o500 and 0o300). Those modes stop the owner from
+    listing or unlinking what is inside, so a plain rmtree fails with
+    EACCES on the second --fresh run against the same root. Restore owner
+    access first, then remove.
+
+    Symlinks are never chmod-ed: rmtree unlinks the link itself, and
+    chmod-ing it would touch whatever it points at.
+    """
+    if not os.path.lexists(path):
+        return
+    os.chmod(path, 0o700)
+    for root, dirs, files in os.walk(path):
+        for name in dirs:
+            target = os.path.join(root, name)
+            if not os.path.islink(target):
+                os.chmod(target, 0o700)
+        for name in files:
+            target = os.path.join(root, name)
+            if not os.path.islink(target):
+                os.chmod(target, 0o600)
+    shutil.rmtree(path)
+
+
 def is_within(child, parent):
     """True when `child` is `parent` or lives under it (realpath based)."""
     child_real = os.path.realpath(child)
@@ -213,12 +240,33 @@ def run_payload(argv, sandbox_profile=None, cwd=None, env=None):
 
 
 def is_refusal(result):
-    """A refusal is the kernel refusing, not a script deciding."""
+    """A refusal is the kernel refusing, not a script deciding.
+
+    Only a permission-style errno counts. A failure with some other errno
+    (a missing path, a broken filesystem) is not a denial and must not be
+    counted as one.
+    """
     if not result:
         return False
     if not result.get("refused"):
         return False
     return result.get("errno") in REFUSAL_ERRNOS
+
+
+def outcome_of(result):
+    """Classify what the child actually experienced.
+
+    "written"  - the operation went through
+    "refused"  - the kernel refused it with a permission errno
+    "error"    - it failed for some other reason; that is not a denial
+    """
+    if result is None:
+        return "error"
+    if not result.get("refused"):
+        return "written"
+    if result.get("errno") in REFUSAL_ERRNOS:
+        return "refused"
+    return "error"
 
 
 def probe_write(args):
@@ -232,7 +280,7 @@ def probe_write(args):
     tighten = args.control_permissions == "tighten"
     if args.fresh:
         if os.path.exists(root):
-            shutil.rmtree(root)
+            remove_tree(root)
         layout.build(tighten=tighten)
     else:
         layout.validate()
@@ -245,15 +293,15 @@ def probe_write(args):
     checks = []
 
     def record(name, expectation, result, returncode, note=""):
-        refused = is_refusal(result)
+        outcome = outcome_of(result)
         if expectation == "allowed":
-            ok = not refused and returncode == 0
+            ok = outcome == "written" and returncode == 0
         else:
-            ok = refused and returncode == 3
+            ok = outcome == "refused" and returncode == 3
         checks.append({
             "check": name,
             "expected": expectation,
-            "observed": "refused" if refused else "written",
+            "observed": outcome,
             "errno": (result or {}).get("errno"),
             "errno_name": (result or {}).get("errno_name"),
             "child_exit_code": returncode,
@@ -269,14 +317,15 @@ def probe_write(args):
         ["write", workspace_target],
         sandbox_profile=profile_path,
     )
+    workspace_outcome = outcome_of(result)
     checks.append({
         "check": "workspace_write",
         "expected": "allowed",
-        "observed": "refused" if is_refusal(result) else "written",
+        "observed": workspace_outcome,
         "errno": (result or {}).get("errno"),
         "errno_name": (result or {}).get("errno_name"),
         "child_exit_code": rc,
-        "ok": (not is_refusal(result)) and rc == 0,
+        "ok": workspace_outcome == "written" and rc == 0,
         "note": "the bot must still be able to work in its own workspace",
     })
 
@@ -313,16 +362,18 @@ def probe_write(args):
     chmod_target = os.path.join(layout.control, "registry.json")
     rc, result, out, err = run_payload(["chmod", chmod_target, "--mode", "0o644"],
                                        sandbox_profile=profile_path)
-    chmod_refused = is_refusal(result)
-    if not chmod_refused:
+    chmod_outcome = outcome_of(result)
+    chmod_refused = chmod_outcome == "refused"
+    if chmod_outcome != "refused":
         # The chmod went through: the boundary is weaker than a real one.
         rc2, result2, out2, err2 = run_payload(["write", chmod_target],
                                                 sandbox_profile=profile_path)
-        followup_refused = is_refusal(result2)
+        followup_outcome = outcome_of(result2)
+        followup_refused = followup_outcome == "refused"
         checks.append({
             "check": "chmod_escape_write",
             "expected": "denied",
-            "observed": "refused" if followup_refused else "written",
+            "observed": followup_outcome,
             "errno": (result2 or {}).get("errno"),
             "errno_name": (result2 or {}).get("errno_name"),
             "child_exit_code": rc2,
@@ -350,11 +401,12 @@ def probe_write(args):
     if args.control_permissions == "keep":
         control_target = os.path.join(layout.control, "registry.json")
         rc, result, out, err = run_payload(["write", control_target])
-        written = (not is_refusal(result)) and rc == 0
+        control_outcome = outcome_of(result)
+        written = control_outcome == "written" and rc == 0
         checks.append({
             "check": "negative_control_write",
             "expected": "written",
-            "observed": "refused" if is_refusal(result) else "written",
+            "observed": control_outcome,
             "errno": (result or {}).get("errno"),
             "errno_name": (result or {}).get("errno_name"),
             "child_exit_code": rc,
@@ -700,6 +752,16 @@ def main(argv=None):
         except ProbeError as error:
             print(json.dumps({"verdict": "PROBE_ERROR", "reason": str(error)},
                              ensure_ascii=False, sort_keys=True))
+            return 5
+        except OSError as error:
+            # The probe could not set the boundary up (a root it cannot
+            # replace, a filesystem that refuses). That is "the probe did
+            # not run", not "the boundary failed": report it as such
+            # instead of raising a traceback that prints no verdict.
+            print(json.dumps({
+                "verdict": "PROBE_ERROR",
+                "reason": f"the probe could not prepare the layout: {error}",
+            }, ensure_ascii=False, sort_keys=True))
             return 5
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
         if report["verdict"] == "PASS":

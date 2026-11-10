@@ -263,6 +263,92 @@ class PosixWriteIsolationTest(unittest.TestCase):
         self.assertFalse(checks["control_registry_write"]["ok"])
 
 
+class FreshRerunTest(unittest.TestCase):
+    """--fresh must work against a root the probe already locked down.
+
+    The probe tightens the control, reserved and secrets roots on purpose
+    (0o500 and 0o300). Those modes stop the owner from unlinking what is
+    inside, so a plain rmtree fails with EACCES the second time --fresh
+    runs against the same root. The probe has to be able to rebuild its
+    own layout, otherwise a re-run cannot produce evidence at all.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.root = os.path.join(self.tmp, "layout")
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def test_fresh_reruns_against_the_same_root(self):
+        for attempt in range(3):
+            rc, report, out, err = run_probe(
+                "write", "--root", self.root, "--backend", "posix", "--fresh")
+            self.assertEqual(rc, 3, f"attempt {attempt}: " + out + err)
+            self.assertEqual(report["verdict"], "WEAK")
+
+    def test_fresh_rerun_does_not_raise_a_traceback(self):
+        """A layout the probe locked down must not crash the probe."""
+        run_probe("write", "--root", self.root, "--backend", "posix", "--fresh")
+        proc = subprocess.run(
+            [sys.executable, str(PROBE), "write", "--root", self.root,
+             "--backend", "posix", "--fresh"],
+            capture_output=True,
+            timeout=180,
+        )
+        self.assertNotIn(b"Traceback", proc.stderr, proc.stderr.decode())
+        self.assertEqual(proc.returncode, 3, proc.stderr.decode())
+
+    def test_fresh_removes_the_previous_layout(self):
+        """The rebuilt layout must be the probe's own, not a leftover."""
+        run_probe("write", "--root", self.root, "--backend", "posix", "--fresh")
+        with open(os.path.join(self.root, "workspace", "allowed.txt")) as handle:
+            self.assertEqual(handle.read(), "PROBE-WRITE\n")
+        # Drop a file that the fresh run must not carry over.
+        with open(os.path.join(self.root, "workspace", "stale.txt"), "w") as handle:
+            handle.write("stale")
+        run_probe("write", "--root", self.root, "--backend", "posix", "--fresh")
+        self.assertFalse(os.path.exists(os.path.join(self.root, "workspace", "stale.txt")))
+
+
+class OutcomeTest(unittest.TestCase):
+    """Only a permission errno counts as a denial.
+
+    A failure with some other errno is neither "the write happened" nor
+    "the kernel refused": it is an error. A probe that counted every
+    exception as a denial would pass a broken boundary.
+    """
+
+    def setUp(self):
+        self.probe = load_probe_module()
+
+    def test_permission_errno_is_a_refusal(self):
+        for errno_value in (13, 1):
+            result = {"refused": True, "errno": errno_value}
+            self.assertTrue(self.probe.is_refusal(result))
+            self.assertEqual(self.probe.outcome_of(result), "refused")
+
+    def test_other_errno_is_an_error_not_a_refusal(self):
+        result = {"refused": True, "errno": 2}  # ENOENT
+        self.assertFalse(self.probe.is_refusal(result))
+        self.assertEqual(self.probe.outcome_of(result), "error")
+
+    def test_successful_operation_is_written(self):
+        result = {"refused": False, "errno": None}
+        self.assertFalse(self.probe.is_refusal(result))
+        self.assertEqual(self.probe.outcome_of(result), "written")
+
+    def test_missing_result_is_an_error(self):
+        self.assertEqual(self.probe.outcome_of(None), "error")
+
+    def test_a_refusal_with_an_unexpected_errno_does_not_satisfy_a_denial(self):
+        """The check helper must not accept a non-permission failure."""
+        result = {"refused": True, "errno": 2, "errno_name": "ENOENT"}
+        outcome = self.probe.outcome_of(result)
+        self.assertNotEqual(outcome, "refused")
+        # This is the exact condition the record helper uses for "denied".
+        ok = outcome == "refused" and 3 == 3
+        self.assertFalse(ok)
+
+
 class LayoutTest(unittest.TestCase):
     def test_missing_root_is_rejected_with_exit_five(self):
         with tempfile.TemporaryDirectory() as tmp:
