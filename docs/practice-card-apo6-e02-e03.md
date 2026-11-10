@@ -9,6 +9,17 @@
 
 两项均为 0，可以开工。别名表在仓库公开夹具 `capabilities/handoff_recipient/fixtures/aliases.json` 基础上补入本执行 Bot 的真实身份；该补表写在 run scratch，未入库，不改仓库夹具。
 
+## 复跑轮次记录（2026-11-11 恢复轮）
+
+上一轮留下的实现（commit `12e14d4` / `dbb153e` / `be2143c`）在本轮实跑中暴露一个**可复现的缺陷**，已修：
+
+- `--fresh` 第二次跑同一个 root 时崩在 `shutil.rmtree(root)`：`PermissionError: [Errno 13] Permission denied: 'secrets'`。根因是探针**自己**把 `control/`（0o500）、`reserved/`（0o300）、`secrets/`（0o300）收紧，这些权限位挡住 owner 删文件。退出码 1 + traceback，一个字的判定都没打印——复跑拿不到任何证据。
+- 修法：新增 `remove_tree()`，先恢复属主权限再删；符号链接不动（删的只是链接本身）。建不起边界时退出 5 并打印 `PROBE_ERROR`，不再抛 traceback。
+- 反向验证：把 `remove_tree` 换回 `shutil.rmtree`，新增的 3 个回归测试（`FreshRerunTest`）全红；换回来全绿。
+- 判定口径同时收紧：新增 `outcome_of()` 区分 written / refused / **error**。只有权限类 errno（EACCES/EPERM/EROFS/ENOSYS）算「拒绝」；ENOENT 这类失败既不是「写进去了」也不是「内核拒绝」，算 error。原来的二值 `is_refusal()` 会把一个坏掉的边界判成「已拒绝」。
+
+本轮实跑结论：同一 root 连跑三次 `--fresh`，三次都出同一份判定（exit 3 / `WEAK`，无 traceback）。
+
 ## 目标
 
 新增原子能力 `capabilities/isolation_probe` v1：把 ROADMAP 第 6 项「真实 Bot 写隔离与工具权限探针。必须能拒绝越权写入，不能只检查路径字符串」落成可执行、可复跑的最小实现。
