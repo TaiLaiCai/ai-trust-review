@@ -1,6 +1,6 @@
 {
   "capability": "durable_trigger",
-  "version": "v2",
+  "version": "v3",
   "roadmap_item": "APO-7 (7. E04/E06 持久触发与失败恢复)",
   "standards": [
     "E04",
@@ -10,6 +10,12 @@
   ],
   "trigger_schema_version": "durable-trigger/v1",
   "state_schema_version": "durable-trigger-state/v2",
+  "v3_changes": [
+    "v2 let an apply through when the target bot was outside the baseline and had no file yet: the baseline digest and the missing-file digest were both 'absent', so the target looked undrifted",
+    "the apply then created a bot outside the baseline, after which verify judged FAIL (platform has bots outside the baseline) and the next sequence was blocked by other-bot-changed",
+    "v3 adds a baseline gate before any write: the target bot must be in platform_baseline, otherwise exit 1 action=target-not-in-baseline with zero write",
+    "v3 changes no state file format: the new refusal reason reuses the existing job reason field, so state stays durable-trigger-state/v2 and v2 state files load unchanged"
+  ],
   "v2_changes": [
     "v1 fenced a pending job into its old lease generation, so an expired lease left the job unresumable (stale-lease) and unrollbackable (rollback-unavailable): the cursor was stuck forever",
     "v2 lets a new holder take over and resume a pending job after the old lease expires (resumed=true, audit action lease-resumed-after-expiry)",
@@ -52,7 +58,8 @@
       "a crash between the atomic rename and the state write is recognized via the recorded candidate_sha256 and completed with recovered_after_crash=true, never frozen and never applied twice"
     ],
     "atomic_apply": [
-      "apply order: lease -> fencing -> kill switch -> approval -> candidate digest -> other bots -> target drift -> record before-state -> atomic replace -> platform readback -> other bots again -> state -> audit",
+      "apply order: lease -> fencing -> kill switch -> baseline gate -> approval -> candidate digest -> other bots -> target drift -> record before-state -> atomic replace -> platform readback -> other bots again -> state -> audit",
+      "baseline gate: the target bot must be in platform_baseline; otherwise exit 1 action=target-not-in-baseline with zero write (no bot outside the baseline is ever created)",
       "atomic replace = temp file -> fsync -> rename -> fsync directory",
       "approval records the candidate byte digest; candidate bytes changed after approval -> exit 1 action=stale-candidate",
       "readback re-reads the target file and compares SHA256 to the candidate digest; mismatch -> atomic restore, exit 1 action=readback-mismatch, never reports applied"
@@ -63,7 +70,8 @@
       "a drift detected after the apply -> atomic restore of the target, exit 1 action=other-bot-changed"
     ],
     "failure_recovery": [
-      "approval-missing, stale-candidate, baseline-missing, readback-mismatch, other-bot-changed, injected failure, stale-lease -> job status APPLY_PENDING, never 'applied'",
+      "approval-missing, stale-candidate, baseline-missing, target-not-in-baseline, readback-mismatch, other-bot-changed, injected failure, stale-lease -> job status APPLY_PENDING, never 'applied'",
+      "a refused job holds the cursor and needs abort to release it, like every other runtime refusal; a refused apply never disappears silently",
       "abort --trigger-id releases a stuck APPLY_PENDING job -> ABORTED, cursor advances past it; a second abort -> exit 0 action=already-aborted; a non-pending job -> exit 1 action=abort-unavailable",
       "rollback restores the pre-apply bytes atomically and verifies the readback; mismatch -> exit 1 action=rollback-failed",
       "rollback of a never-applied job -> exit 1 action=rollback-unavailable; second rollback -> exit 0 action=already-rolled-back",
@@ -77,11 +85,11 @@
       "read-only consistency check across state, queue, platform and audit",
       "detects duplicate queue ids, consumed ids without a job, APPLIED jobs without after_sha256, platform drift, unknown and missing bots",
       "detects a pending job stuck at the cursor with no live lease to resume it",
-      "a non-UTF-8 audit file is reported as a FAIL problem, not an uncaught decode error",
+      "a non-UTF-8 audit file is reported as a FAIL problem, not an uncaught decode error; verify reports this with exit 1 (a judgement result), while exit 2 stays reserved for input contract errors",
       "exit 0 verdict=PASS scope=state-queue-platform-audit-bytes-only; exit 1 verdict=FAIL with problems"
     ],
     "cli": [
-      "--version prints v2 and the sha256 of this capability README without reading any input",
+      "--version prints v3 and the sha256 of this capability README without reading any input",
       "exit 0 = completed per contract, 1 = runtime rejection, 2 = usage and contract errors"
     ]
   },

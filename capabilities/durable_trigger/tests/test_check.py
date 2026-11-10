@@ -87,11 +87,11 @@ class Base(unittest.TestCase):
 
 
 class TestVersion(Base):
-    def test_version_prints_v2_and_readme_sha256(self):
+    def test_version_prints_v3_and_readme_sha256(self):
         proc = run("--version")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         parts = proc.stdout.strip().split()
-        self.assertEqual(parts[0], "v2")
+        self.assertEqual(parts[0], "v3")
         self.assertEqual(len(parts), 2)
         self.assertEqual(len(parts[1]), 64)
         int(parts[1], 16)
@@ -468,6 +468,80 @@ class TestOtherBotsUnchanged(Base):
         out = payload(proc)
         self.assertEqual(out["action"], "other-bot-changed")
         self.assertIn("bot-d", out["unknown_bots"])
+
+    def test_a_target_outside_the_baseline_is_refused_before_any_write(self):
+        # 回归用例（预审复现）：目标 Bot 不在基线里，平台目录里也没有它的
+        # 文件。旧实现把「基线外目标」与「文件不存在」当成同一件事
+        # （两者的摘要都是 None），于是放行并凭空造出一个基线外的 Bot；
+        # 随后 verify 判 FAIL，后续序号也被挡住。正确行为：在任何写入之前
+        # 就拒绝，零应用。
+        self.prepare()
+        # 目标 bot-new 既不在基线，platform/ 里也没有这个文件。
+        self.write_candidate("v-new", "bot-new", 2)
+        proc = run("approve", "--root", self.root,
+                   "--candidate-version", "v-new", "--approver", "tester")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.enqueue("tn", 0, "bot-new", "v-new")
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["action"], "target-not-in-baseline")
+        self.assertEqual(out["result"], "APPLY_PENDING")
+        self.assertEqual(out["target_bot"], "bot-new")
+        # 零写入：平台目录里没有被凭空造出来的 bot-new.json。
+        self.assertFalse(os.path.exists(os.path.join(self.platform_dir, "bot-new.json")))
+        # 目标字节未被改写，作业停在 APPLY_PENDING，游标没有前进。
+        state = payload(run("status", "--root", self.root))
+        self.assertEqual(state["jobs"]["tn"]["status"], "APPLY_PENDING")
+        self.assertEqual(state["cursor_seq"], -1)
+
+    def test_a_target_outside_the_baseline_does_not_block_the_next_seq(self):
+        # 回归用例（预审复现）：基线外目标被应用成功后，本工具自己的 verify
+        # 判 FAIL（平台里有基线外的 Bot），并挡住后续序号。修复后这条路径
+        # 不再存在：基线外目标在 apply 前就被拒绝，平台目录保持干净，
+        # verify 不再因此判 FAIL。
+        self.prepare()
+        self.write_candidate("v-new", "bot-new", 2)
+        run("approve", "--root", self.root,
+            "--candidate-version", "v-new", "--approver", "tester")
+        self.enqueue("tn", 0, "bot-new", "v-new")
+        self.assertEqual(self.trigger().returncode, 1)
+        # 平台里仍然只有基线内的三个 Bot，verify 不再因此判 FAIL。
+        proc = run("verify", "--root", self.root)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["verdict"], "PASS")
+
+        # 被拒的作业仍坐在游标位上（续作优先），需要 abort 出口放行；
+        # 这与其它运行期拒绝（approval-missing 等）语义一致。
+        self.enqueue("t2", 1, "bot-a", "v1")
+        self.assertEqual(self.trigger().returncode, 1)
+        self.assertEqual(payload(self.trigger())["action"], "target-not-in-baseline")
+        proc = run("abort", "--root", self.root, "--trigger-id", "tn",
+                   "--reason", "target-is-not-in-the-baseline")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["action"], "aborted")
+        # 放行后，后续序号可以正常消费。
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["seq"], 1)
+        proc = run("verify", "--root", self.root)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["verdict"], "PASS")
+
+    def test_a_target_outside_the_baseline_with_an_existing_file_is_refused(self):
+        # 同样的闸门对「文件已存在但不在基线」同样生效：零写入。
+        self.prepare()
+        self.write_platform("bot-new", 5, {"mode": "someone-else"})
+        before = self.platform_bytes("bot-new")
+        self.write_candidate("v-new", "bot-new", 2)
+        run("approve", "--root", self.root,
+            "--candidate-version", "v-new", "--approver", "tester")
+        self.enqueue("tn", 0, "bot-new", "v-new")
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertEqual(payload(proc)["action"], "target-not-in-baseline")
+        # 目标字节未被改写。
+        self.assertEqual(self.platform_bytes("bot-new"), before)
 
     def test_an_other_bot_drift_after_the_apply_is_rolled_back(self):
         self.prepare()

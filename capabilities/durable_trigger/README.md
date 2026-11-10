@@ -1,6 +1,26 @@
-# 持久触发与失败恢复 · durable_trigger v2
+# 持久触发与失败恢复 · durable_trigger v3
 
 Issue APO-7 的最小原子能力：把 ROADMAP 第 7 项「持久触发、锁、游标、重启续作、原子应用与读回、其他 Bot 不变、失败恢复」落成可执行、可复跑的实现。PASS 仅表示本次读到的字节与状态满足契约，不认证身份、不构成批准、不写实际信任阶段。
+
+## v3 相对 v2 的变更（契约级）
+
+v2 有一处会让自己的判定自相矛盾的缺陷：**目标 Bot 不在基线里、平台目录里又没有它的文件**时，apply 会放行。
+
+- 放行的原因：v2 把「基线外的目标」与「文件不存在」当成同一件事——两者的字节摘要都是「不存在」，于是判定为「目标没有漂移」。
+- 后果：apply 成功，凭空造出一个基线外的 Bot；随后 `verify` 判 FAIL（`platform has bots outside the baseline`），后续序号也被 `other-bot-changed` 挡住。本工具自己拒绝的路径，被本工具自己的 verify 判成不一致。
+
+v3 在**任何写入之前**加了一道基线闸门：目标 Bot 必须在基线内，否则零写入拒绝。
+
+| 情形 | v2 行为 | v3 行为 |
+|---|---|---|
+| 目标不在基线、平台里也没有它的文件 | `applied`（凭空造出基线外 Bot），随后 verify FAIL | **`target-not-in-baseline`**，零写入，exit 1 |
+| 目标不在基线、平台里已有它的文件 | `conflict-frozen` | `target-not-in-baseline`，零写入，exit 1 |
+| 目标在基线内、但字节被外人改过 | `conflict-frozen` | 不变 |
+| 目标在基线内、字节未变 | 应用 | 不变 |
+
+被拒的作业停在 `APPLY_PENDING` 并占着游标位，与其它运行期拒绝（`approval-missing`、`stale-candidate` 等）语义一致：它需要 `abort` 出口才能放行游标。这是刻意的——**一次被拒绝的应用不能悄悄消失**，操作员必须显式决定放弃它。
+
+其余行为不变；v2 已经修好的「租约过期后可续作」保持不变。
 
 ## v2 相对 v1 的变更（契约级）
 
@@ -19,7 +39,7 @@ v2 把这件事拆成两件，并各自有明确的出口：
 | 作业确实无人续作 | 无出口 | `abort --trigger-id ID` → `ABORTED`，游标继续 |
 | 崩溃发生在 rename 之后、写状态之前 | `conflict-frozen`，游标卡死 | 读回确认后补齐状态（`recovered_after_crash=true`） |
 
-触发记录本身的字段格式未变（仍是 `durable-trigger/v1`）；变的是本工具的行为与状态文件格式（`durable-trigger-state/v2`，作业台账新增 `candidate_sha256` 与 `aborted`）。触发队列、平台目录、审计格式均未变。
+触发记录本身的字段格式未变（仍是 `durable-trigger/v1`）；变的是本工具的行为与状态文件格式（`durable-trigger-state/v2`，作业台账新增 `candidate_sha256` 与 `aborted`）。触发队列、平台目录、审计格式均未变。**v3 没有改动状态文件格式**：新增的拒绝原因复用作业台账里已有的 `reason` 字段，不引入新字段，所以仍是 `durable-trigger-state/v2`，v2 写出的状态文件可以直接被 v3 读取。
 
 ## 目录布局
 
@@ -83,8 +103,9 @@ v2 把这件事拆成两件，并各自有明确的出口：
 
 ### 原子应用与平台读回
 
-应用一个触发的顺序是：租约校验 → fencing 校验 → 急停检查 → 批准检查 → 候选字节摘要比对 → 其他 Bot 未变检查 → 目标 Bot 未漂移检查 → 记录应用前字节并落备份 → **原子替换** → **平台读回** → 其他 Bot 再核对 → 写状态 → 写审计。
+应用一个触发的顺序是：租约校验 → fencing 校验 → 急停检查 → **基线闸门** → 批准检查 → 候选字节摘要比对 → 其他 Bot 未变检查 → 目标 Bot 未漂移检查 → 记录应用前字节并落备份 → **原子替换** → **平台读回** → 其他 Bot 再核对 → 写状态 → 写审计。
 
+- **基线闸门**：目标 Bot 必须已经在 `platform_baseline` 里，否则零写入拒绝，exit 1，`action=target-not-in-baseline`。这道闸门走在任何写入之前——本工具只改动**基线已经覆盖**的 Bot，不会凭空造出一个基线外的新 Bot。要纳入一个新 Bot，操作员必须先重新 `baseline`（这本身是显式的授权动作）。基线为空 → exit 1，`action=baseline-missing`。
 - **原子替换**：写同目录临时文件 → fsync → `rename` → fsync 目录。读方要么看到旧字节，要么看到新字节，不看到中间态。
 - **平台读回**：替换后重新从磁盘读目标 Bot 文件并算 SHA256，必须等于候选字节摘要。不等 → 立即把目标原子回退到应用前字节，作业标 `APPLY_PENDING`，exit 1，`action=readback-mismatch`。**读回不一致时不得报「已生效」**（S2-08）。
 - **批准**：`approve` 为某个候选版本登记批准，记录候选字节摘要与批准人标签。批准人只是标签，本工具**不认证批准人身份**。候选字节在批准后被改动 → exit 1，`action=stale-candidate`，作业 `APPLY_PENDING`。
@@ -106,10 +127,12 @@ v2 把这件事拆成两件，并各自有明确的出口：
 | 退出码 | 含义 |
 |---|---|
 | 0 | 本次操作按契约完成（追加 / 幂等 no-op / 应用成功 / 回滚成功 / 无待办 / verify 通过 / 版本指纹） |
-| 1 | 运行期拒绝：lease-held、stale-lease、kill-switch-engaged、approval-missing、stale-candidate、baseline-missing、other-bot-changed、conflict-frozen、out-of-order-rejected、readback-mismatch、rollback-unavailable、rollback-failed、abort-unavailable、lock-busy、apply-failed |
+| 1 | 运行期拒绝：lease-held、stale-lease、kill-switch-engaged、approval-missing、stale-candidate、baseline-missing、target-not-in-baseline、other-bot-changed、conflict-frozen、out-of-order-rejected、readback-mismatch、rollback-unavailable、rollback-failed、abort-unavailable、lock-busy、apply-failed |
 | 2 | 用法与契约错误：参数错误、schema 违规、编码错误、重复 JSON 键、未知字段、文件缺失或超限 |
 
-`--version` 打印 `v2 <本 README 的 sha256>`，不读任何输入。
+**`verify` 报告审计内容错误时用 1，不用 2。** `verify` 是只读的一致性核对：它读到的审计文件不是合法 UTF-8、或不是合法的 JSONL 时，报告为 `verdict=FAIL` 并列进 `problems`，退出码是 1（运行期判定不通过），而不是 2。退出 2 留给**输入契约**错误——即调用方递给本工具的触发、候选、状态文件本身不合规。两者区别在于：`verify` 只读既有产物并判定一致性，产物内容有问题属于判定结果，不属于用法错误。
+
+`--version` 打印 `v3 <本 README 的 sha256>`，不读任何输入。
 
 `verify` 除了核对状态、队列、平台与审计，还会在**没有在世租约可续作**时把「卡在游标位上的 APPLY_PENDING 作业」报成 `FAIL`（`job <id> is pending at the cursor with no live lease to resume it`）——死锁必须看得见，不能静悄悄地卡住。
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""durable_trigger v1 — 持久触发、锁、游标、重启续作、原子应用与读回、失败恢复.
+"""durable_trigger v3 — 持久触发、锁、游标、重启续作、原子应用与读回、失败恢复.
 
 子命令：
   enqueue      把一个触发追加到持久队列（只追加 JSONL）。
@@ -26,9 +26,10 @@ import sys
 import time
 from pathlib import Path
 
-VERSION = "v2"
+VERSION = "v3"
 # 触发记录本身的字段格式未变，沿用 durable-trigger/v1；变的是本工具的行为
-# （作业续作与中止语义）与状态文件格式（新增作业字段）。
+# （作业续作与中止语义、基线闸门）。状态文件格式不变：新增的拒绝原因复用
+# 作业台账里已有的 reason 字段，不引入新字段，所以仍是 durable-trigger-state/v2。
 SCHEMA = "durable-trigger/v1"
 STATE_SCHEMA = "durable-trigger-state/v2"
 
@@ -692,6 +693,39 @@ def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
                      "reason": "kill-switch-engaged", "lease_token": token})
         raise Rejected({"action": "kill-switch-engaged", "id": jid, "result": "APPLY_PENDING"})
 
+    # 基线闸门：目标 Bot 必须已经在基线里，且基线必须存在。
+    #
+    # v2 的缺陷：目标不在基线、平台目录里又没有它的文件时，
+    # `expected.get(target)` 与「文件不存在」的摘要同为 None，apply 于是放行，
+    # 凭空造出一个基线外的 Bot；随后 verify 判 FAIL（平台里有基线外的 Bot），
+    # 后续序号也被 other-bot-changed 挡住。README 冻结的契约是
+    # 「出现基线外的新 Bot → 拒绝应用」，所以这道闸门必须走在任何写入之前。
+    baseline = state["platform_baseline"]
+    if not baseline:
+        job["status"] = "APPLY_PENDING"
+        job["reason"] = "baseline-missing"
+        job["updated_at"] = now_iso()
+        state["jobs"][jid] = job
+        save_state(root, state)
+        audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
+                     "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
+                     "reason": "baseline-missing", "lease_token": token})
+        raise Rejected({"action": "baseline-missing", "id": jid, "result": "APPLY_PENDING"})
+    if target not in baseline:
+        job["status"] = "APPLY_PENDING"
+        job["reason"] = "target-not-in-baseline"
+        job["updated_at"] = now_iso()
+        state["jobs"][jid] = job
+        save_state(root, state)
+        audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
+                     "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
+                     "reason": "target-not-in-baseline",
+                     "detail": "target bot is not part of the platform baseline",
+                     "baseline_bots": sorted(baseline), "lease_token": token})
+        raise Rejected({"action": "target-not-in-baseline", "id": jid,
+                        "result": "APPLY_PENDING", "target_bot": target,
+                        "baseline_bots": sorted(baseline)})
+
     # 崩溃恢复窗口：原子替换（rename）已经落地，但进程在写状态之前中断。
     # 此时平台字节等于「当时批准的候选字节」——不能当成「别人改了目标」而拒绝
     # （那会把游标永久卡死），也不能再应用一次；应当读回确认并补齐状态。
@@ -739,18 +773,6 @@ def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
         raise ContractError("candidate %s: bot %r does not match target_bot %r"
                             % (version, cand["bot"], target))
 
-    baseline = state["platform_baseline"]
-    if not baseline:
-        job["status"] = "APPLY_PENDING"
-        job["reason"] = "baseline-missing"
-        job["updated_at"] = now_iso()
-        state["jobs"][jid] = job
-        save_state(root, state)
-        audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
-                     "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
-                     "reason": "baseline-missing", "lease_token": token})
-        raise Rejected({"action": "baseline-missing", "id": jid, "result": "APPLY_PENDING"})
-
     expected = expected_state(state)
     others = sorted(b for b in expected if b != target)
     drifted = []
@@ -759,9 +781,10 @@ def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
         if current != expected[bot]:
             drifted.append(bot)
     known_bots = platform_bots(root)
-    unknown = [b for b in known_bots if b not in baseline and b != target]
+    # 目标已经过基线闸门（必然在基线内），所以这里不必再豁免 target。
+    unknown = [b for b in known_bots if b not in baseline]
     target_current = platform_digest(root, target)
-    if target_current != expected.get(target):
+    if target_current != expected[target]:
         job["status"] = "APPLY_PENDING"
         job["reason"] = "conflict-frozen"
         job["updated_at"] = now_iso()
@@ -771,10 +794,10 @@ def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
                      "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
                      "reason": "conflict-frozen",
                      "detail": "target bot drifted from the expected state",
-                     "expected_sha256": expected.get(target),
+                     "expected_sha256": expected[target],
                      "current_sha256": target_current, "lease_token": token})
         raise Rejected({"action": "conflict-frozen", "id": jid, "result": "APPLY_PENDING",
-                        "expected_sha256": expected.get(target),
+                        "expected_sha256": expected[target],
                         "current_sha256": target_current})
     if drifted or unknown:
         job["status"] = "APPLY_PENDING"
