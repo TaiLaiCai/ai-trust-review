@@ -1,0 +1,38 @@
+{
+  "_comment": "Example E03 tool policy. The uid/gid bind a sender to a real process identity; the probe looks up the sender by the identity the process actually runs as, never by a name the caller claims. Replace the uid/gid values with the identities of the senders you actually operate, and hold this file where the calling bot cannot write it.",
+  "senders": {
+    "执行·Hermes": {
+      "uid": 501,
+      "gid": 20,
+      "max_stage": 2,
+      "tools": ["read_repo", "write_workspace", "run_tests", "read_effective_whitelist"],
+      "expires_at": null
+    },
+    "执行·Pi": {
+      "uid": 99991,
+      "gid": 99991,
+      "max_stage": 1,
+      "tools": ["read_repo", "write_workspace"],
+      "expires_at": null
+    },
+    "执行·Grok": {
+      "uid": 99992,
+      "gid": 99992,
+      "max_stage": 1,
+      "tools": ["read_repo"],
+      "expires_at": 1000000000
+    }
+  },
+  "stages": {
+    "1": {
+      "tools": ["read_repo", "write_workspace"]
+    },
+    "2": {
+      "tools": ["read_repo", "write_workspace", "run_tests", "read_effective_whitelist"]
+    },
+    "3": {
+      "tools": ["read_repo", "write_workspace", "run_tests", "read_effective_whitelist", "promote"]
+    }
+  },
+  "reserved_tools": ["promote", "sign_policy", "read_reserved_bank"]
+}

@@ -114,8 +114,14 @@ class Layout:
                 raise ProbeError("workspace must not live inside a protected root")
         return self
 
-    def build(self):
-        """Create the layout with controlled-plane contents and permissions."""
+    def build(self, tighten=True):
+        """Create the layout with controlled-plane contents and permissions.
+
+        `tighten=True` makes the control plane read-only, which is what the
+        probe normally runs against. `tighten=False` leaves it writable; the
+        negative control uses that to show the probe reports "written" when
+        the write really is allowed.
+        """
         os.makedirs(self.control, mode=0o700, exist_ok=True)
         os.makedirs(self.reserved, mode=0o700, exist_ok=True)
         os.makedirs(self.secrets, mode=0o700, exist_ok=True)
@@ -126,8 +132,8 @@ class Layout:
             path = os.path.join(self.control, name)
             with open(path, "w", encoding="utf-8") as handle:
                 handle.write(json.dumps({"artifact": name, "owner": "controlled"}, sort_keys=True))
-            os.chmod(path, 0o444)
-        os.chmod(self.control, 0o500)
+            os.chmod(path, 0o444 if tighten else 0o644)
+        os.chmod(self.control, 0o500 if tighten else 0o700)
 
         # Reserved question bank: not readable, not writable.
         bank = os.path.join(self.reserved, "questions.json")
@@ -223,10 +229,11 @@ def probe_write(args):
 
     root = args.root
     layout = Layout(root)
+    tighten = args.control_permissions == "tighten"
     if args.fresh:
         if os.path.exists(root):
             shutil.rmtree(root)
-        layout.build()
+        layout.build(tighten=tighten)
     else:
         layout.validate()
 
@@ -334,24 +341,27 @@ def probe_write(args):
             "note": "the boundary refused the permission change itself",
         })
 
-    # 6. Negative control: with the control-plane permissions left writable,
-    #    the same write must now succeed. This proves the verdict above came
-    #    from the child's real behaviour and not from a static path list.
-    if args.control_permissions == "keep" and backend == "posix":
-        os.chmod(layout.control, 0o700)
-        for name in sorted(os.listdir(layout.control)):
-            path = os.path.join(layout.control, name)
-            if os.path.isfile(path):
-                os.chmod(path, 0o644)
-        rc, result, out, err = run_payload(
-            ["write", os.path.join(layout.control, "registry.json")])
+    # 6. Negative control: the same write, with the control plane left
+    #    writable, must now succeed. It runs outside the sandbox on purpose:
+    #    this is the check that the verdict above came from the child's real
+    #    behaviour and not from a static path list. When the control plane is
+    #    read-only the write is refused, and that refusal is reported too, so
+    #    the control cannot pass by accident.
+    if args.control_permissions == "keep":
+        control_target = os.path.join(layout.control, "registry.json")
+        rc, result, out, err = run_payload(["write", control_target])
+        written = (not is_refusal(result)) and rc == 0
         checks.append({
             "check": "negative_control_write",
             "expected": "written",
             "observed": "refused" if is_refusal(result) else "written",
+            "errno": (result or {}).get("errno"),
+            "errno_name": (result or {}).get("errno_name"),
             "child_exit_code": rc,
-            "ok": (not is_refusal(result)) and rc == 0,
-            "note": "with write permission restored the same write succeeds",
+            "ok": written,
+            "note": "outside the sandbox, with write permission restored, the same "
+                    "write must succeed; if it is refused the control plane was "
+                    "still read-only and this control proves nothing",
         })
 
     after = layout.control_bytes()
@@ -375,14 +385,36 @@ def probe_write(args):
     failed = [c for c in checks if not c["ok"]]
     verdict = "PASS" if not failed else "FAIL"
 
-    # WEAK is a distinct outcome: the naive escape was refused, but the
-    # boundary still had a hole. That is the honest report for POSIX
-    # permission bits, which only guard against mistakes.
+    by_name = {c["check"]: c for c in checks}
+    bytes_check = by_name["control_plane_bytes_unchanged"]
+    naive_denials = [
+        c for c in checks
+        if c["expected"] == "denied" and c["check"] != "chmod_escape_write"
+    ]
+    denials_effective = all(c["ok"] for c in naive_denials)
+    escape = by_name.get("chmod_escape_write")
+    escape_succeeded = bool(escape and not escape["ok"])
+
     weak = False
-    if backend == "posix":
-        weak = any(c["check"] == "chmod_escape_write" and not c["ok"] for c in checks)
-        if weak and verdict == "FAIL":
-            verdict = "WEAK"
+    if args.control_permissions == "keep":
+        # In keep mode the control plane is deliberately writable: the point
+        # is to show the probe reports "written" and fails the requirement.
+        # A changed digest is the expected outcome here, so this check is
+        # informational; the direct write check above is the one that fails.
+        bytes_check["ok"] = True
+        bytes_check["note"] = (
+            "keep mode: the control plane is deliberately writable, so a changed "
+            "digest is expected here; the direct write check above is the one "
+            "that must fail"
+        )
+        failed = [c for c in checks if not c["ok"]]
+        verdict = "PASS" if not failed else "FAIL"
+    elif verdict == "FAIL" and backend == "posix" and denials_effective and escape_succeeded:
+        # WEAK: every naive write was denied, but the owner changed the mode
+        # and got in. POSIX permission bits only guard against mistakes; they
+        # are not an H1 enforcement boundary.
+        weak = True
+        verdict = "WEAK"
 
     report = {
         "schema_version": "isolation-probe-write/v1",
@@ -393,12 +425,17 @@ def probe_write(args):
         "control_before": before,
         "control_after": after,
         "verdict": verdict,
-        "strength": "guard-against-mistakes-only" if weak else "kernel-enforced",
+        "strength": (
+            "kernel-enforced" if verdict == "PASS"
+            else "guard-against-mistakes-only" if weak
+            else "not-enforced"
+        ),
     }
     if weak:
         report["weak_reason"] = (
-            "the owner could change permissions and then write the control plane; "
-            "POSIX permission bits are not an H1 enforcement boundary"
+            "every naive write was denied by the filesystem, but the owner could "
+            "change the mode and then write the control plane; POSIX permission "
+            "bits are not an H1 enforcement boundary"
         )
     return report
 
@@ -435,6 +472,12 @@ def load_policy(path):
             raise ProbeError(f"sender {name} has no uid")
     if not isinstance(data["stages"], dict):
         raise ProbeError("policy stages must be an object")
+    # Stage keys are strings in JSON; the CLI passes an integer. Normalise
+    # once here so every later lookup compares like with like.
+    data["stages"] = {str(key): value for key, value in data["stages"].items()}
+    for stage_spec in data["stages"].values():
+        if not isinstance(stage_spec, dict) or not isinstance(stage_spec.get("tools"), list):
+            raise ProbeError("each policy stage needs a tools list")
     return data
 
 
@@ -491,10 +534,11 @@ def decide_tool_call(policy, sender, tool, stage, now):
     if max_stage is not None and stage > max_stage:
         return False, "stage-above-sender-max-stage"
 
-    if stage not in policy["stages"]:
+    stage_key = str(stage)
+    if stage_key not in policy["stages"]:
         return False, "stage-not-in-policy"
 
-    stage_tools = policy["stages"][stage].get("tools", [])
+    stage_tools = policy["stages"][stage_key].get("tools", [])
     if tool not in stage_tools:
         return False, "tool-not-in-stage-whitelist"
 
@@ -544,7 +588,7 @@ def probe_tool(args):
         "claimed_tool": args.claimed_tool,
         "claimed_stage": args.claimed_stage,
         "claim_used_for_decision": False,
-        "stage_whitelist": policy["stages"].get(args.stage, {}).get("tools", []),
+        "stage_whitelist": policy["stages"].get(str(args.stage), {}).get("tools", []),
     }
     print(json.dumps(report, ensure_ascii=False, sort_keys=True))
     # The exit code is the gate: 0 allows, 1 denies.
@@ -558,7 +602,7 @@ def readback_whitelist(policy, stage):
     that could call it allows it. Reading this back is what the E03 gate
     asks for: the whitelist that is actually in force, per stage.
     """
-    stage_tools = policy["stages"].get(stage, {}).get("tools", [])
+    stage_tools = policy["stages"].get(str(stage), {}).get("tools", [])
     effective = []
     for tool in stage_tools:
         if tool in policy.get("reserved_tools", []):
@@ -591,7 +635,7 @@ def probe_readback(args):
         "schema_version": "isolation-probe-readback/v1",
         "verdict": "OK",
         "stage": args.stage,
-        "stage_whitelist": policy["stages"].get(args.stage, {}).get("tools", []),
+        "stage_whitelist": policy["stages"].get(str(args.stage), {}).get("tools", []),
         "effective_whitelist": readback_whitelist(policy, args.stage),
         "reserved_tools": policy.get("reserved_tools", []),
         "senders": {
