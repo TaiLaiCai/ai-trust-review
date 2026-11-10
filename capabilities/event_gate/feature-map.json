@@ -1,0 +1,28 @@
+{
+  "capability": "event_gate",
+  "version": "v1",
+  "features": {
+    "contract": [
+      "ledger JSONL: UTF-8, <=4MiB, <=4096 lines, trailing newline, no dup keys, no unknown fields",
+      "event: id pattern, kind=task, task_index int 0..2^31, hex digests, version=event-gate/v1",
+      "event input must not carry prev_sha256 (derived from ledger tail)"
+    ],
+    "append": [
+      "apply appends canonical line with derived prev_sha256, fsync",
+      "strict consecutive task_index (last+1) else rejected, zero write",
+      "ledger itself must be appendable (chain intact) before any write"
+    ],
+    "replay_noop": ["same id + identical derived line digest -> exit 0, no write"],
+    "conflict_freeze": ["same id + different digest -> exit 1, zero write, action=conflict-frozen"],
+    "version_drift": ["event version != v1 -> exit 1, zero write; drifted line in ledger fails gate"],
+    "gate": [
+      "verify full hash chain + index continuity + version uniformity",
+      "require last three task events each carrying evidence_sha256",
+      "fewer than 3 events / broken chain / missing evidence -> exit 1 with reason",
+      "PASS scope=ledger-bytes-only, no identity, no stage write"
+    ],
+    "cli": ["--version prints v1 + README sha256", "exit 0/1/2 semantics"]
+  },
+  "rollback": "delete capabilities/event_gate/ directory; CI capability-tests auto-shrinks",
+  "tests": ["tests/test_check.py"]
+}
