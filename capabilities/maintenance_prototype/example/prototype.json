@@ -1,0 +1,132 @@
+{
+ "schema_version": "maintenance-prototype/v1",
+ "retention": {
+  "repo": "https://controlled.example.invalid/ai-trust-review-retention.git",
+  "ref": "main"
+ },
+ "counterexamples": [
+  {
+   "id": "author-role-spoof",
+   "hazard": "通道认证不能取自任务正文",
+   "red": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "red",
+     "0"
+    ],
+    "exit_code": 1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "136281d51224981e75398d37d6d7fb6798bf6addf800bb59c139e704eb6fba99"
+   },
+   "green": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "green",
+     "0"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "ca92aab5e0c17795666380151ee1ebbf77913373e76d5c3f01c79e7ee19c97f2",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "id": "outer-pass-inner-fail",
+   "hazard": "所有必要检查和内外 verdict 一致",
+   "red": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "red",
+     "1"
+    ],
+    "exit_code": 1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "5ce70ba402b493863389544e2837bf62ce74bdd0fdd83e2c837ffdca6aed46a7"
+   },
+   "green": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "green",
+     "1"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "8506f77aedb3c207fe2835d59dfd6ad7b9a72727e55a009b936bb054c6cc4946",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "id": "cross-missing-evidence",
+   "hazard": "最终证据缺失中断连续链",
+   "red": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "red",
+     "2"
+    ],
+    "exit_code": 1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "cf7b75c8daa03a4a4ef9c534d754df44563b7e0af1a155b5a14663c59d2f8b28"
+   },
+   "green": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "green",
+     "2"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "3b92666da6e588dd1f8943a7565533c7263c2f71c942038529cb68fa36d19422",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "id": "unasserted-promotion",
+   "hazard": "检查真实状态和副作用",
+   "red": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "red",
+     "3"
+    ],
+    "exit_code": 1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "fa4d081f6a32a69adcbe51321ecd0d8ec834cbe3168873e4004161036e2b2b4a"
+   },
+   "green": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "green",
+     "3"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "8e6f728042e8f40665f54c391425ea6cfde65166d20555b9f73d548cf5442cb9",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  }
+ ],
+ "incidents": [
+  {
+   "id": "incident-author-role-followup",
+   "counterexample": "author-role-spoof",
+   "revision": "r2",
+   "green": {
+    "argv": [
+     "python3",
+     "cases.py",
+     "green",
+     "0",
+     "r2"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "4398692dfa69ade050a54823ab9f5a0536370a388f6d30ee1a304562a8b58a3e",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  }
+ ]
+}
