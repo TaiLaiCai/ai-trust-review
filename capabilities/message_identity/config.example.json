@@ -24,6 +24,7 @@
   },
   "agent_ids": {
     "agent-id-producer": "agent.producer",
+    "agent-id-producer-alias": "hermes",
     "agent-id-verifier": "agent.verifier",
     "agent-id-chief": "agent.chief"
   },

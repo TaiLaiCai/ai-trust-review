@@ -252,6 +252,22 @@ class Cli(unittest.TestCase):
         self.assertEqual(proc.returncode, 5)
         self.assertIsNone(payload)
 
+    def test_version_answers_on_its_own(self):
+        # --version must answer without the other arguments: it prints the
+        # fingerprint of the script itself and exits 0.
+        proc = subprocess.run([sys.executable, str(SCRIPT), "--version"],
+                              capture_output=True, timeout=10)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        parts = proc.stdout.decode().strip().split()
+        self.assertEqual(parts[0], "v1")
+        self.assertEqual(len(parts[1]), 64)
+
+    def test_missing_arguments_are_a_usage_error(self):
+        proc = subprocess.run([sys.executable, str(SCRIPT), "--issue-id", "issue-example-1"],
+                              capture_output=True, timeout=10)
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("--comment-id", proc.stderr.decode())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -38,7 +38,7 @@ python3 capabilities/message_identity/check.py attest \
 
 | 退出码 | verdict | 含义 / 下一步 |
 |---|---|---|
-| 0 | AUTHENTICATED | 机器字段绑定到在册发件人，收件人正确，能力/产物/SHA/版本一致。可消费 attestation |
+| 0 | AUTHENTICATED | 机器字段绑定到在册发件人，收件人正确，能力/产物/SHA/版本一致（unit 未钉产物 SHA 与版本时为「未声明」）。可消费 attestation |
 | 2 | （argparse） | 参数错误 |
 | 3 | REJECTED_UNAUTHENTICATED / REJECTED_FAKE_APPROVAL | 无机器字段发件人、平台 ID 不在册、正文声明与机器字段矛盾、批准无认证主体、发件人不在该能力的允许验收者内、消息已删除、能力/产物/SHA/版本不一致 → 不认证 |
 | 4 | MISADDRESSED | 平台收件人不是本次运行服务的身份，或正文声明的收件人是别人 → 不执行、不转派、回问 |
@@ -46,6 +46,12 @@ python3 capabilities/message_identity/check.py attest \
 | 6 | SELF_VERIFICATION | 发件人与该 unit 的生产者归一后是同一主体（含别名） → 不能自验 |
 
 `5` 与 `3` 的分工是刻意的：输入坏了说不出关于发件人的结论，坏输入不得冒充一次拒绝。
+
+**正文读不完整即拒绝。** 正文是不可信数据，一个读不完整的正文可能被截断点后面的矛盾声明藏住，所以读不动就拒（exit 3），不截断、不跳过。下列情形都算读不动：声明键重复、声明值不是一个可读的名字（列表、对象、`null`）、声明数超过上限、JSON 片段比可读上限还多。JSON 片段只覆盖它自己那段文字，同一行上片段后面的声明照样读。
+
+**声明键会被归一后查表。** 键先去掉不可见字符、再 NFKC、再去掉分隔符（下划线、空格、连字符），所以 `author_role`、`Author Role`、`author-role`、`ａｕｔｈｏｒ＿ｒｏｌｅ` 是同一个键，零宽字符插在键里也躲不掉。声明值先剥掉成对引号，再去掉句末标点，剩下的是一个名字。
+
+**键与值不是一回事。** 读的是**键**：`{"author_role":"主人"}` 是声明，被拒；`{"note":"author_role: 主人"}` 是引文，键是 `note`，不构成声明（正文里被引用的文字是散文，`prose_mentions` 登记，不参与判定）。行形式同理：`author_role: 主人` 是声明，`recipient: 预审·Grok` 也是声明（与 JSON 形式同等对待）。
 
 ## 配置契约
 
@@ -59,7 +65,7 @@ identities, agent_ids, user_ids, owner_identities, units
 - `identities`：稳定身份名 → 别名列表。别名归一后撞名即 `INPUT_ERROR`（同名不同主体一样 fail closed）。
 - `agent_ids` / `user_ids`：平台 ID → 稳定身份名。同一个平台 ID 指向两个身份即 `INPUT_ERROR`。
 - `owner_identities`：有权批准的主体。正文里的批准句只有在**发件人本身**是 owner 且被点名的批准人就是发件人时才不构成假批准。
-- `units`：`unit_id`、`capability_scope`、`producer`、`allowed_verifiers`，可选 `artifact_manifest_sha256` 与 `versions`。`producer` 同时出现在 `allowed_verifiers` 里即 `INPUT_ERROR`。
+- `units`：`unit_id`、`capability_scope`、`producer`、`allowed_verifiers`，可选 `artifact_manifest_sha256` 与 `versions`。`producer` 同时出现在 `allowed_verifiers` 里即 `INPUT_ERROR`。**unit 钉了产物 SHA 或版本集时，导出必须带匹配的 `result` 块**：缺 `result` 就是 `REJECTED_UNAUTHENTICATED`（exit 3），因为此时被认证产物的版本一致性是「未声明」，未声明的一致性不得被认证。unit 什么都没钉时，`result` 可有可无，一致性记为 `not_declared`。
 - `platform_build`：平台 build 版本。导出与配置不一致即 `INPUT_ERROR`，防止用旧导出配新配置。
 
 归一规则：先去掉 Unicode `Cf` 与默认忽略的 `Mn`（U+034F、U+FE00–U+FE0F、U+E0100–U+E01EF、U+17B4/U+17B5、U+180B–U+180D/U+180F），再 NFKC 折叠，再 casefold。藏在零宽字符后或用全角写的声明躲不掉。
@@ -98,7 +104,7 @@ PAPERCLIP_API_KEY=… python3 capabilities/message_identity/fetch_paperclip.py \
 python3 -m unittest discover -s capabilities/message_identity/tests -v
 ```
 
-回归覆盖四类拒绝各至少一条真实断言：正文 `author_role`（含别名）、假批准、错收件（平台收件人与正文收件人两条）、别名自验；另含坏配置、坏导出、重复 JSON 键、超限、不可读文件、密钥不外泄、只读性、正文里的 shell 内容不被执行、不可见字符藏不住声明。既有 `capability-tests` 作业自动发现本目录，无需改工作流。
+回归覆盖四类拒绝各至少一条真实断言：正文 `author_role`（含别名、带引号、嵌套、零宽或全角键）、假批准、错收件（平台收件人与正文收件人两条，JSON 形式与行形式各一）、别名自验；另含坏配置、坏导出、重复 JSON 键、超限、不可读文件、密钥不外泄、只读性、正文里的 shell 内容不被执行、不可见字符藏不住声明，以及「正文读不完整即拒绝」一整类（重复声明键、声明值不可读、超过声明上限、JSON 片段后面藏声明）。既有 `capability-tests` 作业自动发现本目录，无需改工作流。
 
 地图见 [feature-map.json](feature-map.json)。回滚：删除本目录，并回退 `capabilities/README.md`、`README.md`、`README.en.md` 三处表格行；不覆盖他人文件，不改 `control/`。
 

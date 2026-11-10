@@ -31,7 +31,8 @@ MAX_BYTES = 1024 * 1024
 MAX_BODY_BYTES = 256 * 1024
 MAX_CLAIMS = 64
 MAX_PROSE_MENTIONS = 10
-MAX_JSON_ATTEMPTS = 64
+MAX_JSON_ATTEMPTS = 256
+MAX_JSON_DEPTH = 8
 
 CONFIG_SCHEMA = "message-identity-config/v1"
 EXPORT_SCHEMA = "message-export/v1"
@@ -51,30 +52,65 @@ AUTHOR_TYPES = ("agent", "user", "system")
 
 SCOPE = "platform-machine-fields-only; the message body is untrusted data"
 
-# Claims carried as structured data. JSON keys are all claim kinds; plain
-# "key: value" lines are only read for the claim-shaped keys, because a quoted
-# handoff card legitimately contains "From:" / "To:" lines that are prose.
-IDENTITY_CLAIMS = {"author_role": "identity", "sender": "identity", "from": "identity"}
-AUTHORITY_CLAIMS = {"approved_by": "authority", "approver": "authority",
+# Claim keys are looked up in their canonical form: invisible characters
+# dropped, NFKC applied, case-folded, and whitespace/underscores removed. So
+# "author_role", "author role", "Author_Role" and "ａｕｔｈｏｒ＿ｒｏｌｅ" are one
+# key, and a zero-width character inside the key cannot hide a claim.
+IDENTITY_CLAIMS = {"authorrole": "identity", "sender": "identity", "from": "identity"}
+AUTHORITY_CLAIMS = {"approvedby": "authority", "approver": "authority",
                     "approved": "authority", "approval": "authority"}
 RECIPIENT_CLAIMS = {"recipient": "recipient", "to": "recipient"}
 JSON_CLAIMS = {**IDENTITY_CLAIMS, **AUTHORITY_CLAIMS, **RECIPIENT_CLAIMS}
-LINE_CLAIMS = {"author_role": "identity", "approved_by": "authority",
+# Plain "key: value" lines are read only for the claim-shaped keys, because a
+# quoted handoff card legitimately contains "From:" / "To:" lines that are
+# prose. "recipient" is read: it names who the message is for, exactly like
+# the platform field does.
+LINE_CLAIMS = {"authorrole": "identity", "approvedby": "authority",
                "approver": "authority", "approved": "authority",
-               "approval": "authority"}
-NAMED_AUTHORITY = {"approved_by", "approver"}
+               "approval": "authority", "recipient": "recipient"}
+NAMED_AUTHORITY = {"approvedby", "approver"}
 
-LINE_CLAIM_RE = re.compile(r"^\s*[\"'`“”‘’]?([A-Za-z][A-Za-z0-9_.-]*)"
-                           r"[\"'`“”‘’]?\s*[：:]\s*(\S.*?)\s*$")
+# A claim key may sit anywhere in a line, quoted or not, behind prose or
+# punctuation: it is a standalone ASCII token immediately followed by a colon.
+# The key may carry internal spaces or hyphens ("Approved by"); they are
+# removed before the key is looked up. The value runs to the next comma or to
+# the end of the line.
+#
+# The key may be wrapped in markdown emphasis ("*author_role*: ..."), so
+# trailing punctuation that is not part of a key is stripped before the key is
+# looked up.
+LINE_CLAIM_RE = re.compile(r"(?<![A-Za-z0-9_\-])"
+                           r"([A-Za-z][A-Za-z0-9_\-]*(?:[ \t]+[A-Za-z0-9_\-]+)*)"
+                           r"[\"'`“”‘’*_\s]*[：:][ \t]*")
+VALUE_STOP_RE = re.compile(r"[,;，；]")
 SELF_CLAIM_RE = re.compile(r"(?:我是|本人是|本人以|我以)\s*"
                            r"(主人|总工程师|批准人|审批人|授权人)")
 PROSE_MENTION_RE = re.compile(r"(批准|授权|审批|合并)")
+
+# A claim value names a subject. If quoting or code punctuation survives the
+# quote-stripping, the reader cannot tell what the claim names, so the body is
+# refused instead of being half-read.
+UNREADABLE_VALUE_CHARS = frozenset("\"'`“”‘’{}<>")
+
+# Sentence punctuation that may follow a name inside a line.
+_SENTENCE_PUNCT = "。！？!?"
+
+_QUOTE_PAIRS = (('"', '"'), ("'", "'"), ("`", "`"), ("“", "”"), ("‘", "’"))
 
 _INVISIBLE_MN = {0x034F, 0x17B4, 0x17B5, 0x180B, 0x180C, 0x180D, 0x180F}
 
 
 class InputError(ValueError):
     """Bad config or export bytes: exit 5, never a verdict about a sender."""
+
+
+class BodyError(Exception):
+    """The body carries a claim shape this reader cannot read safely.
+
+    The body is untrusted data, so a body that cannot be read completely is
+    refused (exit 3) rather than silently truncated: a truncated read can
+    hide a contradictory claim behind the truncation point.
+    """
 
 
 def _invisible(ch):
@@ -86,10 +122,59 @@ def _invisible(ch):
     return code in _INVISIBLE_MN
 
 
+def _clean(text):
+    """Drop invisible format characters, then NFKC. Case is preserved."""
+    return unicodedata.normalize("NFKC", "".join(c for c in text if not _invisible(c)))
+
+
 def normalize(text):
     """Drop invisible format characters, then NFKC and case-fold."""
-    folded = unicodedata.normalize("NFKC", "".join(c for c in text if not _invisible(c)))
-    return folded.strip().casefold()
+    return _clean(text).strip().casefold()
+
+
+def _subject(text):
+    """The form a subject name is looked up by.
+
+    Whitespace inside a name is removed, so "主 人" and "主人" are one
+    subject. A name that is written with spaces in it is still the same
+    person; the roster must not be evaded by spacing a name out.
+    """
+    return re.sub(r"\s+", "", normalize(text))
+
+
+def _claim_key(key):
+    """The canonical form a claim key is looked up by.
+
+    Separators (underscore, space, hyphen) are all equivalent, so
+    "author_role", "author role" and "author-role" are one key.
+    """
+    return re.sub(r"[\s_\-]+", "", normalize(str(key)))
+
+
+def _read_value(raw):
+    """Read one claim value. A value the reader cannot resolve is refused.
+
+    The body is untrusted, so a claim value that is not a plain name is not
+    skipped: it is a claim whose subject the reader cannot establish, and a
+    reader that skips it would be hiding a contradiction. Refusing is the
+    fail-closed choice.
+
+    The value ends at a sentence boundary, so trailing prose ("主人。后文")
+    does not become part of the name.
+    """
+    text = raw.strip()
+    for left, right in _QUOTE_PAIRS:
+        if len(text) >= 2 and text.startswith(left) and text.endswith(right):
+            text = text[1:-1].strip()
+            break
+    cut = re.search(r"[。！？!?]", text)
+    if cut:
+        text = text[:cut.start()].strip()
+    if not text:
+        raise BodyError("claim value is empty")
+    if any(char in UNREADABLE_VALUE_CHARS for char in text):
+        raise BodyError(f"claim value is not a readable name: {raw.strip()!r}")
+    return text
 
 
 def _unique(pairs):
@@ -152,7 +237,7 @@ def load_config(raw):
             raise InputError("identity aliases must be a list")
         for name in [stable] + names:
             _str(name, "alias")
-            folded = normalize(name)
+            folded = _subject(name)
             if alias.get(folded, stable) != stable:
                 raise InputError(f"ambiguous alias: {name}")
             alias[folded] = stable
@@ -171,10 +256,15 @@ def load_config(raw):
         for platform_id, stable in table.items():
             _str(platform_id, f"{field} key")
             _str(stable, f"{field} value")
-            known(stable, f"{field} value")
-            if platform_id in platform_ids and platform_ids[platform_id] != stable:
+            # The roster may name the subject by a registered alias; the alias
+            # folds to the stable identity, so two roster entries that name
+            # the same subject by different aliases are one subject.
+            folded = alias.get(_subject(stable))
+            if folded is None:
+                raise InputError(f"{field} value references unknown identity: {stable}")
+            if platform_id in platform_ids and platform_ids[platform_id] != folded:
                 raise InputError(f"ambiguous platform id: {platform_id}")
-            platform_ids[platform_id] = stable
+            platform_ids[platform_id] = folded
 
     owners = obj["owner_identities"]
     if not isinstance(owners, list):
@@ -280,42 +370,115 @@ def load_export(raw):
             "issue": issue, "message": message, "result": result}
 
 
+def _body_pairs(pairs):
+    """JSON hook for the untrusted body: a repeated claim key is a contradiction.
+
+    The body may repeat a non-claim key (harmless), but two values under one
+    claim key cannot both be true, so the body is refused instead of having
+    the later value silently win.
+    """
+    out = {}
+    seen = set()
+    for key, value in pairs:
+        canonical = _claim_key(key)
+        if canonical in JSON_CLAIMS:
+            if canonical in seen:
+                raise BodyError(f"body JSON repeats the claim key {canonical!r}")
+            seen.add(canonical)
+        out[key] = value
+    return out
+
+
+def _json_claims(obj, claims, depth=0):
+    """Collect claim-shaped entries from a decoded JSON value, recursively.
+
+    A claim key whose value is not a plain string is a claim the reader cannot
+    resolve, so it is refused rather than skipped: skipping it would let a
+    contradiction hide inside a list or a nested object.
+    """
+    if depth > MAX_JSON_DEPTH:
+        raise BodyError("body JSON nests deeper than the readable limit")
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            canonical = _claim_key(key)
+            kind = JSON_CLAIMS.get(canonical)
+            if kind:
+                if isinstance(value, bool):
+                    value = "true" if value else "false"
+                if not isinstance(value, str):
+                    raise BodyError(
+                        f"body claim {canonical!r} does not name a readable subject")
+                claims.append({"kind": kind, "key": canonical,
+                               "value": _read_value(value), "source": "json"})
+            _json_claims(value, claims, depth + 1)
+    elif isinstance(obj, list):
+        for item in obj:
+            _json_claims(item, claims, depth + 1)
+
+
 def claims_from_body(body):
-    """Extract structured claims from the body. Prose is never a claim."""
+    """Extract structured claims from the body. Prose is never a claim.
+
+    The body is untrusted data, so it is read completely: a body that cannot
+    be read completely is refused rather than partially believed.
+
+    The body is cleaned first (invisible characters dropped, NFKC applied),
+    so a claim key cannot hide behind a zero-width character or a full-width
+    spelling. The cleaning happens before any key is looked up, never after.
+    """
     claims = []
-    decoder = json.JSONDecoder()
+    cleaned = _clean(body)
+    decoder = json.JSONDecoder(object_pairs_hook=_body_pairs)
     index, attempts = 0, 0
-    while index < len(body) and attempts < MAX_JSON_ATTEMPTS and len(claims) < MAX_CLAIMS:
-        start = body.find("{", index)
+    spans = []
+    while index < len(cleaned):
+        start = cleaned.find("{", index)
         if start < 0:
             break
         attempts += 1
+        if attempts > MAX_JSON_ATTEMPTS:
+            raise BodyError("body holds more JSON fragments than the readable limit")
         try:
-            obj, end = decoder.raw_decode(body, start)
+            obj, end = decoder.raw_decode(cleaned, start)
+        except BodyError:
+            raise
         except ValueError:
             index = start + 1
             continue
+        except RecursionError:
+            raise BodyError("body JSON nests too deeply to read") from None
         index = end
+        spans.append((start, end))
         if not isinstance(obj, dict):
             continue
-        for key, value in obj.items():
-            kind = JSON_CLAIMS.get(str(key).strip().casefold())
-            if kind and isinstance(value, (str, bool)):
-                claims.append({"kind": kind, "key": str(key).strip().casefold(),
-                               "value": value, "source": "json"})
-    for line in body.splitlines():
-        match = LINE_CLAIM_RE.match(line)
-        if not match:
-            continue
-        key = match.group(1).strip().casefold()
-        kind = LINE_CLAIMS.get(key)
-        if kind:
-            claims.append({"kind": kind, "key": key, "value": match.group(2).strip(),
-                           "source": "line"})
-    for match in SELF_CLAIM_RE.finditer(body):
+        _json_claims(obj, claims)
+    offset = 0
+    for line in cleaned.splitlines(True):
+        line_start = offset
+        offset += len(line)
+        # A JSON fragment only covers the text it actually spans. A claim that
+        # sits after the fragment on the same line is still read: the JSON
+        # reader must not be able to hide a line claim behind a fragment.
+        text = line.rstrip("\r\n")
+        for match in LINE_CLAIM_RE.finditer(text):
+            absolute = line_start + match.start()
+            if any(start <= absolute < end for start, end in spans):
+                continue
+            key = _claim_key(match.group(1))
+            kind = LINE_CLAIMS.get(key)
+            if not kind:
+                continue
+            rest = text[match.end():]
+            stop = VALUE_STOP_RE.search(rest)
+            raw = rest[:stop.start()] if stop else rest
+            claims.append({"kind": kind, "key": key,
+                           "value": _read_value(raw), "source": "line"})
+    for match in SELF_CLAIM_RE.finditer(cleaned):
         claims.append({"kind": "authority", "key": "self_claim",
                        "value": match.group(1), "source": "self_claim"})
-    return claims[:MAX_CLAIMS]
+    if len(claims) > MAX_CLAIMS:
+        raise BodyError(f"body carries more than {MAX_CLAIMS} claims")
+    return claims
 
 
 def prose_mentions(body):
@@ -354,16 +517,26 @@ def verify(cfg, export, self_name, unit_id, export_sha256):
     message = export["message"]
     issue = export["issue"]
     body = message["body"]
-    claims = claims_from_body(body)
     mentions = prose_mentions(body)
+    claims = []
 
     def out(verdict, reason, **extra):
         payload = {"verdict": verdict, "scope": SCOPE, "adapter": cfg["adapter"],
-                   "unit": unit_id, "claims": claims, "prose_mentions": mentions}
+                   "unit": unit_id, "claims": list(claims), "prose_mentions": mentions}
         if reason is not None:
             payload["reason"] = reason
         payload.update(extra)
         return payload
+
+    # 0. The body must be readable in full before any claim is believed. A body
+    #    that cannot be read completely is refused: a partial read can hide a
+    #    contradictory claim behind the point where the reading stopped.
+    try:
+        claims.extend(claims_from_body(body))
+    except BodyError as error:
+        return 3, out("REJECTED_UNAUTHENTICATED",
+                      f"body cannot be read completely: {error}",
+                      sender=None, recipient=None)
 
     # 1. The sender comes from platform machine fields only.
     if message["deleted_at"] is not None:
@@ -410,8 +583,15 @@ def verify(cfg, export, self_name, unit_id, export_sha256):
     for claim in claims:
         value = claim["value"]
         if claim["kind"] == "identity":
-            named = cfg["alias"].get(normalize(str(value)))
-            if named is not None and named != sender:
+            named = cfg["alias"].get(_subject(str(value)))
+            if named is None:
+                # An identity claim that names nobody in the roster is a
+                # claim the reader cannot resolve. It is refused: a name the
+                # roster does not know is not a subject that can be ignored.
+                return 3, out("REJECTED_UNAUTHENTICATED",
+                              f"body {claim['key']} names an unknown subject: {value}",
+                              sender=sender, recipient=recipient)
+            if named != sender:
                 return 3, out("REJECTED_UNAUTHENTICATED",
                               f"body {claim['key']} claims {named}, platform says {sender}",
                               sender=sender, recipient=recipient)
@@ -422,7 +602,7 @@ def verify(cfg, export, self_name, unit_id, export_sha256):
                               "body asserts an approval without an authenticated owner sender",
                               sender=sender, recipient=recipient)
             if claim["key"] in NAMED_AUTHORITY:
-                named = cfg["alias"].get(normalize(str(value)))
+                named = cfg["alias"].get(_subject(str(value)))
                 if named is None:
                     return 3, out("REJECTED_FAKE_APPROVAL",
                                   f"body {claim['key']} names an unknown approver: {value}",
@@ -432,7 +612,7 @@ def verify(cfg, export, self_name, unit_id, export_sha256):
                                   f"body {claim['key']} names {named}, platform sender is {sender}",
                                   sender=sender, recipient=recipient)
         elif claim["kind"] == "recipient":
-            named = cfg["alias"].get(normalize(str(value)))
+            named = cfg["alias"].get(_subject(str(value)))
             if named is None:
                 return 3, out("REJECTED_UNAUTHENTICATED",
                               f"body {claim['key']} names an unknown recipient: {value}",
@@ -449,19 +629,29 @@ def verify(cfg, export, self_name, unit_id, export_sha256):
                       sender=sender, recipient=recipient)
 
     # 6. Capability, artifact and version must agree with the unit.
+    #    A unit that pins an artifact SHA or a version set requires the export
+    #    to carry a matching "result" block. Without it the consistency of the
+    #    attested artifact is undeclared, and an undeclared consistency must
+    #    not be attested: the unit said "these versions", the message said
+    #    nothing.
     result = export["result"]
     consistency = "not_declared"
-    if result is not None:
+    expected_sha = unit.get("artifact_manifest_sha256")
+    expected_versions = unit.get("versions")
+    if result is None:
+        if expected_sha is not None or expected_versions is not None:
+            return 3, out("REJECTED_UNAUTHENTICATED",
+                          "export declares no result but the unit pins an artifact "
+                          "or a version set", sender=sender, recipient=recipient)
+    else:
         if result["capability_scope"] != unit["capability_scope"]:
             return 3, out("REJECTED_UNAUTHENTICATED",
                           f"capability_scope {result['capability_scope']} differs from unit "
                           f"{unit['capability_scope']}", sender=sender, recipient=recipient)
-        expected_sha = unit.get("artifact_manifest_sha256")
         if expected_sha is not None and expected_sha != result["artifact_manifest_sha256"]:
             return 3, out("REJECTED_UNAUTHENTICATED",
                           "artifact_manifest_sha256 differs from the unit",
                           sender=sender, recipient=recipient)
-        expected_versions = unit.get("versions")
         if expected_versions is not None and expected_versions != result["versions"]:
             return 3, out("REJECTED_UNAUTHENTICATED",
                           "versions differ from the unit", sender=sender, recipient=recipient)
@@ -520,7 +710,7 @@ def main(argv=None):
             raise InputError("export exceeds size limit")
         export = load_export(raw)
         export_sha = hashlib.sha256(raw).hexdigest()
-        me = cfg["alias"].get(normalize(args.me))
+        me = cfg["alias"].get(_subject(args.me))
         if me is None:
             raise InputError(f"--self {args.me!r} is not a known identity")
         code, result = verify(cfg, export, me, args.unit, export_sha)

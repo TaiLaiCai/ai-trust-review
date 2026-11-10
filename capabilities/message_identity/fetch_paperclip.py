@@ -157,21 +157,31 @@ def main(argv=None):
                         help="print version and the sha256 of this file, then exit 0")
     parser.add_argument("--base-url", default=os.environ.get("PAPERCLIP_API_URL", DEFAULT_BASE_URL),
                         help="platform API base URL (default: $PAPERCLIP_API_URL)")
-    parser.add_argument("--issue-id", required=True)
-    parser.add_argument("--comment-id", required=True)
-    parser.add_argument("--adapter", required=True, help="adapter name recorded in the export")
-    parser.add_argument("--instance-id", required=True,
+    parser.add_argument("--issue-id")
+    parser.add_argument("--comment-id")
+    parser.add_argument("--adapter", help="adapter name recorded in the export")
+    parser.add_argument("--instance-id",
                         help="operator-declared scope label; the platform exposes no instance id")
     parser.add_argument("--company-id",
                         help="optional cross-check; the platform's own companyId always wins")
-    parser.add_argument("--out", required=True, help="path of the export document to write")
+    parser.add_argument("--out", help="path of the export document to write")
     parser.add_argument("--result", help="optional JSON file with capability_scope, "
                                          "artifact_manifest_sha256 and versions")
     args = parser.parse_args(argv)
+    # --version answers on its own, so it is handled before the required
+    # arguments are checked.
     if args.version:
         with open(__file__, "rb") as handle:
             print(f"{VERSION} {hashlib.sha256(handle.read()).hexdigest()}")
         return 0
+
+    missing = [name for name, value in (("--issue-id", args.issue_id),
+                                        ("--comment-id", args.comment_id),
+                                        ("--adapter", args.adapter),
+                                        ("--instance-id", args.instance_id),
+                                        ("--out", args.out)) if not value]
+    if missing:
+        parser.error("the following arguments are required: " + ", ".join(missing))
 
     api_key = os.environ.get("PAPERCLIP_API_KEY")
     if not api_key:
