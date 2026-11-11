@@ -212,13 +212,21 @@ class DetectorReplay(unittest.TestCase):
         self.assertIn("duplicate", parsed((code, raw))["reason"])
 
     def test_replay_self_written_waiver(self):
-        for owners, subject in ((["执行者"], "worker"), (["worker"], "执行者"), (["主人"], "主人")):
+        for owners, subject in ((["执行者"], "worker"), (["worker"], "执行者"), (["主人"], "主人"),
+                                (["\uff57orker"], "worker"), (["wor\u200bker"], "worker"),
+                                (["worker\u200b"], "执行者")):
             code, raw = ratchet({}, b"", {"A": "open"}, T3, owner_names=owners, subject=subject)
             self.assertEqual(code, 5, (owners, subject))
             self.assertIn("own waiver", parsed((code, raw))["reason"])
+        code, raw = ratchet({}, b"", {"A": "open"}, T3, owner_names=["\u200b"], subject="worker")
+        self.assertEqual(code, 5)
+        self.assertEqual(parsed((code, raw))["result"], "INPUT_ERROR")
+        self.assertNotIn("own waiver", parsed((code, raw))["reason"])
         code, raw = ratchet({}, b"", {"A": "open"}, T3, owner_names=["主人"], subject="worker")
         self.assertEqual(code, 0)
         self.assertEqual(parsed((code, raw))["result"], "NO_REGRESSION")
+        code, raw = ratchet({}, b"", {"A": "open"}, T3, owner_names=["\uff4fwner"], subject="执行者\u200b")
+        self.assertEqual((code, parsed((code, raw))["result"]), (0, "NO_REGRESSION"))
 
     def test_replay_output_order(self):
         raw_snap = (json.dumps({"loops": {"Z": "closed", "A": "closed"}, "ts": T1},

@@ -132,6 +132,13 @@ class TableTests(unittest.TestCase):
         self.assertIn("hidden_table_column", findings((code, raw)))
         self.assertEqual(parsed((code, raw))["result"], "REGRESSION")
 
+        boolean = list(COLUMNS)
+        boolean[3] = "<span hidden>test_registration</span>"
+        code, raw = r.assess_registry_table(table(boolean, [valid_row()]), KNOWN)
+        self.assertEqual(code, 1)
+        self.assertIn("hidden_table_column", findings((code, raw)))
+        self.assertNotEqual(parsed((code, raw))["result"], "NO_REGRESSION")
+
     def test_missing_reordered_and_empty_test_names(self):
         short = [name for name in COLUMNS if name != "test_registration"]
         short_row = [cell for cell, name in zip(valid_row(), COLUMNS) if name != "test_registration"]

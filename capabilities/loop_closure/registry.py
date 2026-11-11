@@ -18,7 +18,10 @@ HEX = re.compile(r"[0-9a-f]{64}")
 ENTRY_ID = re.compile(r"[A-Za-z0-9_.:-]{1,128}")
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 TAG = re.compile(r"<[^>\n]*>")
-HIDE = re.compile(r"display\s*:\s*none|visibility\s*:\s*hidden|(?:^|\s)hidden(?:\s|=|$)", re.IGNORECASE)
+HIDE = re.compile(
+    r"display\s*:\s*none|visibility\s*:\s*hidden|(?:^|\s)hidden(?:\s|=|>|$)",
+    re.IGNORECASE,
+)
 REQUIRED_COLUMNS = (
     "id",
     "closed",

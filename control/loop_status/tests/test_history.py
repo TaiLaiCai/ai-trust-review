@@ -184,6 +184,54 @@ class ReviewF1F4(unittest.TestCase):
             self.assertEqual(assess({}, b"", {}, T3, [], OWNERS, [owner])[0], 5)
         self.assertEqual(assess({}, b"", {}, T3, [], OWNERS, ["worker"], subject="执行者")[0], 5)
 
+    def test_fullwidth_self_owner_is_rejected(self):
+        fullwidth_worker = "\uff57orker"
+        for owners, subject in (([fullwidth_worker], "worker"), (["worker"], fullwidth_worker),
+                                ([fullwidth_worker], "执行者")):
+            code, raw = assess({}, b"", {"A": "open"}, T3, [], OWNERS, owners, subject=subject)
+            self.assertEqual(code, 5, (owners, subject))
+            self.assertIn("own waiver", json.loads(raw)["reason"])
+        collided = {"worker": ["执行者"], "\uff57orker": ["other"]}
+        self.assertEqual(assess({}, b"", {}, T3, [], collided, ["执行者"], subject="other")[0], 5)
+
+    def test_embedded_zero_width_self_owner_is_rejected(self):
+        for owners, subject in ((["wor\u200bker"], "worker"), (["worker\u200b"], "worker"),
+                                (["\u200bworker"], "执行者"), (["执行者"], "wor\u200bker")):
+            code, raw = assess({}, b"", {"A": "open"}, T3, [], OWNERS, owners, subject=subject)
+            self.assertEqual(code, 5, (owners, subject))
+            self.assertIn("own waiver", json.loads(raw)["reason"])
+
+    def test_zero_width_only_is_not_an_identity(self):
+        for owners, subject in ((["\u200b"], "worker"), (["\ufeff"], "worker"), (["主人"], "\u200b")):
+            code, raw = assess({}, b"", {"A": "open"}, T3, [], OWNERS, owners, subject=subject)
+            self.assertEqual(code, 5, (owners, subject))
+            self.assertEqual(json.loads(raw)["result"], "INPUT_ERROR")
+            self.assertNotIn("own waiver", json.loads(raw)["reason"])
+        bad = {"owner": ["主人"], "worker": ["\u200b"]}
+        code, raw = assess({}, b"", {"A": "open"}, T3, [], bad, ["主人"], subject="worker")
+        self.assertEqual(code, 5)
+        self.assertIn("invalid alias", json.loads(raw)["reason"])
+
+    def test_distinct_name_is_not_treated_as_self(self):
+        for owners, subject in ((["主人"], "worker"), (["主人\u200b"], "worker"),
+                                (["\uff4fwner"], "worker"), (["\uff4fwner"], "执行者\u200b")):
+            code, raw = assess({}, b"", {"A": "open"}, T3, [], OWNERS, owners, subject=subject)
+            self.assertEqual((code, json.loads(raw)["result"]), (0, "NO_REGRESSION"), (owners, subject))
+        snaps, ledger = history([(T1, {"A": "closed"})])
+        waiver = {"loop": "A", "reason": "pending", "approved_by": "\uff4fwner", "ts": T2}
+        code, raw = assess(snaps, ledger, {}, T3, [waiver], OWNERS, ["主人"])
+        self.assertEqual((code, json.loads(raw)["result"]), (3, "WAIVED_PENDING"))
+        disguised = dict(waiver, approved_by="wor\u200bker")
+        self.assertEqual(assess(snaps, ledger, {}, T3, [disguised], OWNERS, ["主人"])[0], 5)
+
+    def test_name_fold_matches_loop_closure(self):
+        spec = importlib.util.spec_from_file_location(
+            "loop_closure_detect", ROOT.parents[1] / "capabilities" / "loop_closure" / "detect.py")
+        detect = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(detect)
+        for name in ("Worker", "\uff57orker", "wor\u200bker", "\u200b", "\ufeff", "  ", "主人", "执行者\u200b"):
+            self.assertEqual(h.normalize_name(name), detect.normalize_name(name), name)
+
     def test_only_lf_ledger_is_accepted(self):
         for raw in (self.ledger.replace(b"\n", b"\r\n"), self.ledger.replace(b"\n", b"\r")):
             self.assertEqual(assess(self.snaps, raw, {}, T3, [], OWNERS, ["owner"],

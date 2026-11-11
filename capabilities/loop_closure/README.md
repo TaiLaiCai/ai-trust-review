@@ -63,4 +63,4 @@ python3 capabilities/loop_closure/detect.py --version
 
 名字比较前去 Cf 再 NFKC 的回归在 `tests/test_detect.py`（仅零宽、夹零宽、ZWJ 前缀、全角、真实大小写）。地图覆盖在 `tests/test_map_coverage.py`。登记列在 `tests/test_registry.py`。标准 06 第 3 节的重放清单在 `tests/test_detector_replay.py`，一条清单项对应一个 `test_replay_*`。计数以 `python3 -m unittest discover -s capabilities/loop_closure/tests -v` 打印的 Ran 行为准，本文件不另写手写总数。
 
-独立主体复跑 NOT_TESTED，不能自签验收。真实闭环报告上的实测 NOT_TESTED。与 `control/loop_status` 棘轮的联合接入 NOT_TESTED（本组件不调用它，也不改 `control/`）。LS-5 这里只做列结构和调用方给来的测试字节；旧实现上变红、新实现上变绿、文件在真实树上、CI 作业跑到该测试，均为 NOT_TESTED。LS-6 信号/回滚记录、LS-9 旧检测器红证据、LS-10 真实根首次运行仍未实现。LS-1/LS-2 的 v4.1 原文不在本仓库，不在这里另造判据。`control/loop_status` 的身份比较仍只做 casefold；全角或 U+200B 形态的自批不在本分支修改。
+独立主体复跑 NOT_TESTED，不能自签验收。真实闭环报告上的实测 NOT_TESTED。与 `control/loop_status` 棘轮的联合接入 NOT_TESTED（本组件不调用它）。`control/loop_status` 的身份比较与这里一样：去 Cf、NFKC、去首尾空白、casefold。LS-5 这里只做列结构和调用方给来的测试字节；旧实现上变红、新实现上变绿、文件在真实树上、CI 作业跑到该测试，均为 NOT_TESTED。LS-6 信号/回滚记录、LS-9 旧检测器红证据、LS-10 真实根首次运行仍未实现。LS-1/LS-2 的 v4.1 原文不在本仓库，不在这里另造判据。

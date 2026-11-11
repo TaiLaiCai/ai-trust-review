@@ -3,6 +3,7 @@ from datetime import datetime
 import hashlib
 import json
 import re
+import unicodedata
 
 MAX_BYTES = 16 * 1024 * 1024
 ZERO = "0" * 64
@@ -54,6 +55,18 @@ def nonempty(value):
     return isinstance(value, str) and bool(value) and value == value.strip()
 
 
+def normalize_name(value):
+    """Same identity fold as capabilities/loop_closure/detect.normalize_name.
+
+    Drop Unicode format characters (Cf, including U+200B), then NFKC, then
+    strip, then casefold. A name that normalizes to empty is not an identity.
+    """
+    if not isinstance(value, str):
+        return ""
+    stripped = "".join(ch for ch in value if unicodedata.category(ch) != "Cf")
+    return unicodedata.normalize("NFKC", stripped).strip().casefold()
+
+
 def loops(value):
     if not isinstance(value, dict) or any(
             not nonempty(k) or not isinstance(v, str) or v not in STATES for k, v in value.items()):
@@ -69,18 +82,18 @@ def identities(aliases, owners, subject):
         if not nonempty(stable) or not isinstance(names, list):
             raise InputError("invalid identity")
         for name in [stable] + names:
-            if not nonempty(name):
+            if not isinstance(name, str) or not normalize_name(name):
                 raise InputError("invalid alias")
-            key = name.casefold()
+            key = normalize_name(name)
             if table.get(key, stable) != stable:
                 raise InputError("ambiguous alias")
             table[key] = stable
-    if any(not isinstance(o, str) or o.casefold() not in table for o in owners):
+    if any(not isinstance(o, str) or normalize_name(o) not in table for o in owners):
         raise InputError("unknown owner")
-    if not isinstance(subject, str) or subject.casefold() not in table:
+    if not isinstance(subject, str) or normalize_name(subject) not in table:
         raise InputError("unknown subject")
-    allowed = {table[o.casefold()] for o in owners}
-    if table[subject.casefold()] in allowed:
+    allowed = {table[normalize_name(o)] for o in owners}
+    if table[normalize_name(subject)] in allowed:
         raise InputError("subject cannot approve its own waiver")
     return table, allowed
 
@@ -152,7 +165,7 @@ def assess(snapshots, ledger, current, ts, waivers, aliases, owners, *,
                 raise InputError("empty waiver field")
             if waiver["loop"] in waived:
                 raise InputError("duplicate waiver loop")
-            if table.get(waiver["approved_by"].casefold()) not in allowed:
+            if table.get(normalize_name(waiver["approved_by"])) not in allowed:
                 raise InputError("waiver owner is not allowed")
             waiver_time = timestamp(waiver["ts"])
             if waiver_time > now or (times and waiver_time <= times[-1]):
