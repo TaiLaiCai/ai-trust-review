@@ -1,7 +1,8 @@
 """Replay the detector-review checklist in docs/standards/06-Dune与CI上线门禁.md.
 
 Each test name is the replay for one checklist item. Exit 0 is not closure.
-History cases call control/loop_status unchanged. Real git roots, real
+History cases call control/loop_status. Its identity fold matches detect.py.
+Real git roots, real
 closed-loop reports, and a joint loop_closure+loop_status hookup are not
 claimed here.
 """

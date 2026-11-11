@@ -18,9 +18,14 @@ HEX = re.compile(r"[0-9a-f]{64}")
 ENTRY_ID = re.compile(r"[A-Za-z0-9_.:-]{1,128}")
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 TAG = re.compile(r"<[^>\n]*>")
-HIDE = re.compile(
-    r"display\s*:\s*none|visibility\s*:\s*hidden|(?:^|\s)hidden(?:\s|=|>|$)",
-    re.IGNORECASE,
+HIDE_CHECKS = (
+    re.compile(r"display\s*:\s*none", re.IGNORECASE),
+    re.compile(r"display\s*(?:&#0*58;|&#x0*3a;|&colon;)\s*none", re.IGNORECASE),
+    re.compile(r"visibility\s*:\s*hidden", re.IGNORECASE),
+    re.compile(r"(?:^|[\s<])hidden(?:\s|=|>|/|$)", re.IGNORECASE),
+    re.compile(r"aria-hidden\s*=\s*[\"']?\s*true", re.IGNORECASE),
+    re.compile(r"font-size\s*:\s*0(?:\.0+)?(?!\d)", re.IGNORECASE),
+    re.compile(r"opacity\s*:\s*0(?:\.0+)?(?!\d)", re.IGNORECASE),
 )
 REQUIRED_COLUMNS = (
     "id",
@@ -85,7 +90,7 @@ def visible_text(raw):
 
 
 def concealed(raw):
-    if COMMENT.search(raw) or HIDE.search(raw):
+    if COMMENT.search(raw) or any(pattern.search(raw) for pattern in HIDE_CHECKS):
         return True
     return bool(raw.strip()) and not normalize_name(visible_text(raw))
 

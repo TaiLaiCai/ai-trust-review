@@ -181,6 +181,26 @@ class CapabilityMapTests(unittest.TestCase):
         self.assertEqual(parsed["result"], "NO_REGRESSION")
         self.assertNotIn("CLOSED", parsed["result"])
 
+    def test_non_reproduced_status_fails_when_receipt_and_sha_align(self):
+        source = "stdout sha256 " + "ab" * 32
+        for status in ("NOT_TESTED", "not_tested", "FAILED", "BLOCKED", "PASS"):
+            document = {
+                "capability": "example/v1",
+                "producer": "生产方",
+                "steps": [{"id": "s1", "command": "python3 -m unittest", "expected": "exit 0",
+                           "measured_source": source}],
+                "independent_verification": {"status": status, "verifier": "验收方", "head_sha": "abc"},
+            }
+            raw = encode(document)
+            digest = hashlib.sha256(raw).hexdigest()
+            receipt = {"schema_version": "loop-map-receipt/v1", "map_sha256": digest,
+                       "steps": [{"id": "s1"}]}
+            code, out = m.assess_capability_map(raw, encode(receipt), digest, ALIASES)
+            parsed = json.loads(out)
+            self.assertEqual(code, 1, status)
+            self.assertEqual([item["finding"] for item in parsed["findings"]],
+                             ["verifier_not_independent"], status)
+
     def test_not_tested_status_cannot_exit_zero(self):
         document = {
             "producer": "生产方",

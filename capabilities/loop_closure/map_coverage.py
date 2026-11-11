@@ -232,7 +232,8 @@ def assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, a
 
     `measured_source` or `actual_source` counts as the measured-source field.
     A `tests` list does not. `author` or `producer` counts as the author.
-    `independent_verification.status == NOT_TESTED` or a null verifier is a finding.
+    Only status "reproduced" (any case) can pass the independence check.
+    NOT_TESTED, not_tested, FAILED, BLOCKED, PASS, and any other status are findings.
     """
     try:
         document = load_json(map_raw, "map")
@@ -251,11 +252,12 @@ def assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, a
         block = document.get("independent_verification")
         verifier_value = block.get("verifier") if isinstance(block, dict) else None
         status = block.get("status") if isinstance(block, dict) else None
-        if not isinstance(verifier_value, str) or status == "NOT_TESTED":
+        reproduced = isinstance(status, str) and status.casefold() == "reproduced"
+        if not isinstance(verifier_value, str) or not reproduced:
             verifier = ""
             findings.append({
                 "finding": "verifier_not_independent",
-                "detail": "missing verifier" if not isinstance(verifier_value, str) else "verification status is NOT_TESTED",
+                "detail": "missing verifier" if not isinstance(verifier_value, str) else f"verification status is {status!r}",
             })
         else:
             verifier = identity(verifier_value, table, "verifier")

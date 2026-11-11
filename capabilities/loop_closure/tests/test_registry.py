@@ -139,6 +139,20 @@ class TableTests(unittest.TestCase):
         self.assertIn("hidden_table_column", findings((code, raw)))
         self.assertNotEqual(parsed((code, raw))["result"], "NO_REGRESSION")
 
+        for form in (
+            "<hidden>test_registration</hidden>",
+            '<span style="display&#58;none">test_registration</span>',
+            '<span aria-hidden="true">test_registration</span>',
+            '<span style="font-size:0">test_registration</span>',
+            '<span style="opacity:0">test_registration</span>',
+        ):
+            headers = list(COLUMNS)
+            headers[3] = form
+            code, raw = r.assess_registry_table(table(headers, [valid_row()]), KNOWN)
+            self.assertEqual(code, 1, form)
+            self.assertIn("hidden_table_column", findings((code, raw)), form)
+            self.assertNotEqual(parsed((code, raw))["result"], "NO_REGRESSION", form)
+
     def test_missing_reordered_and_empty_test_names(self):
         short = [name for name in COLUMNS if name != "test_registration"]
         short_row = [cell for cell, name in zip(valid_row(), COLUMNS) if name != "test_registration"]
