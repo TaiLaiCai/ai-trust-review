@@ -145,6 +145,7 @@ Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.
 | [capabilities/message_identity](capabilities/message_identity/README.md) | C4 真实平台消息身份适配器：身份只从平台机器字段取，正文 `author_role`、`approved_by`、"我是批准人" 一律不构成认证；错收件退出 4，别名自验退出 6；`attest` 输出可被 `control/gate` 直接消费的 `{adapter, sender, evidence_ref}`。 |
 | [capabilities/review_readonly](capabilities/review_readonly/README.md) | 审查前后比较点名文件或 `--tree` 目录中的普通文件；只有 `verify` 退出 0 且 `delivery_allowed` 为 true 才允许交付。 |
 | [capabilities/rerun_receipt](capabilities/rerun_receipt/README.md) | `emit` 按清单在绑定的 head 上执行命令并记录输出摘要，`verify` 只读核验回执与证据字节；退出 0 只证明这次读到的回执与证据一致。 |
+| [capabilities/bounded_advance](capabilities/bounded_advance/README.md) | 有限授权计划按序串行推进：账本绑定整份计划指纹，投递去重不重跑已完成单元，单元失败即停。 |
 | [control/gate](control/gate/README.md) | 把带哈希链的事件日志折叠成确定性状态，候选阶段最高到 2，`effective_stage` 恒为 null，并能与账本逐字节对照。 |
 | [control/loop_status](control/loop_status/README.md) | C6 的历史棘轮纯函数：曾经 closed 的键若退回或消失就持续报回归；退出 0 表示未发现历史回归。 |
 
@@ -198,6 +199,7 @@ python3 -m unittest discover -s capabilities/message_identity/tests -v
 python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
 python3 -m unittest discover -s capabilities/review_readonly/tests -v
 python3 -m unittest discover -s capabilities/rerun_receipt/tests -v
+python3 -m unittest discover -s capabilities/bounded_advance/tests -v
 python3 -m unittest discover -s control/gate/tests -v
 python3 -m unittest discover -s control/loop_status/tests -v
 python3 -m unittest discover -s scripts/tests -v

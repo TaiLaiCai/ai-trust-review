@@ -145,6 +145,7 @@ The directories below are the paths that exist in the repository. [capabilities/
 | [capabilities/message_identity](capabilities/message_identity/README.md) | The C4 platform-message identity adapter: identity comes only from the platform machine fields; a body `author_role`, `approved_by`, or "I am the approver" never authenticates. Wrong recipient exits 4, alias self-verification exits 6, and `attest` prints the `{adapter, sender, evidence_ref}` shape `control/gate` consumes directly. |
 | [capabilities/review_readonly](capabilities/review_readonly/README.md) | Compare named files, or ordinary files under a `--tree` directory, before and after review. Delivery is allowed only when `verify` exits 0 and `delivery_allowed` is true. |
 | [capabilities/rerun_receipt](capabilities/rerun_receipt/README.md) | `emit` executes manifest commands at a bound head and records byte digests; `verify` re-checks receipts and evidence bytes read-only. Exit 0 only proves the receipts and evidence read this time are consistent. |
+| [capabilities/bounded_advance](capabilities/bounded_advance/README.md) | Advances a finite pre-authorized plan serially: the ledger binds the whole plan fingerprint, duplicate deliveries do not re-run completed units, and a failing unit stops the plan. |
 | [control/gate](control/gate/README.md) | Folds a hash-chained event log into a deterministic state. Candidate stage tops out at 2, `effective_stage` is always null, and the result can be compared to a ledger byte for byte. |
 | [control/loop_status](control/loop_status/README.md) | C6 history-ratchet pure function: a key that was closed and then regresses or disappears keeps reporting regression. Exit 0 means no history regression was found. |
 
@@ -198,6 +199,7 @@ python3 -m unittest discover -s capabilities/message_identity/tests -v
 python3 -m unittest discover -s capabilities/handoff_recipient/tests -v
 python3 -m unittest discover -s capabilities/review_readonly/tests -v
 python3 -m unittest discover -s capabilities/rerun_receipt/tests -v
+python3 -m unittest discover -s capabilities/bounded_advance/tests -v
 python3 -m unittest discover -s control/gate/tests -v
 python3 -m unittest discover -s control/loop_status/tests -v
 python3 -m unittest discover -s scripts/tests -v
