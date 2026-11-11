@@ -13,7 +13,7 @@ Refs APO-5 / docs/ROADMAP.md 第 5 项。把「闭环是否闭合」从 Bot 自�
 | finding | 触发 |
 |---|---|
 | `empty_steps` | steps 为空；摘要 closed 不是证据 |
-| `verifier_not_independent` | verifier 缺失（含纯空白、纯 Cf），或与 producer 同名。比较前去掉 Unicode 类别 Cf，再 NFKC，再去首尾空白，再 casefold。规范化后为空视为缺失 |
+| `verifier_not_independent` | verifier 缺失（含纯空白、纯 Cf），或与 producer 同名。比较前去掉 Unicode 类别 Cf，再 NFKC，再去首尾空白，再 casefold。规范化后为空视为缺失。NFKC 之后中间还有空白是输入错误（退出 5），不折叠 |
 | `stale_head_sha` | 报告 head 与受控期望不符（旧 SHA） |
 | `history_deleted` | 既往闭环键从当前报告 loops 中消失 |
 | `step_failed` / `missing_output` / `output_digest_mismatch` | 步骤失败 / 无输出字节 / 输出 sha256 不符 |
@@ -34,7 +34,7 @@ Refs APO-5 / docs/ROADMAP.md 第 5 项。把「闭环是否闭合」从 Bot 自�
 
 这是 S2-02 / LS-3/4 的结构检查。它不生成复跑回执，也不把现有 `feature-map.json` 改写成 loop-map/v1。
 
-`assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, aliases=None)` 读现有能力地图的形状（允许多余字段）。`author` 或 `producer` 当作作者，`measured_source` 或 `actual_source` 当作实测来源，`tests` 列表不算实测来源。`independent_verification.status` 只有大小写不敏感的 `reproduced` 能通过独立性检查。`NOT_TESTED`、`not_tested`、`FAILED`、`BLOCKED`、`PASS` 以及 verifier 为 null，在回执和地图 SHA 已经对齐时也是 finding，退出码不是 0。没有调用方钉住的地图 SHA、没有回执，也记 finding。当前仓库里的能力地图因此不是 NO_REGRESSION。
+`assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, aliases=None)` 读现有能力地图的形状（允许多余字段）。`author` 或 `producer` 当作作者，`measured_source` 或 `actual_source` 当作实测来源，`tests` 列表不算实测来源。`independent_verification.status` 只有大小写不敏感的 `reproduced` 能通过独立性检查。`NOT_TESTED`、`not_tested`、`FAILED`、`BLOCKED`、`PASS` 以及 verifier 为 null，在回执和地图 SHA 已经对齐时也是 finding，退出码不是 0。没有调用方钉住的地图 SHA、没有回执，也记 finding。作者字符串在 NFKC 之后中间还有空白时，整次是退出 5，不把这段文字折成身份。当前仓库里的能力地图因此不是 NO_REGRESSION。
 
 ## 纠正登记列 · correction-index/v1
 
@@ -63,4 +63,4 @@ python3 capabilities/loop_closure/detect.py --version
 
 名字比较前去 Cf 再 NFKC 的回归在 `tests/test_detect.py`（仅零宽、夹零宽、ZWJ 前缀、全角、真实大小写）。地图覆盖在 `tests/test_map_coverage.py`。登记列在 `tests/test_registry.py`。标准 06 第 3 节的重放清单在 `tests/test_detector_replay.py`，一条清单项对应一个 `test_replay_*`。计数以 `python3 -m unittest discover -s capabilities/loop_closure/tests -v` 打印的 Ran 行为准，本文件不另写手写总数。
 
-独立主体复跑 NOT_TESTED，不能自签验收。真实闭环报告上的实测 NOT_TESTED。与 `control/loop_status` 棘轮的联合接入 NOT_TESTED（本组件不调用它）。`control/loop_status` 的身份比较与这里一样：去 Cf、NFKC、去首尾空白、casefold。LS-5 这里只做列结构和调用方给来的测试字节；旧实现上变红、新实现上变绿、文件在真实树上、CI 作业跑到该测试，均为 NOT_TESTED。LS-6 信号/回滚记录、LS-9 旧检测器红证据、LS-10 真实根首次运行仍未实现。LS-1/LS-2 的 v4.1 原文不在本仓库，不在这里另造判据。
+独立主体复跑 NOT_TESTED，不能自签验收。真实闭环报告上的实测 NOT_TESTED。与 `control/loop_status` 棘轮的联合接入 NOT_TESTED（本组件不调用它）。`control/loop_status` 的身份比较与这里一样：去 Cf、NFKC、去首尾空白、casefold。中间空白是输入错误，两边都不折叠。LS-5 这里只做列结构和调用方给来的测试字节；旧实现上变红、新实现上变绿、文件在真实树上、CI 作业跑到该测试，均为 NOT_TESTED。LS-6 信号/回滚记录、LS-9 旧检测器红证据、LS-10 真实根首次运行仍未实现。LS-1/LS-2 的 v4.1 原文不在本仓库，不在这里另造判据。

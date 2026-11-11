@@ -49,7 +49,8 @@
         "test_bypass3_cf_prefix_zwj_same_name_rejected",
         "test_bypass4_fullwidth_nfkc_same_name_rejected",
         "test_real_case_difference_still_rejected",
-        "test_distinct_names_still_pass_after_normalization"
+        "test_distinct_names_still_pass_after_normalization",
+        "test_internal_whitespace_in_name_is_input_error"
       ]
     },
     {

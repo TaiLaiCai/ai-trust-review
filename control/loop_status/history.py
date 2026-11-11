@@ -59,12 +59,18 @@ def normalize_name(value):
     """Same identity fold as capabilities/loop_closure/detect.normalize_name.
 
     Drop Unicode format characters (Cf, including U+200B), then NFKC, then
-    strip, then casefold. A name that normalizes to empty is not an identity.
+    strip leading and trailing whitespace, then casefold. A name that
+    normalizes to empty is not an identity. Internal whitespace after that
+    fold, including U+3000, NBSP, tabs and other Unicode spaces, is an input
+    error. It is not deleted and not treated as a different identity.
     """
     if not isinstance(value, str):
         return ""
     stripped = "".join(ch for ch in value if unicodedata.category(ch) != "Cf")
-    return unicodedata.normalize("NFKC", stripped).strip().casefold()
+    folded = unicodedata.normalize("NFKC", stripped).strip().casefold()
+    if any(ch.isspace() for ch in folded):
+        raise InputError("name contains internal whitespace")
+    return folded
 
 
 def loops(value):

@@ -109,6 +109,22 @@ class DetectTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("verifier_not_independent", findings((code, raw)))
 
+    def test_internal_whitespace_in_name_is_input_error(self):
+        for verifier in ("wor ker", "wor\u3000ker", "wor\u00a0ker", "验\t收方"):
+            code, raw = run(report([step()], verifier=verifier))
+            body = json.loads(raw)
+            self.assertEqual((code, body["result"]), (5, "INPUT_ERROR"), verifier)
+            self.assertIn("internal whitespace", body["reason"])
+        rep = report([step()], verifier="验收方")
+        rep["producer"] = "wor ker"
+        code, raw = run(rep)
+        self.assertEqual(code, 5)
+        self.assertEqual(json.loads(raw)["result"], "INPUT_ERROR")
+        code, _ = run(report([step()], verifier="  验收方  "))
+        self.assertEqual(code, 0)
+        code, _ = run(report([step()], verifier="\u3000验收方\u00a0"))
+        self.assertEqual(code, 0)
+
     def test_distinct_names_still_pass_after_normalization(self):
         rep = report([step()], verifier="验收方\u200b")
         rep["producer"] = "生产方"

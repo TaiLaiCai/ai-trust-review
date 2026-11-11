@@ -212,6 +212,32 @@ class ReviewF1F4(unittest.TestCase):
         self.assertEqual(code, 5)
         self.assertIn("invalid alias", json.loads(raw)["reason"])
 
+    def test_internal_whitespace_is_input_error_for_owner_subject_and_approver(self):
+        spaced = ("wor ker", "wor\u3000ker", "wor\u00a0ker", "wor\tker")
+        for bad in spaced:
+            for owners, subject in (([bad], "worker"), (["主人"], bad)):
+                code, raw = assess({}, b"", {"A": "open"}, T3, [], OWNERS, owners, subject=subject)
+                body = json.loads(raw)
+                self.assertEqual((code, body["result"]), (5, "INPUT_ERROR"), (owners, subject))
+                self.assertIn("internal whitespace", body["reason"])
+                self.assertNotIn(body["result"], ("NO_REGRESSION", "REGRESSION", "WAIVED_PENDING"))
+        snaps, ledger = history([(T1, {"A": "closed"})])
+        for bad in spaced:
+            waiver = {"loop": "A", "reason": "pending", "approved_by": bad, "ts": T2}
+            code, raw = assess(snaps, ledger, {}, T3, [waiver], OWNERS, ["主人"])
+            body = json.loads(raw)
+            self.assertEqual((code, body["result"]), (5, "INPUT_ERROR"), bad)
+            self.assertIn("internal whitespace", body["reason"])
+        aliased = {"owner": ["主人"], "worker": ["wor ker"]}
+        code, raw = assess({}, b"", {"A": "open"}, T3, [], aliased, ["主人"], subject="worker")
+        self.assertEqual(code, 5)
+        self.assertIn("internal whitespace", json.loads(raw)["reason"])
+        # Leading and trailing whitespace still strip, including U+3000 and NBSP.
+        for owners, subject in ((["  主人  "], "worker"), (["主人"], "\u3000worker"),
+                                (["主人"], "worker\u00a0"), (["\t主人"], "  worker  ")):
+            code, raw = assess({}, b"", {"A": "open"}, T3, [], OWNERS, owners, subject=subject)
+            self.assertEqual((code, json.loads(raw)["result"]), (0, "NO_REGRESSION"), (owners, subject))
+
     def test_distinct_name_is_not_treated_as_self(self):
         for owners, subject in ((["主人"], "worker"), (["主人\u200b"], "worker"),
                                 (["\uff4fwner"], "worker"), (["\uff4fwner"], "执行者\u200b")):
@@ -229,8 +255,14 @@ class ReviewF1F4(unittest.TestCase):
             "loop_closure_detect", ROOT.parents[1] / "capabilities" / "loop_closure" / "detect.py")
         detect = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(detect)
-        for name in ("Worker", "\uff57orker", "wor\u200bker", "\u200b", "\ufeff", "  ", "主人", "执行者\u200b"):
+        for name in ("Worker", "\uff57orker", "wor\u200bker", "\u200b", "\ufeff", "  ", "主人",
+                     "执行者\u200b", "  worker  ", "\u3000worker", "worker\u00a0"):
             self.assertEqual(h.normalize_name(name), detect.normalize_name(name), name)
+        for name in ("wor ker", "wor\u3000ker", "wor\u00a0ker", "wor\tker", "wo\u2003rker"):
+            with self.assertRaises(h.InputError):
+                h.normalize_name(name)
+            with self.assertRaises(detect.InputError):
+                detect.normalize_name(name)
 
     def test_only_lf_ledger_is_accepted(self):
         for raw in (self.ledger.replace(b"\n", b"\r\n"), self.ledger.replace(b"\n", b"\r")):

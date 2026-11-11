@@ -115,6 +115,15 @@ class MapCoverageTests(unittest.TestCase):
         code, _ = run(document([step()], author="生产方", verifier="reviewer"))
         self.assertEqual(code, 0)
 
+    def test_internal_whitespace_in_author_is_input_error(self):
+        for author in ("wor ker", "wor\u3000ker", "wor\u00a0ker"):
+            code, raw = run(document([step()], author=author, verifier="验收方"), aliases=None)
+            self.assertEqual(code, 5, author)
+            self.assertEqual(body((code, raw))["result"], "INPUT_ERROR")
+            self.assertIn("internal whitespace", body((code, raw))["reason"])
+        code, _ = run(document([step()], author="  生产方  ", verifier="验收方"), aliases=None)
+        self.assertEqual(code, 0)
+
     def test_null_verifier_is_input_error(self):
         doc = document()
         doc["verifier"] = None
@@ -221,9 +230,13 @@ class CapabilityMapTests(unittest.TestCase):
         for path in paths:
             code, out = m.assess_capability_map(path.read_bytes(), None, None, None)
             parsed = json.loads(out)
-            self.assertEqual(code, 1, path.name)
-            self.assertEqual(parsed["result"], "REGRESSION", path.name)
+            self.assertNotEqual(code, 0, path.name)
             self.assertNotIn("CLOSED", parsed["result"])
+            if code == 5:
+                self.assertEqual(parsed["result"], "INPUT_ERROR", path.name)
+                self.assertIn("internal whitespace", parsed["reason"])
+            else:
+                self.assertEqual((code, parsed["result"]), (1, "REGRESSION"), path.name)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 MAX_BYTES = 1024 * 1024
@@ -102,6 +103,17 @@ def identity(value, table, label):
     return table[key]
 
 
+def evidence_text(value):
+    """Measured-source text is not an identity. Spaces inside it are allowed.
+
+    Empty after Cf removal, NFKC and strip still counts as missing.
+    """
+    if not isinstance(value, str):
+        return False
+    stripped = "".join(ch for ch in value if unicodedata.category(ch) != "Cf")
+    return bool(unicodedata.normalize("NFKC", stripped).strip())
+
+
 def valid_command(command):
     if isinstance(command, str):
         return bool(command.strip())
@@ -194,7 +206,7 @@ def assess_map(map_raw, receipt_raw, expected_map_sha256, aliases=None):
                 "detail": "map has no steps; a summary status is not evidence",
             })
         for step in document["steps"]:
-            if not normalize_name(step["measured_source"]):
+            if not evidence_text(step["measured_source"]):
                 findings.append({"finding": "missing_measured_source", "detail": step["id"]})
         if digest != expected_map_sha256 or receipt["map_sha256"] != digest:
             findings.append({
@@ -286,7 +298,7 @@ def assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, a
                 if not isinstance(expected, str) or not expected.strip():
                     findings.append({"finding": "missing_expected", "detail": step_id})
                 source = step["measured_source"] if "measured_source" in step else step.get("actual_source")
-                if not isinstance(source, str) or not normalize_name(source):
+                if not evidence_text(source):
                     findings.append({"finding": "missing_measured_source", "detail": step_id})
         digest = hashlib.sha256(map_raw).hexdigest()
         if expected_map_sha256 is None:

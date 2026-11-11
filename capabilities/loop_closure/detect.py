@@ -52,13 +52,19 @@ def normalize_name(value):
     """Normalize an agent name for the independence comparison.
 
     Remove every Unicode format (Cf) character — including zero-width spaces —
-    before applying NFKC (so full-width Latin folds back) and casefold.
-    A name that normalizes to empty counts as missing.
+    before applying NFKC (so full-width Latin folds back), strip leading and
+    trailing whitespace, then casefold. A name that normalizes to empty counts
+    as missing. Internal whitespace after that fold, including U+3000, NBSP,
+    tabs and other Unicode spaces, is an input error. It is not deleted and
+    not treated as a different identity.
     """
     if not isinstance(value, str):
         return ""
     stripped = "".join(ch for ch in value if unicodedata.category(ch) != "Cf")
-    return unicodedata.normalize("NFKC", stripped).strip().casefold()
+    folded = unicodedata.normalize("NFKC", stripped).strip().casefold()
+    if any(ch.isspace() for ch in folded):
+        raise InputError("name contains internal whitespace")
+    return folded
 
 
 def parse_report(raw):
