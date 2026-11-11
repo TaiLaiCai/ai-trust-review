@@ -34,6 +34,8 @@ Refs APO-5 / docs/ROADMAP.md 第 5 项。把「闭环是否闭合」从 Bot 自�
 
 这是 S2-02 / LS-3/4 的结构检查。它不生成复跑回执，也不把现有 `feature-map.json` 改写成 loop-map/v1。
 
+`assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, aliases=None)` 读现有能力地图的形状（允许多余字段）。`author` 或 `producer` 当作作者，`measured_source` 或 `actual_source` 当作实测来源，`tests` 列表不算实测来源。`independent_verification.status` 为 `NOT_TESTED` 或 verifier 为 null 时记 finding，退出码不是 0。没有调用方钉住的地图 SHA、没有回执，也记 finding。当前仓库里的能力地图因此不是 NO_REGRESSION。
+
 ## 纠正登记列 · correction-index/v1
 
 纯函数 `assess_index(index_raw, registrations)` 与 `assess_registry_table(table_text, registrations)` 在 [registry.py](registry.py)。`registrations` 是调用方给出的 `{测试登记: 源文件字节}`。函数自己不打开文件、不声称 CI 跑过这些测试。

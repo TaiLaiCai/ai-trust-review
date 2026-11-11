@@ -162,5 +162,49 @@ class MapCoverageTests(unittest.TestCase):
                                                separators=(",", ":")) + "\n").encode())
 
 
+class CapabilityMapTests(unittest.TestCase):
+    def test_complete_capability_map_is_not_called_closed(self):
+        source = "stdout sha256 " + "ab" * 32
+        document = {
+            "capability": "example/v1",
+            "producer": "生产方",
+            "steps": [{"id": "s1", "command": "python3 -m unittest", "expected": "exit 0",
+                       "measured_source": source}],
+            "independent_verification": {"status": "REPRODUCED", "verifier": "验收方", "head_sha": "abc"},
+        }
+        raw = encode(document)
+        digest = hashlib.sha256(raw).hexdigest()
+        receipt = {"schema_version": "loop-map-receipt/v1", "map_sha256": digest, "steps": [{"id": "s1"}]}
+        code, out = m.assess_capability_map(raw, encode(receipt), digest, ALIASES)
+        parsed = json.loads(out)
+        self.assertEqual(code, 0)
+        self.assertEqual(parsed["result"], "NO_REGRESSION")
+        self.assertNotIn("CLOSED", parsed["result"])
+
+    def test_not_tested_status_cannot_exit_zero(self):
+        document = {
+            "producer": "生产方",
+            "steps": [{"id": "s1", "command": "true", "expected": "exit 0",
+                       "measured_source": "observed stdout"}],
+            "independent_verification": {"status": "NOT_TESTED", "verifier": "验收方", "head_sha": None},
+        }
+        raw = encode(document)
+        code, out = m.assess_capability_map(raw, None, hashlib.sha256(raw).hexdigest(), None)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", names((code, out)))
+        self.assertEqual(body((code, out))["result"], "REGRESSION")
+
+    def test_repo_feature_maps_are_not_reported_closed(self):
+        root = Path(__file__).resolve().parents[3]
+        paths = sorted((root / "capabilities").glob("*/feature-map.json"))
+        self.assertGreaterEqual(len(paths), 5)
+        for path in paths:
+            code, out = m.assess_capability_map(path.read_bytes(), None, None, None)
+            parsed = json.loads(out)
+            self.assertEqual(code, 1, path.name)
+            self.assertEqual(parsed["result"], "REGRESSION", path.name)
+            self.assertNotIn("CLOSED", parsed["result"])
+
+
 if __name__ == "__main__":
     unittest.main()

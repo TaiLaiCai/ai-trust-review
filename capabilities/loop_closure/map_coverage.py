@@ -219,3 +219,106 @@ def assess_map(map_raw, receipt_raw, expected_map_sha256, aliases=None):
         return code, canonical(body)
     except Exception as error:
         return 5, canonical({"result": "INPUT_ERROR", "reason": str(error)})
+
+
+CAPABILITY_SCOPE = (
+    "capability feature-map coverage only; a NOT_TESTED verifier stays a finding; "
+    "exit 0 is not loop closure, not a history ratchet result, and not a stage change"
+)
+
+
+def assess_capability_map(map_raw, receipt_raw=None, expected_map_sha256=None, aliases=None):
+    """Check one on-disk feature map. Extra keys are allowed. Exit 0 is not closure.
+
+    `measured_source` or `actual_source` counts as the measured-source field.
+    A `tests` list does not. `author` or `producer` counts as the author.
+    `independent_verification.status == NOT_TESTED` or a null verifier is a finding.
+    """
+    try:
+        document = load_json(map_raw, "map")
+        if not isinstance(document, dict):
+            raise InputError("map must be an object")
+        table = alias_table(aliases)
+        findings = []
+        author_value = document["author"] if "author" in document else document.get("producer")
+        if not isinstance(author_value, str):
+            author = ""
+            findings.append({"finding": "missing_author", "detail": "feature map has no author or producer string"})
+        else:
+            author = identity(author_value, table, "author")
+            if not author:
+                findings.append({"finding": "missing_author", "detail": "author normalizes to empty"})
+        block = document.get("independent_verification")
+        verifier_value = block.get("verifier") if isinstance(block, dict) else None
+        status = block.get("status") if isinstance(block, dict) else None
+        if not isinstance(verifier_value, str) or status == "NOT_TESTED":
+            verifier = ""
+            findings.append({
+                "finding": "verifier_not_independent",
+                "detail": "missing verifier" if not isinstance(verifier_value, str) else "verification status is NOT_TESTED",
+            })
+        else:
+            verifier = identity(verifier_value, table, "verifier")
+            if not verifier:
+                findings.append({"finding": "verifier_not_independent", "detail": "missing verifier"})
+        if author and verifier and author == verifier:
+            findings.append({
+                "finding": "author_alias_self_check",
+                "detail": f"author {author!r} and verifier {verifier!r} are the same identity",
+            })
+        steps = document.get("steps")
+        map_ids = set()
+        if not isinstance(steps, list) or not steps:
+            findings.append({"finding": "empty_steps", "detail": "feature map has no steps"})
+        else:
+            for step in steps:
+                if not isinstance(step, dict):
+                    raise InputError("step must be an object")
+                step_id = step.get("id")
+                if not isinstance(step_id, str) or not STEP_ID.fullmatch(step_id) or step_id in map_ids:
+                    raise InputError("invalid or duplicate step id")
+                map_ids.add(step_id)
+                if not valid_command(step.get("command")):
+                    findings.append({"finding": "missing_command", "detail": step_id})
+                expected = step.get("expected")
+                if not isinstance(expected, str) or not expected.strip():
+                    findings.append({"finding": "missing_expected", "detail": step_id})
+                source = step["measured_source"] if "measured_source" in step else step.get("actual_source")
+                if not isinstance(source, str) or not normalize_name(source):
+                    findings.append({"finding": "missing_measured_source", "detail": step_id})
+        digest = hashlib.sha256(map_raw).hexdigest()
+        if expected_map_sha256 is None:
+            findings.append({"finding": "stale_map_sha", "detail": f"trusted map sha256 absent for {digest}"})
+        elif not isinstance(expected_map_sha256, str) or not HEX.fullmatch(expected_map_sha256):
+            raise InputError("trusted map sha256 required")
+        elif expected_map_sha256 != digest:
+            findings.append({
+                "finding": "stale_map_sha",
+                "detail": f"bytes {digest} expected {expected_map_sha256}",
+            })
+        if receipt_raw is None:
+            findings.append({"finding": "coverage_missing", "detail": "receipt absent"})
+        else:
+            receipt = parse_receipt(receipt_raw)
+            if receipt["map_sha256"] != digest:
+                findings.append({
+                    "finding": "stale_map_sha",
+                    "detail": f"bytes {digest} receipt {receipt['map_sha256']}",
+                })
+            receipt_ids = {step["id"] for step in receipt["steps"]}
+            for step_id in sorted(map_ids - receipt_ids):
+                findings.append({"finding": "coverage_missing", "detail": step_id})
+            for step_id in sorted(receipt_ids - map_ids):
+                findings.append({"finding": "coverage_extra", "detail": step_id})
+        findings.sort(key=lambda item: (item["finding"], item["detail"]))
+        code = 0 if not findings else 1
+        body = {
+            "schema_version": "capability-map-check/v1",
+            "map_sha256": digest,
+            "findings": findings,
+            "result": "NO_REGRESSION" if code == 0 else "REGRESSION",
+            "scope": CAPABILITY_SCOPE,
+        }
+        return code, canonical(body)
+    except Exception as error:
+        return 5, canonical({"result": "INPUT_ERROR", "reason": str(error)})
