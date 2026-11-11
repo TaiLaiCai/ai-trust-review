@@ -52,6 +52,18 @@ flowchart TD
 
 ### 代码侧：PR、四项检查、预审评论、合并
 
+#### 核心迭代的主人点头留痕
+
+核心迭代进入合并候选前，须由主人本人在该 PR 留下绑定**当前 head 短 SHA** 的评论，固定格式为 `主人批准：<head短SHA>`；head 后续变化，旧评论立即失效，须对新 head 重新确认。Agent 的转述、正文里的角色字段、由 Agent 代打的标签，以及不绑定当前 head 的笼统同意，都不能代替这条留痕。留痕只满足本仓库的合并前确认约定，不自动批准或合并 PR，不改变平台权限、阶段或信任等级；最终合并仍由主人当次点名的一方执行。
+
+这里的核心迭代包括：标准或判据、门槛或流程、CI 或 ruleset、阶段晋升、S1/S2 准入、M2 启用、平台隔离。主人已追认已合入的 PR #65 核心变更，追认绑定其合入时 PR head `bce96960e67c120400681e291d6db2a53693f01c`；这次追认不倒填独立验收，不代表未来 head 或其他核心迭代获批。
+
+#### `needs-rerun` 的消费与回执
+
+需要非作者复跑的 PR 使用 `needs-rerun` 作为公开候选标记。CEO 必须点名一位未参与该 PR 生产的 Hermes 或 Pi，按 PR **当前完整 head SHA** 复跑公开作业；无人被点名时，标签本身不算已经安排，也不允许把 `NOT_TESTED` 改写成 PASS。现有 `needs-hark-rerun` 只保留为历史记录，不再作为新任务的消费机制；本规则不在 README 中创建、改名或删除任何 GitHub 标签。
+
+复跑回执必须列出 PR 与完整 head SHA、复跑方及独立性限制、实际执行的完整 argv、逐项完整 stdout/stderr、逐项退出码、证据 SHA256、未测项，以及可访问的公开回执/证据链接。每项作业只写 `REPRODUCED` 或 `NOT_REPRODUCED`；没有真实执行或证据不可复算时写 `NOT_TESTED`，不得写成 `REPRODUCED`。head 变化后旧回执自动失效，PR 重新进入 `needs-rerun`。复跑只构成技术证据，不构成批准或合并。
+
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在 `pull_request` 上运行四项作业，彼此没有 `needs` 依赖，都是只读 checkout（`persist-credentials: false`）：
 
 | 作业 | 仓库里它实际做的事 |
