@@ -89,6 +89,7 @@ v2 把这件事拆成两件，并各自有明确的出口：
 - **平台读回**：替换后重新从磁盘读目标 Bot 文件并算 SHA256，必须等于候选字节摘要。不等 → 立即把目标原子回退到应用前字节，作业标 `APPLY_PENDING`，exit 1，`action=readback-mismatch`。**读回不一致时不得报「已生效」**（S2-08）。
 - **批准**：`approve` 为某个候选版本登记批准，记录候选字节摘要与批准人标签。批准人只是标签，本工具**不认证批准人身份**。候选字节在批准后被改动 → exit 1，`action=stale-candidate`，作业 `APPLY_PENDING`。
 - **其他 Bot 不变**：应用前后都比对基线。任一基线内 Bot 的字节变了、或出现基线外的新 Bot → 拒绝应用（`action=other-bot-changed`）；应用后发现其他 Bot 变了 → 原子回退目标，exit 1，`action=other-bot-changed`。
+- **目标必须在基线内**：`target_bot` 不在 `platform_baseline` 里时，应用前拒绝（`action=other-bot-changed`，`unknown_bots` 含该目标），不创建、不覆盖平台文件。平台文件还不存在时也一样拒绝——不能把「文件缺失」当成「期望为空，所以可以新建」。否则 `trigger` 会以 `applied` 写出基线外的 Bot，随后 `verify` 报 `platform has bots outside the baseline`，后面的序号也被挡住。
 
 ### 失败恢复
 
@@ -111,7 +112,7 @@ v2 把这件事拆成两件，并各自有明确的出口：
 
 `--version` 打印 `v2 <本 README 的 sha256>`，不读任何输入。
 
-`verify` 除了核对状态、队列、平台与审计，还会在**没有在世租约可续作**时把「卡在游标位上的 APPLY_PENDING 作业」报成 `FAIL`（`job <id> is pending at the cursor with no live lease to resume it`）——死锁必须看得见，不能静悄悄地卡住。
+`verify` 除了核对状态、队列、平台与审计，还会在**没有在世租约可续作**时把「卡在游标位上的 APPLY_PENDING 作业」报成 `FAIL`（`job <id> is pending at the cursor with no live lease to resume it`）——死锁必须看得见，不能静悄悄地卡住。审计文件不是合法 UTF-8、缺结尾换行或行内 schema 违规时，`verify` 走契约错误 **exit 2**（`contract error: audit: ...`），不抛未捕获的 `UnicodeDecodeError`，也不把编码错误收成 `verdict=FAIL`。
 
 ## 用法
 
@@ -139,9 +140,11 @@ python3 -m unittest discover -s capabilities/durable_trigger/tests -v
 - 无沙箱、无身份认证、无 H1/H2 写隔离、无 OS 强制隔离。租约锁是协作锁：两个都在同一台机器上遵守本协议的进程才互斥。
 - 本工具不认证批准人、不认证触发来源、不验证候选业务正确性。`approve` 记录的批准人是一个标签。
 - 平台目录是本仓库内的**模拟**平台文件，不是真实产品平台。「实际平台读回」在这里等于「从磁盘读回被改的 JSON 文件并核对字节摘要」。接真实平台需要另外的能力与另外的验收。
+- **真实平台读回：NOT_TESTED。** 本变更没有获授权的真实平台范围，不尝试真实读回，也不把模拟目录上的读回记成真实平台读回。
+- **持久触发实测：NOT_TESTED。** 门禁 M2 要求的持久触发实测没有获授权的平台范围。CI 的定时作业不是这项实测的替代。
 - 读回只证明这次读到的字节；改动后恢复相同字节、只改元数据、检查之后再写，都不由本工具证明不存在。
 - `verify` 只读，核对状态、队列、平台与审计的一致性；它不执行任何命令，也不写任何文件。
 
 ## 当前验收状态
 
-本地测试见回执。生产者的自测**不能自签验收**：独立主体复跑、独立验收与远端 CI 结果均为 `NOT_TESTED`，合并前必须由另一主体按验收项复跑。本候选不改 CI 工作流；能力目录会被 `capability-tests` 作业自动发现执行。远端 CI 是否实际跑过此套件，以 PR 上的真实运行记录为准，不得以本地结果代替。
+本地测试见回执。生产者的自测**不能自签验收**：独立主体复跑、独立验收与远端 CI 结果均为 `NOT_TESTED`，合并前必须由另一主体按验收项复跑。本候选不改 CI 工作流；能力目录会被 `capability-tests` 作业自动发现执行。远端 CI 是否实际跑过此套件，以 PR 上的真实运行记录为准，不得以本地结果代替。真实平台读回与持久触发实测保持 `NOT_TESTED`，不因本地套件或 CI 定时作业而改判。

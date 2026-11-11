@@ -760,6 +760,24 @@ def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
             drifted.append(bot)
     known_bots = platform_bots(root)
     unknown = [b for b in known_bots if b not in baseline and b != target]
+    # 目标本身不在基线内时，应用前拒绝，并且不创建、不覆盖平台文件。
+    # 文件尚不存在时 platform_digest 与 expected.get 都是 None，后面的漂移
+    # 比较会把「可以新建」当成「没有漂移」，写出基线外的 Bot；verify 随后
+    # 因 baseline 外 Bot 失败，后面的序号也被挡住。
+    if target not in baseline:
+        unknown_targets = sorted(set(unknown + [target]))
+        job["status"] = "APPLY_PENDING"
+        job["reason"] = "other-bot-changed"
+        job["updated_at"] = now_iso()
+        state["jobs"][jid] = job
+        save_state(root, state)
+        audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
+                     "seq": trigger["seq"], "target_bot": target, "result": "APPLY_PENDING",
+                     "reason": "other-bot-changed", "drifted_bots": drifted,
+                     "unknown_bots": unknown_targets, "lease_token": token,
+                     "detail": "target bot is not in the baseline"})
+        raise Rejected({"action": "other-bot-changed", "id": jid, "result": "APPLY_PENDING",
+                        "drifted_bots": drifted, "unknown_bots": unknown_targets})
     target_current = platform_digest(root, target)
     if target_current != expected.get(target):
         job["status"] = "APPLY_PENDING"
@@ -1131,11 +1149,10 @@ def cmd_verify(args):
         problems.append("platform has bots outside the baseline: %s" % ",".join(unknown))
     if missing:
         problems.append("platform is missing baselined bots: %s" % ",".join(missing))
-    try:
-        entries = load_audit(root)
-    except ContractError as exc:
-        entries = []
-        problems.append(str(exc))
+    # 审计编码/schema 错误走契约错误（exit 2），与队列同一条路径。
+    # 不收成 verify FAIL：退出码表把编码错误定为 2，未捕获的 UnicodeDecodeError
+    # 也不能冒充成一次有 verdict 的校验。
+    entries = load_audit(root)
     if problems:
         emit({"verdict": "FAIL", "scope": "state-queue-platform-audit-bytes-only",
               "problems": problems, "cursor_seq": state["cursor_seq"],

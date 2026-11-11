@@ -15,7 +15,8 @@
     "v2 lets a new holder take over and resume a pending job after the old lease expires (resumed=true, audit action lease-resumed-after-expiry)",
     "v2 adds abort --trigger-id to release a stuck APPLY_PENDING job and advance the cursor past it (ABORTED)",
     "v2 records candidate_sha256 before the atomic replace so a crash between rename and state write is recognized and completed instead of frozen (recovered_after_crash=true)",
-    "v2 makes a non-UTF-8 audit file a verify FAIL instead of an uncaught UnicodeDecodeError"
+    "a non-UTF-8 audit file is a contract error (exit 2), the same path as the queue, not an uncaught UnicodeDecodeError and not a verify FAIL",
+    "a target bot that is not in the baseline is refused before apply (other-bot-changed), including when its platform file does not yet exist"
   ],
   "features": {
     "contract": [
@@ -60,6 +61,7 @@
     "other_bots_unchanged": [
       "every baselined bot other than the target is compared before and after the apply",
       "a drifted bot or a bot outside the baseline -> exit 1 action=other-bot-changed, zero apply",
+      "a target that is not in the baseline is refused before apply, whether or not its platform file exists; the file is not created and not overwritten",
       "a drift detected after the apply -> atomic restore of the target, exit 1 action=other-bot-changed"
     ],
     "failure_recovery": [
@@ -77,7 +79,7 @@
       "read-only consistency check across state, queue, platform and audit",
       "detects duplicate queue ids, consumed ids without a job, APPLIED jobs without after_sha256, platform drift, unknown and missing bots",
       "detects a pending job stuck at the cursor with no live lease to resume it",
-      "a non-UTF-8 audit file is reported as a FAIL problem, not an uncaught decode error",
+      "a non-UTF-8 or schema-invalid audit file is a contract error, exit 2, not an uncaught decode error and not verdict=FAIL",
       "exit 0 verdict=PASS scope=state-queue-platform-audit-bytes-only; exit 1 verdict=FAIL with problems"
     ],
     "cli": [
@@ -90,6 +92,8 @@
     "verifier": null,
     "head_sha": null
   },
+  "real_platform_readback": "NOT_TESTED",
+  "durable_trigger_measurement": "NOT_TESTED",
   "rollback": "delete capabilities/durable_trigger/ directory; CI capability-tests auto-shrinks",
   "tests": [
     "tests/test_check.py"

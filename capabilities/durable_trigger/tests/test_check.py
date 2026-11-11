@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""durable_trigger v1 回归测试。
+"""durable_trigger v2 回归测试。
 
 每个测试都通过真实 CLI 子进程调用 check.py，断言真实退出码与真实 JSON 输出，
 不 mock 文件系统。所有夹具都是本仓库内的模拟平台文件，不含真实平台凭据。
 """
+import hashlib
 import json
 import os
 import shutil
@@ -93,8 +94,10 @@ class TestVersion(Base):
         parts = proc.stdout.strip().split()
         self.assertEqual(parts[0], "v2")
         self.assertEqual(len(parts), 2)
-        self.assertEqual(len(parts[1]), 64)
-        int(parts[1], 16)
+        readme = os.path.join(CAP, "README.md")
+        with open(readme, "rb") as fh:
+            digest = hashlib.sha256(fh.read()).hexdigest()
+        self.assertEqual(parts[1], digest)
 
     def test_version_does_not_read_inputs(self):
         proc = run("--version")
@@ -213,6 +216,46 @@ class TestLeaseLock(Base):
         self.assertEqual(state["jobs"]["t1"]["status"], "APPLIED")
         self.assertEqual(state["cursor_seq"], 0)
 
+    def test_the_same_holder_resumes_after_its_own_lease_expires(self):
+        # 预审在 806ceba 上的原路径：同一持有者、租约立刻过期、APPLY 注入失败，
+        # 再由同一持有者 trigger，然后 rollback。不能只覆盖换一个持有者的接管。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        before = self.platform_bytes("bot-a")
+        failed = self.trigger("--lease-seconds", "0", "--inject-failure", "APPLY")
+        self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
+        self.assertEqual(payload(failed)["result"], "APPLY_PENDING")
+        resumed = self.trigger("--lease-seconds", "300")
+        self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
+        out = payload(resumed)
+        self.assertEqual(out["action"], "applied")
+        self.assertTrue(out["resumed"])
+        self.assertNotEqual(self.platform_bytes("bot-a"), before)
+        rolled = run("rollback", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(rolled.returncode, 0, rolled.stdout + rolled.stderr)
+        self.assertEqual(payload(rolled)["action"], "rolled-back")
+        self.assertEqual(self.platform_bytes("bot-a"), before)
+
+    def test_an_explicit_old_lease_token_does_not_resume_or_advance(self):
+        # 过期后的接管可以续作；调用方显式传入的旧世代号仍然拒绝，且零写入。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        before = self.platform_bytes("bot-a")
+        failed = self.trigger("--lease-seconds", "0", "--inject-failure", "APPLY")
+        self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
+        recorded = payload(run("status", "--root", self.root))
+        self.assertEqual(recorded["jobs"]["t1"]["status"], "APPLY_PENDING")
+        self.assertEqual(recorded["cursor_seq"], -1)
+        refused = self.trigger("--lease-seconds", "300", "--lease-token", "0")
+        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+        self.assertEqual(payload(refused)["action"], "stale-lease")
+        after = payload(run("status", "--root", self.root))
+        self.assertEqual(after["lease"]["token"], recorded["lease"]["token"])
+        self.assertEqual(after["lease"]["holder"], recorded["lease"]["holder"])
+        self.assertEqual(after["jobs"]["t1"]["status"], "APPLY_PENDING")
+        self.assertEqual(after["cursor_seq"], -1)
+        self.assertEqual(self.platform_bytes("bot-a"), before)
+
     def test_a_pending_job_resumed_after_expiry_can_be_rolled_back(self):
         # 回归用例（预审复现）：续作成功后，rollback 必须可用，
         # 不能再返回 rollback-unavailable。
@@ -280,16 +323,33 @@ class TestCursor(Base):
         self.assertEqual(self.platform_bytes("bot-a"), before)
 
     def test_duplicate_id_in_the_queue_is_consumed_once(self):
+        # 准入门的第二次 enqueue 是 duplicate-noop，不会写出第二行。
+        # 要锁住消费门「同一 id 只消费一次」，必须直接往队列追加第二行。
         self.prepare()
         self.enqueue("t1", 0, "bot-a", "v1")
-        # Same id appended again with a different file name but identical content.
-        self.enqueue("t1", 0, "bot-a", "v1", name="t1-again.json")
+        queue = os.path.join(self.root, "queue.jsonl")
+        with open(queue, "rb") as fh:
+            first = fh.read()
+        self.assertTrue(first.endswith(b"\n"))
+        with open(queue, "ab") as fh:
+            fh.write(first)
+        with open(queue, "rb") as fh:
+            self.assertEqual(fh.read().count(b"\n"), 2)
+        before = self.platform_bytes("bot-a")
         proc = self.trigger()
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertEqual(payload(proc)["action"], "applied")
+        applied = self.platform_bytes("bot-a")
+        self.assertNotEqual(applied, before)
+        again = self.trigger()
+        self.assertEqual(again.returncode, 0, again.stdout + again.stderr)
+        self.assertEqual(payload(again)["action"], "no-work")
+        self.assertEqual(self.platform_bytes("bot-a"), applied)
         state = payload(run("status", "--root", self.root))
         self.assertEqual(state["cursor_seq"], 0)
         self.assertEqual(len(state["consumed"]), 1)
+        with open(queue, "rb") as fh:
+            self.assertEqual(fh.read().count(b"\n"), 2)
 
     def test_gap_in_the_queue_is_rejected_not_skipped(self):
         self.prepare()
@@ -469,6 +529,45 @@ class TestOtherBotsUnchanged(Base):
         self.assertEqual(out["action"], "other-bot-changed")
         self.assertIn("bot-d", out["unknown_bots"])
 
+    def test_a_missing_target_outside_the_baseline_is_not_created(self):
+        # 预审路径：基线里没有 bot-new，平台文件也不存在。旧实现会 applied
+        # 把文件写出来，随后 verify 因 baseline 外 Bot 失败。
+        self.prepare()
+        self.write_candidate("v-new", "bot-new", 2)
+        approved = run("approve", "--root", self.root, "--candidate-version", "v-new",
+                       "--approver", "tester")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.assertEqual(self.enqueue("tn", 0, "bot-new", "v-new").returncode, 0)
+        path = os.path.join(self.platform_dir, "bot-new.json")
+        self.assertFalse(os.path.exists(path))
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["action"], "other-bot-changed")
+        self.assertEqual(out["result"], "APPLY_PENDING")
+        self.assertIn("bot-new", out["unknown_bots"])
+        self.assertFalse(os.path.exists(path))
+        ver = run("verify", "--root", self.root)
+        self.assertEqual(ver.returncode, 0, ver.stdout + ver.stderr)
+        self.assertEqual(payload(ver)["verdict"], "PASS")
+        self.assertNotIn("outside the baseline", ver.stdout)
+
+    def test_an_existing_target_outside_the_baseline_is_not_overwritten(self):
+        self.prepare()
+        self.write_platform("bot-new", 1)
+        before = self.platform_bytes("bot-new")
+        self.write_candidate("v-new", "bot-new", 2)
+        approved = run("approve", "--root", self.root, "--candidate-version", "v-new",
+                       "--approver", "tester")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.assertEqual(self.enqueue("tn", 0, "bot-new", "v-new").returncode, 0)
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["action"], "other-bot-changed")
+        self.assertIn("bot-new", out["unknown_bots"])
+        self.assertEqual(self.platform_bytes("bot-new"), before)
+
     def test_an_other_bot_drift_after_the_apply_is_rolled_back(self):
         self.prepare()
         self.enqueue("t1", 0, "bot-a", "v1")
@@ -645,18 +744,19 @@ class TestCrashRecoveryAndAudit(Base):
         self.assertEqual(state["jobs"]["t1"]["status"], "APPLIED")
         self.assertEqual(state["cursor_seq"], 0)
 
-    def test_verify_reports_a_non_utf8_audit_instead_of_crashing(self):
+    def test_a_non_utf8_audit_is_a_contract_error(self):
+        # 退出码表把编码错误定为 2，与队列同一条 ContractError 路径。
+        # 拿掉 load_audit 里的转换后，这里会变成未捕获的 UnicodeDecodeError（退出码 1）。
         self.prepare()
         self.enqueue("t1", 0, "bot-a", "v1")
         self.assertEqual(self.trigger().returncode, 0)
         with open(os.path.join(self.root, "audit.jsonl"), "ab") as fh:
             fh.write(b'{"action":"x","ts":"\xff\xfe"}\n')
         proc = run("verify", "--root", self.root)
-        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
-        self.assertEqual(proc.stderr, "")
-        out = payload(proc)
-        self.assertEqual(out["verdict"], "FAIL")
-        self.assertTrue(any("UTF-8" in p for p in out["problems"]), out["problems"])
+        self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+        self.assertIn("audit: not valid UTF-8", proc.stderr)
+        self.assertNotIn("UnicodeDecodeError", proc.stderr)
+        self.assertNotIn("Traceback", proc.stderr)
 
 
 class TestVerify(Base):
