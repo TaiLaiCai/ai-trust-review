@@ -15,6 +15,7 @@
 - **v2（提交 b9f623a）**：按预审意见修改上述行为，并补齐 `abort` 出口、崩溃窗口恢复、非 UTF-8 审计的 verify 失败，以及 PR #65 要求的 `independent_verification` 三元组。触发记录格式不变（仍 `durable-trigger/v1`），状态文件升到 `durable-trigger-state/v2`。
 - **v2 复核（提交 daa19ae，合并 main）**：执行·Hermes 独立复现预审缺陷路径，v1 复现 `stale-lease` + `rollback-unavailable`、游标停在 -1；v2 接管续作（`applied`、`resumed=true`）且 rollback 可用、verify PASS。同时把 `origin/main` 合并进本分支（唯一冲突 `capabilities/README.md`，两行能力条目均保留），使 PR #73 与 main 不再冲突，并让 main 已合入的 `check_repository` feature-map glob 校验（#65）在本分支真实跑通。
 - **修正（相对 2cc437c，另开分支，不改 APO-7-7-e04-e06）**：对照 806ceba 预审仍未在代码里锁住的部分做了补修，不改写上面各条当时的记录。`--version` 测试改为与 README 字节的 sha256 逐字比较。消费门「同一 id 只消费一次」改为直接往 `queue.jsonl` 追加第二行再 `trigger`。基线外且平台文件尚不存在的目标，在应用前以 `other-bot-changed` 拒绝，不创建文件；已存在的基线外目标同样不覆盖。非 UTF-8 审计按退出码表走契约错误 exit 2，不再收成 verify FAIL。真实平台读回与持久触发实测保持 NOT_TESTED；CI 定时作业不是替代。
+- **再修正（同一修复分支）**：没有应用前快照的 `abort` 不再删除目标文件。同一目标上有更新的 `APPLIED` 作业时，旧作业的 `rollback` 零写入拒绝。崩溃恢复在补记已生效之前重新核对其他 Bot，漂移则拉回目标并保持 `APPLY_PENDING`。
 
 ## 目标
 

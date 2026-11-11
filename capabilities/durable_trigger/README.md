@@ -79,7 +79,7 @@ v2 把这件事拆成两件，并各自有明确的出口：
 
 **续作不要求同一个租约世代**。旧租约过期后，新持有者接管并续作（`resumed=true`），审计里记 `lease-resumed-after-expiry`。v1 把作业锁死在旧世代，导致「租约过期 + 应用失败」= 游标永久卡死；v2 修掉了这一点。
 
-**崩溃窗口**：原子替换（rename）已落地、状态还没写就中断。此时平台字节等于「当时批准的候选字节」，本工具靠作业台账里的 `candidate_sha256` 认出这一点——**不会**把它当成「别人改了目标」而拒绝（那会把游标卡死），也**不会**重复应用一次；它读回确认后补齐状态并推进游标，输出里 `recovered_after_crash=true`。
+**崩溃窗口**：原子替换（rename）已落地、状态还没写就中断。此时平台字节等于「当时批准的候选字节」，本工具靠作业台账里的 `candidate_sha256` 认出这一点——**不会**把它当成「别人改了目标」而拒绝（那会把游标卡死），也**不会**重复应用一次；它读回确认后补齐状态并推进游标，输出里 `recovered_after_crash=true`。补齐之前会再核对其他 Bot：有基线内 Bot 漂移，或出现基线外 Bot，就不补记成已生效，有应用前快照时把目标原子拉回，作业继续留在 `APPLY_PENDING`（`action=other-bot-changed`）。
 
 ### 原子应用与平台读回
 
@@ -94,8 +94,8 @@ v2 把这件事拆成两件，并各自有明确的出口：
 ### 失败恢复
 
 - **APPLY_PENDING**：批准缺失、候选漂移、读回不符、其他 Bot 变了、注入故障、租约 fencing 失败、基线缺失 —— 一律标 `APPLY_PENDING` 并写审计，绝不标「已生效」。
-- **中止（abort）**：`abort --trigger-id ID` 把一个仍然卡在 `APPLY_PENDING` 的作业标记为 `ABORTED`，并推进游标越过它。这是「作业确实无人续作」时的人工出口——**没有它，一个失败的作业会把游标永久钉在它那一格**，后面所有触发都出不来。中止不改平台字节（目标若仍等于应用前字节就什么都不做；若已被写入则先原子回退）。已中止的作业再中止 → exit 0，`action=already-aborted`。非 pending 作业 → exit 1，`action=abort-unavailable`。
-- **回滚**：`rollback --trigger-id ID` 把已应用（`APPLIED`）的作业原子回滚到应用前字节；回滚后读回必须等于 `before_sha256`，不等则 exit 1，`action=rollback-failed`。已回滚的作业再回滚 → exit 0，`action=already-rolled-back`。未应用过的作业 → exit 1，`action=rollback-unavailable`（要放弃一个还没应用的作业请用 `abort`）。
+- **中止（abort）**：`abort --trigger-id ID` 把一个仍然卡在 `APPLY_PENDING` 的作业标记为 `ABORTED`，并推进游标越过它。这是「作业确实无人续作」时的人工出口——**没有它，一个失败的作业会把游标永久钉在它那一格**，后面所有触发都出不来。中止不改平台字节（目标若仍等于应用前字节就什么都不做；若已被写入则先原子回退）。还没有拍下应用前快照时（`before_present` 为 null，例如批准缺失或急停在记录快照之前就拒绝了）**不恢复、不删除**目标文件；null 不是「文件原本不存在」。已中止的作业再中止 → exit 0，`action=already-aborted`。非 pending 作业 → exit 1，`action=abort-unavailable`。
+- **回滚**：`rollback --trigger-id ID` 把已应用（`APPLIED`）的作业原子回滚到应用前字节；回滚后读回必须等于 `before_sha256`，不等则 exit 1，`action=rollback-failed`。同一目标上还有序号更大的 `APPLIED` 作业时，拒绝回滚旧作业（exit 1，`action=rollback-unavailable`，`reason=a newer applied job owns the target`），零写入；先回滚较新的作业。已回滚的作业再回滚 → exit 0，`action=already-rolled-back`。未应用过的作业 → exit 1，`action=rollback-unavailable`（要放弃一个还没应用的作业请用 `abort`）。
 - **急停**：`kill-switch --engage` 之后所有新的应用被拒绝（`action=kill-switch-engaged`，作业 `APPLY_PENDING`）；`kill-switch --release` 解除。回滚在急停期间**仍然允许**（S4-05：撤销授权／急停后停止执行，但恢复手段不能被一并锁死）。
 
 ### 审计

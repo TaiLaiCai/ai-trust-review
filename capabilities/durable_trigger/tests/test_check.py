@@ -635,6 +635,35 @@ class TestFailureRecovery(Base):
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertEqual(payload(proc)["action"], "rollback-unavailable")
 
+    def test_rollback_of_an_older_job_does_not_clobber_a_newer_apply(self):
+        self.prepare()
+        self.write_candidate("v2", "bot-a", 3)
+        approved = run("approve", "--root", self.root, "--candidate-version", "v2",
+                       "--approver", "tester")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.enqueue("t1", 0, "bot-a", "v1")
+        self.enqueue("t2", 1, "bot-a", "v2")
+        self.assertEqual(self.trigger().returncode, 0)
+        self.assertEqual(self.trigger().returncode, 0)
+        newer = self.platform_bytes("bot-a")
+        refused = run("rollback", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+        out = payload(refused)
+        self.assertEqual(out["action"], "rollback-unavailable")
+        self.assertIn("t2", out["newer_jobs"])
+        self.assertEqual(self.platform_bytes("bot-a"), newer)
+        state = payload(run("status", "--root", self.root))
+        self.assertEqual(state["jobs"]["t1"]["status"], "APPLIED")
+        self.assertEqual(state["jobs"]["t2"]["status"], "APPLIED")
+        ver = run("verify", "--root", self.root)
+        self.assertEqual(ver.returncode, 0, ver.stdout + ver.stderr)
+        rolled_new = run("rollback", "--root", self.root, "--trigger-id", "t2")
+        self.assertEqual(rolled_new.returncode, 0, rolled_new.stdout + rolled_new.stderr)
+        rolled_old = run("rollback", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(rolled_old.returncode, 0, rolled_old.stdout + rolled_old.stderr)
+        ver = run("verify", "--root", self.root)
+        self.assertEqual(ver.returncode, 0, ver.stdout + ver.stderr)
+
     def test_a_second_rollback_is_a_noop(self):
         self.prepare()
         self.enqueue("t1", 0, "bot-a", "v1")
@@ -691,6 +720,31 @@ class TestAbort(Base):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertEqual(payload(proc)["seq"], 1)
 
+    def test_abort_without_a_before_state_does_not_delete_the_target(self):
+        # 批准缺失发生在记录应用前快照之前。before_present 为 null，
+        # 中止不得把 null 当成「文件原本不存在」而删掉目标。
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        # Drop the approval after baseline so the refusal happens first.
+        state_path = os.path.join(self.root, "state.json")
+        with open(state_path, encoding="utf-8") as fh:
+            state = json.load(fh)
+        state["approvals"] = {}
+        with open(state_path, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, sort_keys=True, separators=(",", ":"))
+            fh.write("\n")
+        before = self.platform_bytes("bot-a")
+        refused = self.trigger()
+        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+        self.assertEqual(payload(refused)["action"], "approval-missing")
+        recorded = payload(run("status", "--root", self.root))
+        self.assertIsNone(recorded["jobs"]["t1"]["before_present"])
+        proc = run("abort", "--root", self.root, "--trigger-id", "t1")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertFalse(payload(proc)["platform_restored"])
+        self.assertEqual(self.platform_bytes("bot-a"), before)
+        self.assertTrue(os.path.exists(os.path.join(self.platform_dir, "bot-a.json")))
+
     def test_abort_of_a_non_pending_job_is_unavailable(self):
         self.prepare()
         self.enqueue("t1", 0, "bot-a", "v1")
@@ -743,6 +797,35 @@ class TestCrashRecoveryAndAudit(Base):
         state = payload(run("status", "--root", self.root))
         self.assertEqual(state["jobs"]["t1"]["status"], "APPLIED")
         self.assertEqual(state["cursor_seq"], 0)
+
+    def test_crash_recovery_refuses_when_another_bot_drifted(self):
+        self.prepare()
+        self.enqueue("t1", 0, "bot-a", "v1")
+        original = self.platform_bytes("bot-a")
+        self.assertEqual(self.trigger().returncode, 0)
+        state_path = os.path.join(self.root, "state.json")
+        with open(state_path, encoding="utf-8") as fh:
+            state = json.load(fh)
+        job = state["jobs"]["t1"]
+        job["status"] = "APPLY_PENDING"
+        job["after_sha256"] = None
+        job["reason"] = "crashed-before-state-write"
+        state["cursor_seq"] = -1
+        state["consumed"] = {}
+        with open(state_path, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, sort_keys=True, separators=(",", ":"))
+        self.write_platform("bot-b", 9, {"mode": "changed-during-crash"})
+        proc = self.trigger()
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        out = payload(proc)
+        self.assertEqual(out["action"], "other-bot-changed")
+        self.assertEqual(out["result"], "APPLY_PENDING")
+        self.assertIn("bot-b", out["drifted_bots"])
+        self.assertNotEqual(out.get("action"), "applied")
+        self.assertEqual(self.platform_bytes("bot-a"), original)
+        state = payload(run("status", "--root", self.root))
+        self.assertEqual(state["jobs"]["t1"]["status"], "APPLY_PENDING")
+        self.assertEqual(state["cursor_seq"], -1)
 
     def test_a_non_utf8_audit_is_a_contract_error(self):
         # 退出码表把编码错误定为 2，与队列同一条 ContractError 路径。

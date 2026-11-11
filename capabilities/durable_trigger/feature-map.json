@@ -50,7 +50,8 @@
       "a failed apply leaves the job at APPLY_PENDING with before_sha256 and before_present",
       "the next trigger resumes the pending job when it sits at the cursor, under the same or a newer lease generation",
       "resume re-checks the target bytes against the recorded before_sha256; mismatch -> exit 1 action=conflict-frozen",
-      "a crash between the atomic rename and the state write is recognized via the recorded candidate_sha256 and completed with recovered_after_crash=true, never frozen and never applied twice"
+      "a crash between the atomic rename and the state write is recognized via the recorded candidate_sha256 and completed with recovered_after_crash=true, never frozen and never applied twice",
+      "crash recovery rechecks other bots before completing; drift or an unknown bot keeps APPLY_PENDING, restores the target when a before-state exists, and does not report applied"
     ],
     "atomic_apply": [
       "apply order: lease -> fencing -> kill switch -> approval -> candidate digest -> other bots -> target drift -> record before-state -> atomic replace -> platform readback -> other bots again -> state -> audit",
@@ -67,7 +68,9 @@
     "failure_recovery": [
       "approval-missing, stale-candidate, baseline-missing, readback-mismatch, other-bot-changed, injected failure, stale-lease -> job status APPLY_PENDING, never 'applied'",
       "abort --trigger-id releases a stuck APPLY_PENDING job -> ABORTED, cursor advances past it; a second abort -> exit 0 action=already-aborted; a non-pending job -> exit 1 action=abort-unavailable",
+      "abort does not restore or delete the target when before_present is null; null is not 'file was absent'",
       "rollback restores the pre-apply bytes atomically and verifies the readback; mismatch -> exit 1 action=rollback-failed",
+      "rollback of an older APPLIED job is refused with zero writes when a newer APPLIED job owns the same target",
       "rollback of a never-applied job -> exit 1 action=rollback-unavailable; second rollback -> exit 0 action=already-rolled-back",
       "kill-switch --engage blocks new applies (exit 1 action=kill-switch-engaged) but still allows rollback"
     ],

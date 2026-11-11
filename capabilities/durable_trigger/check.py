@@ -700,12 +700,37 @@ def _execute(root, state, trigger, token, resumed, inject, lease_expired=False):
         approval = state["approvals"].get(version)
         if approval and approval["candidate_sha256"] == recorded_digest \
                 and platform_digest(root, target) == recorded_digest:
+            expected = expected_state(state)
+            others = sorted(b for b in expected if b != target)
+            drifted = [b for b in others if platform_digest(root, b) != expected[b]]
+            unknown = [b for b in platform_bots(root)
+                       if b not in state["platform_baseline"] and b != target]
+            if drifted or unknown or target not in state["platform_baseline"]:
+                # 替换已经落地，但其他 Bot 在崩溃窗口里变了：不能补记成已生效。
+                # 有应用前快照时把目标拉回去，作业继续留在 APPLY_PENDING。
+                if job.get("before_present") is not None:
+                    _restore(root, target, job, jid)
+                unknown_bots = sorted(set(unknown))
+                if target not in state["platform_baseline"]:
+                    unknown_bots = sorted(set(unknown_bots + [target]))
+                job["status"] = "APPLY_PENDING"
+                job["reason"] = "other-bot-changed"
+                job["updated_at"] = now_iso()
+                state["jobs"][jid] = job
+                save_state(root, state)
+                audit(root, {"ts": now_iso(), "action": "apply-refused", "trigger_id": jid,
+                             "seq": trigger["seq"], "target_bot": target,
+                             "result": "APPLY_PENDING", "reason": "other-bot-changed",
+                             "drifted_bots": drifted, "unknown_bots": unknown_bots,
+                             "detail": "other bots changed before crash recovery completed",
+                             "lease_token": token})
+                raise Rejected({"action": "other-bot-changed", "id": jid,
+                                "result": "APPLY_PENDING", "drifted_bots": drifted,
+                                "unknown_bots": unknown_bots})
             return _complete_apply(root, state, trigger, job, token, resumed=True,
                                    digest=recorded_digest,
                                    before_digest=job.get("before_sha256"),
-                                   others=sorted(b for b in expected_state(state)
-                                                 if b != target),
-                                   recovered=True)
+                                   others=others, recovered=True)
 
     raw, cand = load_candidate(root, version)
     digest = sha256_hex(raw)
@@ -951,13 +976,18 @@ def _complete_apply(root, state, trigger, job, token, resumed, digest, before_di
 
 
 def _restore(root, target, job, jid):
-    """把目标 Bot 的平台文件原子恢复到应用前字节。"""
+    """把目标 Bot 的平台文件原子恢复到已记录的应用前字节。
+
+    before_present 为 None 表示还没有拍下应用前快照。那不是「文件原本不存在」，
+    不能据此删除目标。
+    """
     path = platform_path(root, target)
-    if job.get("before_present"):
+    if job.get("before_present") is True:
         backup = root / "backups" / ("%s.json" % jid)
         data = read_file_bytes(backup, "backup", MAX_PLATFORM_BYTES)
         write_atomic(path, data)
-    else:
+        return
+    if job.get("before_present") is False:
         try:
             path.unlink()
         except OSError as exc:
@@ -993,10 +1023,11 @@ def _abort_locked(root, args):
                         "reason": "job is not pending", "status": job.get("status")})
     target = job.get("target_bot")
     seq = job.get("seq")
-    # 中止只解除「这一格被卡住」的占位，不动平台字节：
-    # 目标若仍等于应用前字节，说明什么都没写进去，无需回滚。
+    # 中止只解除「这一格被卡住」的占位。没有拍下应用前快照时，不能把
+    # before_present=None 当成「文件原本不存在」而去删除目标。
+    captured = job.get("before_present") is not None
     current = platform_digest(root, target) if target else None
-    if current is not None and current == job.get("before_sha256"):
+    if not captured or current == job.get("before_sha256"):
         restored = False
     else:
         _restore(root, target, job, jid)
@@ -1040,6 +1071,18 @@ def _rollback_locked(root, args):
         raise Rejected({"action": "rollback-unavailable", "id": jid,
                         "reason": "job was never applied", "status": job.get("status")})
     target = job["target_bot"]
+    newer = sorted(
+        other_id for other_id, other in state["jobs"].items()
+        if other_id != jid
+        and other.get("status") == "APPLIED"
+        and other.get("target_bot") == target
+        and isinstance(other.get("seq"), int)
+        and isinstance(job.get("seq"), int)
+        and other["seq"] > job["seq"])
+    if newer:
+        raise Rejected({"action": "rollback-unavailable", "id": jid,
+                        "reason": "a newer applied job owns the target",
+                        "newer_jobs": newer, "status": job.get("status")})
     backup = root / "backups" / ("%s.json" % jid)
     if job.get("before_present"):
         data = read_file_bytes(backup, "backup", MAX_PLATFORM_BYTES)
