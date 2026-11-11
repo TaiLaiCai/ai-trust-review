@@ -26,8 +26,8 @@
   "rollback": "delete capabilities/event_gate/ directory; CI capability-tests auto-shrinks",
   "tests": ["tests/test_check.py"],
   "independent_verification": {
-    "status": "NOT_TESTED",
-    "verifier": null,
-    "head_sha": null
+    "status": "REPRODUCED",
+    "verifier": "预审·Grok (4a5a20a4-a312-4515-a8ee-bcf304cca4f0)",
+    "head_sha": "3d2ee5019646f521eeaf560cd970cf1cac0646c1"
   }
 }
