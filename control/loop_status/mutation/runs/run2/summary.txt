@@ -1,0 +1,29 @@
+run_id: run2
+tool: mutmut 3.3.1
+tool_api: mutmut.file_mutation.create_mutations + deep_replace
+libcst: 1.7.0
+python: 3.12.3
+git_head: 6638ce2adc1c026a9eb208233a6eb6301a912c4a
+definition_sha256: f097602ae367bcf5fa7bb1be2ad8a66bbd715f45f4173289b834ec7b3ef5165f
+target: control/loop_status/history.py
+target_sha256: dc9c7f1d6885815bfe930fbf6c713a3130fc6550f541921f15d58303ad07734c
+tests_sha256: af0b09d8abd0b9e864dca9ffe04415c6e5433fbae5ede79e2c49766fcd5d7774
+timeout_seconds: 10
+baseline_exit_code: 0
+generated: 465
+invalid: 8
+invalid_I1_syntax: 0
+invalid_I2_identical: 8
+invalid_I3_apply_error: 0
+equivalent: 0
+killed: 450
+survived: 7
+timeout: 0
+valid: 457
+kill_rate: 450/457
+kill_rate_rounded_6dp: 0.984683
+bar_met: yes
+equivalent_patterns: none
+survived_ids: m0037 m0061 m0064 m0069 m0070 m0071 m0095
+timeout_ids: -
+invalid_ids: m0015 m0024 m0178 m0179 m0184 m0185 m0197 m0198
