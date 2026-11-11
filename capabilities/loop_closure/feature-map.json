@@ -1,0 +1,63 @@
+{
+  "capability": "loop-closure/v1",
+  "version": "1",
+  "producer": "Pi (paperclip_runner) implementation in this PR; not an authenticated Bot receipt",
+  "regressions": {
+    "issue": 71,
+    "fix": "empty per-step citations list now yields an empty_citations finding; CLOSED_VERIFIED requires at least one verifiable citation per step"
+  },
+  "steps": [
+    {
+      "id": "closure-happy-path",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "complete step evidence with matching head, digest, citation and independent verifier yields exit 0 CLOSED_VERIFIED; status field echoed as status_ignored only",
+      "tests": [
+        "test_closed_verified",
+        "test_history_kept_when_loop_present"
+      ]
+    },
+    {
+      "id": "roadmap-failure-modes",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "empty steps, missing/non-independent verifier, stale head sha, deleted historical loop, misquoted or out-of-range line each produce their finding with exit 1; summary closed never changes the verdict",
+      "tests": [
+        "test_empty_steps_rejected_even_when_status_closed",
+        "test_empty_citations_rejected_even_when_all_else_passes",
+        "test_summary_closed_cannot_override_empty_citations",
+        "test_empty_citations_on_one_step_not_closed_overall",
+        "test_missing_or_nonindependent_verifier",
+        "test_stale_head_sha",
+        "test_history_deleted_loop",
+        "test_line_misquote",
+        "test_line_out_of_range_and_missing_file",
+        "test_summary_closed_cannot_override_failed_evidence"
+      ]
+    },
+    {
+      "id": "evidence-integrity",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "failed step, missing output bytes and digest mismatch are findings; malformed reports, bad expected head, duplicate keys exit 5, never 1; output canonical and deterministic; no filesystem writes",
+      "tests": [
+        "test_failed_step_and_digest_mismatch_and_missing_output",
+        "test_input_errors_exit_5",
+        "test_expected_head_missing_or_malformed_is_input_error",
+        "test_all_findings_listed_at_once",
+        "test_deterministic_bytes",
+        "test_read_only_no_filesystem_writes"
+      ]
+    },
+    {
+      "id": "fingerprint",
+      "command": "python3 capabilities/loop_closure/detect.py --version",
+      "expected": "exit 0 printing v1 plus full sha256 of detect.py, locked by test",
+      "tests": [
+        "test_version_fingerprint"
+      ]
+    }
+  ],
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}

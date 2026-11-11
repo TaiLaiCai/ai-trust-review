@@ -1,0 +1,229 @@
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import subprocess
+import sys
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location("detect", ROOT / "detect.py")
+d = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(d)
+
+HEAD = "a" * 40
+OTHER_HEAD = "b" * 40
+
+
+def encode(value):
+    return json.dumps(value, ensure_ascii=False).encode()
+
+
+def step(sid="s1", exit_code=0, citations=None, path="a.txt", line=1, excerpt="hello", command=("true",)):
+    if citations is None:
+        citations = ((path, line, excerpt),)
+    return {"id": sid, "command": list(command), "exit_code": exit_code,
+            "output_sha256": hashlib.sha256(b"ok\n").hexdigest(),
+            "citations": [{"path": p, "line": l, "excerpt": e} for p, l, e in citations]}
+
+
+def report(steps=None, loops=("L1",), head=HEAD, verifier="验收方", status="closed"):
+    return {"schema_version": "loop-closure/v1", "head_sha": head,
+            "producer": "生产方", "verifier": verifier, "status": status,
+            "loops": list(loops), "steps": [] if steps is None else list(steps)}
+
+
+def run(rep, files=None, outputs=None, expected=HEAD, previous=()):
+    return d.assess(encode(rep), files if files is not None else {"a.txt": b"hello\n"},
+                    outputs if outputs is not None else {"s1": b"ok\n"}, expected, list(previous))
+
+
+def findings(res):
+    return sorted(f["finding"] for f in json.loads(res[1])["findings"])
+
+
+class DetectTests(unittest.TestCase):
+    def test_empty_citations_rejected_even_when_all_else_passes(self):
+        """回归 #71 反例：步骤 exit 0、输出摘要匹配、verifier 独立，但 citations=[] 不得 CLOSED_VERIFIED。"""
+        code, raw = run(report([step(citations=())]))
+        self.assertEqual(code, 1)
+        result = json.loads(raw)
+        self.assertEqual(result["result"], "NOT_CLOSED")
+        self.assertIn("empty_citations", findings((code, raw)))
+        self.assertNotIn("step_failed", findings((code, raw)))
+
+    def test_summary_closed_cannot_override_empty_citations(self):
+        rep = report([step(citations=())], status="closed")
+        code, raw = run(rep)
+        self.assertEqual((code, json.loads(raw)["result"]), (1, "NOT_CLOSED"))
+        self.assertEqual(json.loads(raw)["status_ignored"], "closed")
+
+    def test_empty_citations_on_one_step_not_closed_overall(self):
+        """多步骤里只要一步 citations 为空，整体不闭合。"""
+        steps = [step(sid="s1"), step(sid="s2", citations=())]
+        code, raw = run(report(steps), outputs={"s1": b"ok\n", "s2": b"ok\n"})
+        self.assertEqual(code, 1)
+        self.assertIn("empty_citations", findings((code, raw)))
+
+    def test_closed_verified(self):
+        code, raw = run(report([step()]))
+        self.assertEqual((code, json.loads(raw)["result"]), (0, "CLOSED_VERIFIED"))
+        self.assertEqual(json.loads(raw)["status_ignored"], "closed")
+
+    def test_empty_steps_rejected_even_when_status_closed(self):
+        code, raw = run(report([]))
+        self.assertEqual(code, 1)
+        self.assertIn("empty_steps", findings((code, raw)))
+
+    def test_missing_or_nonindependent_verifier(self):
+        for verifier in ("", " ", "\t", "生产方", "生产方 ", "PRODUCER".lower()):
+            rep = report([step()], verifier=verifier)
+            rep["producer"] = "producer" if verifier == "PRODUCER".lower() else "生产方"
+            code, raw = run(rep)
+            self.assertEqual(code, 1, verifier)
+            self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_verifier_required_field(self):
+        rep = report([step()])
+        del rep["verifier"]
+        self.assertEqual(run(rep)[0], 5)
+
+    def test_bypass1_pure_zero_width_verifier_treated_as_missing(self):
+        """类型1：纯零宽/纯 Cf 字符的 verifier 视为缺失，verifier_not_independent + missing verifier。"""
+        for verifier in ("\u200b", "\ufeff"):
+            rep = report([step()], verifier=verifier)
+            rep["producer"] = "生产方"
+            code, raw = run(rep)
+            self.assertEqual(code, 1, verifier)
+            fs = findings((code, raw))
+            self.assertIn("verifier_not_independent", fs)
+            self.assertTrue(any("missing verifier" in f["detail"]
+                                for f in json.loads(raw)["findings"]))
+
+    def test_bypass2_zero_width_embedded_in_name_rejected(self):
+        """类型2：名字尾部或中间夹零宽，规范化后与 producer 同名，拒绝。"""
+        for verifier in ("生产方\u200b", "生\u200b产方"):
+            rep = report([step()], verifier=verifier)
+            rep["producer"] = "生产方"
+            code, raw = run(rep)
+            self.assertEqual(code, 1, verifier)
+            self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_bypass3_cf_prefix_zwj_same_name_rejected(self):
+        """类型3：ZWJ 等 Cf 前缀，规范化后与 producer 同名，拒绝。"""
+        rep = report([step()], verifier="\u200d生产方")
+        rep["producer"] = "生产方"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_bypass4_fullwidth_nfkc_same_name_rejected(self):
+        rep = report([step()], verifier="\uff50roducer")  # 全角 p
+        rep["producer"] = "producer"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_real_case_difference_still_rejected(self):
+        rep = report([step()], verifier="Producer")
+        rep["producer"] = "producer"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", findings((code, raw)))
+
+    def test_distinct_names_still_pass_after_normalization(self):
+        rep = report([step()], verifier="验收方\u200b")
+        rep["producer"] = "生产方"
+        code, _ = run(rep)
+        self.assertEqual(code, 0)
+
+    def test_stale_head_sha(self):
+        code, raw = run(report([step()]), expected=OTHER_HEAD)
+        self.assertEqual(code, 1)
+        self.assertIn("stale_head_sha", findings((code, raw)))
+
+    def test_expected_head_missing_or_malformed_is_input_error(self):
+        self.assertEqual(run(report([step()]), expected=None)[0], 5)
+        self.assertEqual(run(report([step()]), expected="zz")[0], 5)
+
+    def test_history_deleted_loop(self):
+        code, raw = run(report([step()], loops=("L2",)), previous=("L1", "L2"))
+        self.assertEqual(code, 1)
+        got = findings((code, raw))
+        self.assertIn("history_deleted", got)
+
+    def test_history_kept_when_loop_present(self):
+        code, _ = run(report([step()], loops=("L1",)), previous=("L1",))
+        self.assertEqual(code, 0)
+
+    def test_line_misquote(self):
+        code, raw = run(report([step(excerpt="hello world")]))
+        self.assertEqual(code, 1)
+        self.assertIn("misquoted_line", findings((code, raw)))
+
+    def test_line_out_of_range_and_missing_file(self):
+        code, raw = run(report([step(line=99)]))
+        self.assertIn("line_out_of_range", findings((code, raw)))
+        code, raw = run(report([step(path="nope.txt")]))
+        self.assertIn("missing_cited_file", findings((code, raw)))
+
+    def test_failed_step_and_digest_mismatch_and_missing_output(self):
+        code, raw = run(report([step(exit_code=1)]))
+        self.assertIn("step_failed", findings((code, raw)))
+        code, raw = run(report([step()]), outputs={"s1": b"tampered\n"})
+        self.assertIn("output_digest_mismatch", findings((code, raw)))
+        code, raw = run(report([step()]), outputs={})
+        self.assertIn("missing_output", findings((code, raw)))
+
+    def test_summary_closed_cannot_override_failed_evidence(self):
+        code, raw = run(report([step(exit_code=2), step("s2")], status="closed"),
+                        outputs={"s1": b"ok\n", "s2": b"ok\n"})
+        self.assertEqual(code, 1)
+        self.assertEqual(json.loads(raw)["status_ignored"], "closed")
+
+    def test_all_findings_listed_at_once(self):
+        rep = report([step(), step("s2", exit_code=1)], loops=("L2",), head=OTHER_HEAD)
+        code, raw = run(rep, previous=("L1",), outputs={"s1": b"ok\n"})
+        got = findings((code, raw))
+        for expected in ("stale_head_sha", "history_deleted", "step_failed",
+                         "missing_output"):
+            self.assertIn(expected, got)
+
+    def test_input_errors_exit_5(self):
+        base = report([step()])
+        bad = report([step()])
+        bad["schema_version"] = "loop-closure/v2"
+        self.assertEqual(run(bad)[0], 5)
+        bad = report([step()])
+        bad["extra"] = 1
+        self.assertEqual(run(bad)[0], 5)
+        self.assertEqual(d.assess(b"", {}, {}, HEAD, [])[0], 5)
+        dup = b'{"schema_version":"loop-closure/v1","schema_version":"loop-closure/v1"}'
+        self.assertEqual(d.assess(dup, {}, {}, HEAD, [])[0], 5)
+        self.assertEqual(run(base, files={"a.txt": "text"})[0], 5)
+        self.assertEqual(run(base, previous=["L1", "L1"])[0], 5)
+
+    def test_deterministic_bytes(self):
+        first = run(report([step()]))
+        second = run(report([step()]))
+        self.assertEqual(first, second)
+        code, raw = first
+        self.assertTrue(raw.endswith(b"\n"))
+        self.assertEqual(raw, (json.dumps(json.loads(raw), ensure_ascii=False, sort_keys=True,
+                                          separators=(",", ":")) + "\n").encode())
+
+    def test_read_only_no_filesystem_writes(self):
+        before = sorted(p.name for p in ROOT.rglob("*"))
+        run(report([step()]))
+        self.assertEqual(sorted(p.name for p in ROOT.rglob("*")), before)
+
+    def test_version_fingerprint(self):
+        proc = subprocess.run([sys.executable, str(ROOT / "detect.py"), "--version"],
+                              capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0)
+        digest = hashlib.sha256((ROOT / "detect.py").read_bytes()).hexdigest()
+        self.assertEqual(proc.stdout.strip(), f"v1 {digest}")
+
+
+if __name__ == "__main__":
+    unittest.main()
