@@ -365,6 +365,19 @@ class Surface(unittest.TestCase):
         self.assertEqual(raw, error_bytes("invalid history inputs"))
         self.assertEqual(code, 5)
 
+    def test_hour_above_23_is_rejected_by_the_explicit_guard(self):
+        # +24:00 and +25:00 are inside the TIME grammar. The original guard
+        # raises ValueError("offset") before fromisoformat. A one-digit hour
+        # slice or a bound of 24 lets fromisoformat raise a different ValueError;
+        # that context is what timestamp() returns to callers.
+        for ts in ("2026-11-02T09:00+24:00", "2026-11-02T09:00+25:00", "2026-11-02T09:00-24:00"):
+            with self.subTest(ts=ts):
+                with self.assertRaises(h.InputError) as caught:
+                    h.timestamp(ts)
+                self.assertEqual(str(caught.exception), "invalid calendar time or offset")
+                self.assertIsInstance(caught.exception.__context__, ValueError)
+                self.assertEqual(caught.exception.__context__.args, ("offset",))
+
     def test_pending_is_an_accepted_state(self):
         code, raw = assess({}, b"", {"A": "pending"}, T3, [], OWNERS, ["owner"])
         self.assertEqual(code, 0)
