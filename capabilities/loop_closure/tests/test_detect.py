@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import unicodedata
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -109,21 +110,57 @@ class DetectTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("verifier_not_independent", findings((code, raw)))
 
-    def test_internal_whitespace_in_name_is_input_error(self):
-        for verifier in ("wor ker", "wor\u3000ker", "wor\u00a0ker", "验\t收方"):
-            code, raw = run(report([step()], verifier=verifier))
-            body = json.loads(raw)
-            self.assertEqual((code, body["result"]), (5, "INPUT_ERROR"), verifier)
-            self.assertIn("internal whitespace", body["reason"])
+    def test_every_nfkc_whitespace_code_point_is_consistent(self):
+        points = []
+        for cp in range(0x110000):
+            if 0xD800 <= cp <= 0xDFFF:
+                continue
+            expanded = unicodedata.normalize("NFKC", chr(cp))
+            if any(ch.isspace() for ch in expanded):
+                points.append(cp)
+        blob = "".join(f"{cp:06X}\n" for cp in points).encode()
+        self.assertEqual(len(points), 81)
+        self.assertEqual(hashlib.sha256(blob).hexdigest(),
+                         "a66f5b7bd4088ee8b483306104ad2c9639d2dd0f20c1179058fc981902174206")
+        self.assertIn(0x3000, points)
+        for cp in points:
+            ch = chr(cp)
+            expanded = unicodedata.normalize("NFKC", ch)
+            pure = all(item.isspace() for item in expanded)
+            self.assertEqual(d.normalize_name(ch + "admin"), d.normalize_name(expanded + "admin"), cp)
+            self.assertEqual(d.normalize_name("ad" + ch + "min"), d.normalize_name("ad" + expanded + "min"), cp)
+            self.assertEqual(d.normalize_name("admin" + ch), d.normalize_name("admin" + expanded), cp)
+            if pure:
+                self.assertEqual(d.normalize_name(ch + "admin"), "admin", cp)
+                self.assertEqual(d.normalize_name("admin" + ch), "admin", cp)
+                self.assertEqual(d.normalize_name("ad" + ch + "min"), "ad min", cp)
+                self.assertNotEqual(d.normalize_name("ad" + ch + "min"), "admin", cp)
+
+    def test_ideographic_space_collapses_and_does_not_join(self):
+        self.assertEqual(d.normalize_name("ad\u3000min"), "ad min")
+        self.assertNotEqual(d.normalize_name("ad\u3000min"), d.normalize_name("admin"))
+        self.assertEqual(d.normalize_name("ad\u3000min"), d.normalize_name("ad min"))
+        rep = report([step()], verifier="ad\u3000min")
+        rep["producer"] = "admin"
+        self.assertEqual(run(rep)[0], 0)
+        rep["producer"] = "ad min"
+        code, raw = run(rep)
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", [item["finding"] for item in json.loads(raw)["findings"]])
+        # producer still rejects leading/trailing whitespace before normalization.
         rep = report([step()], verifier="验收方")
-        rep["producer"] = "wor ker"
+        rep["producer"] = " 生产方"
         code, raw = run(rep)
         self.assertEqual(code, 5)
-        self.assertEqual(json.loads(raw)["result"], "INPUT_ERROR")
-        code, _ = run(report([step()], verifier="  验收方  "))
-        self.assertEqual(code, 0)
-        code, _ = run(report([step()], verifier="\u3000验收方\u00a0"))
-        self.assertEqual(code, 0)
+        self.assertIn("invalid producer", json.loads(raw)["reason"])
+        code, raw = run(report([step()], verifier="生产方\u200b"))
+        self.assertEqual(code, 1)
+        self.assertIn("verifier_not_independent", [item["finding"] for item in json.loads(raw)["findings"]])
+        rep = report([step()], verifier="验收方")
+        rep["producer"] = "a\u0000b"
+        code, raw = run(rep)
+        self.assertEqual((code, json.loads(raw)["result"]), (5, "INPUT_ERROR"))
+        self.assertIn("control character", json.loads(raw)["reason"])
 
     def test_distinct_names_still_pass_after_normalization(self):
         rep = report([step()], verifier="验收方\u200b")

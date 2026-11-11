@@ -48,22 +48,35 @@ def nonempty(value):
     return isinstance(value, str) and bool(value) and value == value.strip()
 
 
+# Deleted after NFKC. Other format characters are not removed.
+ZERO_WIDTH = frozenset("\u200b\u200c\u200d\u2060\ufeff")
+
+
 def normalize_name(value):
     """Normalize an agent name for the independence comparison.
 
-    Remove every Unicode format (Cf) character — including zero-width spaces —
-    before applying NFKC (so full-width Latin folds back), strip leading and
-    trailing whitespace, then casefold. A name that normalizes to empty counts
-    as missing. Internal whitespace after that fold, including U+3000, NBSP,
-    tabs and other Unicode spaces, is an input error. It is not deleted and
-    not treated as a different identity.
+    Order: NFKC, delete U+200B/U+200C/U+200D/U+2060/U+FEFF, collapse every
+    whitespace run to one ASCII space, strip, casefold. A name that
+    normalizes to empty counts as missing. A remaining non-whitespace
+    control character (Unicode category Cc) is an input error.
     """
     if not isinstance(value, str):
         return ""
-    stripped = "".join(ch for ch in value if unicodedata.category(ch) != "Cf")
-    folded = unicodedata.normalize("NFKC", stripped).strip().casefold()
-    if any(ch.isspace() for ch in folded):
-        raise InputError("name contains internal whitespace")
+    text = unicodedata.normalize("NFKC", value)
+    text = "".join(ch for ch in text if ch not in ZERO_WIDTH)
+    collapsed = []
+    pending_space = False
+    for ch in text:
+        if ch.isspace():
+            pending_space = True
+            continue
+        if pending_space and collapsed:
+            collapsed.append(" ")
+        pending_space = False
+        collapsed.append(ch)
+    folded = "".join(collapsed).casefold()
+    if any(unicodedata.category(ch) == "Cc" for ch in folded):
+        raise InputError("name contains a control character")
     return folded
 
 
