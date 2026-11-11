@@ -1,0 +1,54 @@
+{
+  "schema_version": "message-identity-config/v1",
+  "adapter": "paperclip",
+  "instance_id": "example-instance",
+  "company_id": "example-company",
+  "platform_build": "example-build",
+  "identities": {
+    "agent.producer": [
+      "执行·Hermes",
+      "hermes"
+    ],
+    "agent.verifier": [
+      "预审·Claude",
+      "claude"
+    ],
+    "agent.chief": [
+      "预审·Grok",
+      "grok"
+    ],
+    "human.owner": [
+      "主人",
+      "local-board"
+    ]
+  },
+  "agent_ids": {
+    "agent-id-producer": "agent.producer",
+    "agent-id-producer-alias": "hermes",
+    "agent-id-verifier": "agent.verifier",
+    "agent-id-chief": "agent.chief"
+  },
+  "user_ids": {
+    "user-id-owner": "human.owner"
+  },
+  "owner_identities": [
+    "human.owner"
+  ],
+  "units": [
+    {
+      "unit_id": "unit.status-summary",
+      "capability_scope": "status-summary",
+      "producer": "agent.producer",
+      "allowed_verifiers": [
+        "agent.verifier"
+      ],
+      "artifact_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "versions": {
+        "model": "m1",
+        "skill": "s1",
+        "policy": "p1",
+        "standard": "TRUST-REVIEW-1.0"
+      }
+    }
+  ]
+}

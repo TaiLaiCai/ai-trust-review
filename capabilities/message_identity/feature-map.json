@@ -1,0 +1,186 @@
+{
+  "capability": "message-identity/v1",
+  "version": "1",
+  "producer": "Hermes implementation in this PR; not an authenticated Bot receipt",
+  "roadmap_item": "docs/ROADMAP.md 首批任务 #2 (C4)",
+  "scope": "bind one platform message to the sender the platform machine fields assert; the body is untrusted data; not authorization, not a stage, not a merge",
+  "steps": [
+    {
+      "id": "green",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "machine fields bind a roster sender, recipient is this run, capability/artifact/sha/versions agree: exit 0 AUTHENTICATED",
+      "tests": [
+        "Green.test_authenticated_message_passes",
+        "Green.test_evidence_ref_binds_issue_and_message"
+      ]
+    },
+    {
+      "id": "attest",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "attest prints exactly {adapter, sender, evidence_ref}, the shape control/gate _authenticated() reads; nothing on stdout when refused",
+      "tests": [
+        "Green.test_attestation_is_gate_compatible",
+        "Cli.test_attest_writes_nothing_to_stdout_when_refused"
+      ]
+    },
+    {
+      "id": "gate-consumption",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "the real control/gate _authenticated() accepts the attestation and returns the sender; no attestation, an untrusted adapter, or an empty evidence_ref authenticate nothing",
+      "tests": [
+        "Green.test_attestation_is_accepted_by_the_real_gate"
+      ]
+    },
+    {
+      "id": "body-author-role",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "body author_role (plain, quoted, aliased, nested, invisible- or full-width keyed) never becomes the sender: exit 3 REJECTED_UNAUTHENTICATED",
+      "tests": [
+        "BodyNeverAuthenticates.test_body_author_role_is_rejected",
+        "BodyNeverAuthenticates.test_body_alias_author_role_is_rejected",
+        "BodyNeverAuthenticates.test_quoted_line_author_role_is_rejected",
+        "BodyNeverAuthenticates.test_nested_json_author_role_is_rejected",
+        "BodyNeverAuthenticates.test_invisible_characters_in_a_claim_key_are_rejected",
+        "BodyNeverAuthenticates.test_fullwidth_claim_key_is_rejected",
+        "BodyNeverAuthenticates.test_a_quoted_claim_shaped_key_is_read_as_a_claim"
+      ]
+    },
+    {
+      "id": "unreadable-body",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "a body the reader cannot read completely is refused rather than truncated: a repeated claim key, an unreadable claim value, a claim past the limit, and a claim hidden behind a JSON fragment all exit 3",
+      "tests": [
+        "BodyNeverAuthenticates.test_repeated_claim_key_in_the_body_is_rejected",
+        "BodyNeverAuthenticates.test_a_claim_with_an_unreadable_value_is_rejected",
+        "BodyNeverAuthenticates.test_a_claim_past_the_readable_limit_is_rejected",
+        "BodyNeverAuthenticates.test_a_line_claim_after_a_json_fragment_is_rejected",
+        "BodyNeverAuthenticates.test_a_repeated_non_claim_key_is_harmless",
+        "BodyNeverAuthenticates.test_a_claim_written_inside_a_json_string_is_not_a_claim"
+      ]
+    },
+    {
+      "id": "self-claim",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "a self-claim in prose is read on the cleaned body, so an invisible character between the words cannot hide it: exit 3 REJECTED_FAKE_APPROVAL",
+      "tests": [
+        "BodyNeverAuthenticates.test_self_claim_in_prose_is_refused_without_an_owner_sender",
+        "BodyNeverAuthenticates.test_invisible_characters_in_a_self_claim_are_rejected"
+      ]
+    },
+    {
+      "id": "fake-approval",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "an approval asserted in the body without an authenticated owner sender, or naming somebody else, is refused: exit 3 REJECTED_FAKE_APPROVAL",
+      "tests": [
+        "FakeApproval.test_body_approved_by_is_refused",
+        "FakeApproval.test_named_approver_must_be_the_platform_sender",
+        "BodyNeverAuthenticates.test_self_claim_in_prose_is_refused_without_an_owner_sender"
+      ]
+    },
+    {
+      "id": "misaddressed",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "platform recipient or body recipient is not this run, in the JSON form and the line form: exit 4 MISADDRESSED",
+      "tests": [
+        "Misaddressed.test_platform_recipient_is_not_this_run",
+        "Misaddressed.test_body_recipient_is_not_this_run",
+        "Misaddressed.test_line_body_recipient_is_not_this_run"
+      ]
+    },
+    {
+      "id": "self-verification",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "sender is the unit producer after alias folding, including via an alias: exit 6 SELF_VERIFICATION; removing the alias makes the same probe a refusal instead",
+      "tests": [
+        "SelfVerification.test_producer_cannot_verify_its_own_unit",
+        "SelfVerification.test_alias_of_the_producer_cannot_verify",
+        "SelfVerification.test_alias_of_the_producer_cannot_verify_without_the_alias"
+      ]
+    },
+    {
+      "id": "prose-mentions",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "an approval relayed in prose is recorded as prose_mentions with effect no_effect and does not change the verdict",
+      "tests": [
+        "BodyNeverAuthenticates.test_prose_approval_mention_has_no_effect"
+      ]
+    },
+    {
+      "id": "consistency",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "a unit that pins an artifact SHA or a version set requires a matching result block; an export without one is refused and attests nothing",
+      "tests": [
+        "UnknownAndDamaged.test_missing_result_is_refused_when_the_unit_pins_one",
+        "UnknownAndDamaged.test_missing_result_attests_nothing",
+        "UnknownAndDamaged.test_artifact_sha_mismatch_is_refused",
+        "UnknownAndDamaged.test_version_mismatch_is_refused",
+        "UnknownAndDamaged.test_capability_scope_mismatch_is_refused"
+      ]
+    },
+    {
+      "id": "input-errors",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "bad config, bad export, unknown unit/self, another adapter/instance/company/platform_build, duplicate JSON key, oversize, unreadable file: exit 5 INPUT_ERROR, never a verdict about a sender",
+      "tests": [
+        "UnknownAndDamaged.test_export_from_another_platform_build_is_input_error",
+        "UnknownAndDamaged.test_config_with_another_platform_build_is_input_error",
+        "UnknownAndDamaged.test_duplicate_json_key_is_input_error",
+        "UnknownAndDamaged.test_bad_config_is_input_error",
+        "UnknownAndDamaged.test_ambiguous_alias_is_config_error"
+      ]
+    },
+    {
+      "id": "read-only-fetch",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "the fetcher issues GET only, keeps the API key out of stdout and out of the export, takes company_id and platform_build from the platform, and refuses a caller naming another company",
+      "tests": [
+        "Cli.test_fetch_writes_a_valid_export_without_leaking_the_key",
+        "Cli.test_a_caller_naming_another_company_is_refused",
+        "BuildExport.test_issue_and_comment_from_different_companies_are_refused"
+      ]
+    },
+    {
+      "id": "inert-body",
+      "command": "python3 -m unittest discover -s capabilities/message_identity/tests -v",
+      "expected": "shell content in the body is never executed; invisible characters cannot hide a claim",
+      "tests": [
+        "BodyStaysInert.test_shell_content_in_the_body_is_never_executed",
+        "BodyStaysInert.test_invisible_characters_do_not_hide_a_claim"
+      ]
+    },
+    {
+      "id": "fingerprint",
+      "command": "python3 capabilities/message_identity/check.py --version",
+      "expected": "exit 0 printing v1 plus the full sha256 of check.py itself",
+      "tests": [
+        "Cli.test_version_prints_fingerprint"
+      ]
+    },
+    {
+      "id": "fetch-fingerprint",
+      "command": "python3 capabilities/message_identity/fetch_paperclip.py --version",
+      "expected": "exit 0 printing v1 plus the full sha256 of fetch_paperclip.py, with no other argument required",
+      "tests": [
+        "Cli.test_version_answers_on_its_own"
+      ]
+    }
+  ],
+  "attestation_contract": {
+    "fields": ["adapter", "sender", "evidence_ref"],
+    "consumer": "control/gate/gate.py _authenticated() reads exactly these three keys and never reads the body"
+  },
+  "trust_limits": {
+    "instance_id": "operator-declared scope label; the platform API exposes no instance identifier, so it is NOT platform-proven and no trust decision rests on it",
+    "company_id": "platform-derived from the issue and comment objects; a caller-supplied value is only a cross-check",
+    "platform_build": "platform-derived from /health version; a stale export against a newer config is an INPUT_ERROR",
+    "identity": "the roster is an operational registration, not a cryptographic identity; it does not prove two names are not the same natural person"
+  },
+  "enforcement": "text_only until a Bot actually calls this check before work starts; wiring it in is a configuration change that needs the owner's approval and is not in this PR",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "remote_capability_tests": "NOT_TESTED",
+  "deployment": "NOT_DEPLOYED"
+}
