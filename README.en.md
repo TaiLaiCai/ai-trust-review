@@ -50,9 +50,9 @@ The recipient check before dispatch is `check.py` in [handoff_recipient v1.3](ca
 
 The self-check items an executing bot hands over are the fields the repository already names; see "Self-check before delivery" below. The [evidence package](capabilities/evidence_package/README.md) checks only the bytes inside the manifest. The Chief Engineer checks that package and the independent re-run, not the bot's self-assessment.
 
-### On the code side: PR, four checks, pre-review comment, merge
+### On the code side: PR, four required checks, pre-review comment, merge
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs four jobs on `pull_request`. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs six jobs on `pull_request`. Four of them are the ruleset's required status checks. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
 
 | Job | What the repository actually runs |
 |---|---|
@@ -61,10 +61,12 @@ The self-check items an executing bot hands over are the fields the repository a
 | `event-gate` | Runs the `control/gate` tests and byte-for-byte `verify` of the example ledger; a tampered ledger must exit 1 (REGRESSION) |
 | `loop-history-v2` | Runs `control/loop_status/tests`; discovering zero tests is a failure |
 
+Two more fixture-assertion jobs, `handoff-recipient-v11` and `handoff-conventions`, run the real-card red/green exit codes on top of their test suites. They are not ruleset required checks.
+
 ```mermaid
 flowchart TD
   pr["Pull Request"]
-  subgraph checks ["four jobs in ci.yml"]
+  subgraph checks ["four required checks in ci.yml"]
     a["repository-contracts"]
     b["capability-tests"]
     c["event-gate"]
