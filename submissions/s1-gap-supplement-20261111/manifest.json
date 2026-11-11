@@ -1,0 +1,29 @@
+{
+  "schema": "s1-gap-supplement-package/v1",
+  "purpose": "APO-59 S1 #6 gap-supplement preparation material; evidence only, no S1 ruling, no S2 admission",
+  "bound_base_head": "dc38cc391012bb7b03a66884162187947fe31263",
+  "produced_by": {
+    "agent": "执行·Hermes",
+    "agent_id": "904b8b48-c6ff-4f85-aa17-a9b5d3a1bd64",
+    "model": "MiniMax-M3.1-Flash",
+    "provider": "minimax-cn",
+    "independence": "same GitHub account (TaiLaiCai) as every other participant; single model in this run; producer output, not an independent acceptance"
+  },
+  "files": [
+    {
+      "path": "S1-#6-差额补证.md",
+      "role": "the supplement document bound to the base head"
+    },
+    {
+      "path": "measurements.json",
+      "role": "every command, exit code and stdout/stderr digest behind the numbers"
+    }
+  ],
+  "excluded": [
+    "authorized-only/ (owner ruling: not public)",
+    "d3-search-transcript.md full text (owner ruling: summary only)",
+    "status_input.json (owner ruling: not public)"
+  ],
+  "hash_scope": "sha256 covers the file bytes in this tree; the manifest does not hash itself",
+  "public_authorization": "NOT_TESTED — this package is not itself a public-publication approval; the owner decides what enters the public repository"
+}

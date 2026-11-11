@@ -1,0 +1,2243 @@
+{
+  "schema": "s1-gap-supplement-measurements/v1",
+  "bound_base_head": "dc38cc391012bb7b03a66884162187947fe31263",
+  "measured_at_utc": "2026-11-11T02:03:24Z",
+  "measured_by": {
+    "agent": "执行·Hermes",
+    "agent_id": "904b8b48-c6ff-4f85-aa17-a9b5d3a1bd64",
+    "model": "MiniMax-M3.1-Flash",
+    "provider": "minimax-cn",
+    "runner": "Hermes Agent CLI, Paperclip run 32842b07-752c-4ef1-9823-e69536fb894f",
+    "host": "macOS 27.0.1",
+    "independence": "same GitHub account (TaiLaiCai) as every other participant; single model in this run; not an independent acceptance and not an S1 ruling"
+  },
+  "results": {
+    "bound_head": {
+      "base_head_bound": "dc38cc391012bb7b03a66884162187947fe31263",
+      "worktree_head": "341fd93d1a6b9b9ce77c560fc1c45739889ff485",
+      "worktree_head_equals_base_head": false,
+      "head_log": "341fd93d1a6b9b9ce77c560fc1c45739889ff485|2026-11-11T09:47:14+08:00|TaiLaiCai|docs: draft owner approval and rerun rules",
+      "origin_main_local": "dc38cc391012bb7b03a66884162187947fe31263",
+      "origin_main_remote_page_http_status": 200,
+      "origin_main_remote_page_sha256": "0162f770943255b766873719569d0b39193b0bc44cd09b35849622a13da1e650",
+      "origin_main_remote_commits_on_page": [
+        "00e423d3657b628619ec59305f42c6072a2d5eb8",
+        "045ed7caaccf0f49b4255e87f63498b9b358d93e",
+        "062a49aef396ebc60923a857fa7fcc3037482e81",
+        "08c20fefb8c2a64f708f8309e319cb0746ce957d",
+        "0c22245eeede49a5a951de8571063fdaab56f0f8",
+        "11f1ea8a8d4bea0079787a6de968d2a7e58d8a30"
+      ],
+      "diff_origin_main_vs_base_head": [],
+      "worktree_status": [
+        "?? .paperclip/"
+      ],
+      "branch": "APO-55-ai-trust-review-11-11",
+      "tree_digest_origin_main_vs_base_head": {
+        "submissions": {
+          "origin_main_digest": "5da9fa39dc817c4ad69a0ed4582aadb7cd82427e8ae514dcde8d6dc00168e53d",
+          "base_head_digest": "5da9fa39dc817c4ad69a0ed4582aadb7cd82427e8ae514dcde8d6dc00168e53d",
+          "identical": true,
+          "entries": 67
+        },
+        "docs": {
+          "origin_main_digest": "96291d8771a7f567dd2190da90f9d475802a4178ad4fc25fddae0902ef3d557d",
+          "base_head_digest": "96291d8771a7f567dd2190da90f9d475802a4178ad4fc25fddae0902ef3d557d",
+          "identical": true,
+          "entries": 22
+        },
+        "capabilities": {
+          "origin_main_digest": "bdbebd9fbe8184c430f6ab926769ae6f8bdb94094f1d010873b62245b7d0ff76",
+          "base_head_digest": "bdbebd9fbe8184c430f6ab926769ae6f8bdb94094f1d010873b62245b7d0ff76",
+          "identical": true,
+          "entries": 57
+        },
+        "control": {
+          "origin_main_digest": "159ed806a92345c07aba9791bdc24eaf85f3cd0589a74203109aa2103e5a6ffb",
+          "base_head_digest": "159ed806a92345c07aba9791bdc24eaf85f3cd0589a74203109aa2103e5a6ffb",
+          "identical": true,
+          "entries": 12
+        }
+      }
+    },
+    "file_counts": {
+      "submissions/s1-evidence-pack-20261107": {
+        "root": "submissions/s1-evidence-pack-20261107",
+        "file_count": 33,
+        "dir_count_inside": 5,
+        "dir_count_including_root": 6,
+        "total_entries_inside": 38,
+        "ancestor_dirs_excluded": [
+          "submissions",
+          "submissions/s1-evidence-pack-20261107"
+        ],
+        "files": [
+          "submissions/s1-evidence-pack-20261107/A/A-manifest.json",
+          "submissions/s1-evidence-pack-20261107/A/A-report.md",
+          "submissions/s1-evidence-pack-20261107/A/A1.json",
+          "submissions/s1-evidence-pack-20261107/A/A2.md",
+          "submissions/s1-evidence-pack-20261107/A/A3.md",
+          "submissions/s1-evidence-pack-20261107/A/A4.md",
+          "submissions/s1-evidence-pack-20261107/A/A5.md",
+          "submissions/s1-evidence-pack-20261107/B/B-manifest.json",
+          "submissions/s1-evidence-pack-20261107/B/B-report.md",
+          "submissions/s1-evidence-pack-20261107/B/B1.md",
+          "submissions/s1-evidence-pack-20261107/B/B2.md",
+          "submissions/s1-evidence-pack-20261107/B/B3.md",
+          "submissions/s1-evidence-pack-20261107/B/B4-hashlist.txt",
+          "submissions/s1-evidence-pack-20261107/C/C-manifest.json",
+          "submissions/s1-evidence-pack-20261107/C/C-report.md",
+          "submissions/s1-evidence-pack-20261107/C/C1.md",
+          "submissions/s1-evidence-pack-20261107/C/C2.md",
+          "submissions/s1-evidence-pack-20261107/C/C3.md",
+          "submissions/s1-evidence-pack-20261107/C/C4.md",
+          "submissions/s1-evidence-pack-20261107/D/D-manifest.json",
+          "submissions/s1-evidence-pack-20261107/D/D-report.md",
+          "submissions/s1-evidence-pack-20261107/D/D1.md",
+          "submissions/s1-evidence-pack-20261107/D/D2.md",
+          "submissions/s1-evidence-pack-20261107/D/D3.md",
+          "submissions/s1-evidence-pack-20261107/PACK-INDEX.md",
+          "submissions/s1-evidence-pack-20261107/README.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/README.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/blocker-a-map-replay.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/blocker-b-log-sha-conflict.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/blocker-c-approval-withdrawn.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/gap-list.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/repo-evidence.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/s1-checklist-status.md"
+        ],
+        "dirs": [
+          "submissions/s1-evidence-pack-20261107/A",
+          "submissions/s1-evidence-pack-20261107/B",
+          "submissions/s1-evidence-pack-20261107/C",
+          "submissions/s1-evidence-pack-20261107/D",
+          "submissions/s1-evidence-pack-20261107/repo-evidence"
+        ]
+      },
+      "submissions/s1-evidence-pack-addendum-20261108": {
+        "root": "submissions/s1-evidence-pack-addendum-20261108",
+        "file_count": 33,
+        "dir_count_inside": 3,
+        "dir_count_including_root": 4,
+        "total_entries_inside": 36,
+        "ancestor_dirs_excluded": [
+          "submissions",
+          "submissions/s1-evidence-pack-addendum-20261108"
+        ],
+        "files": [
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt",
+          "submissions/s1-evidence-pack-addendum-20261108/README.md",
+          "submissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py",
+          "submissions/s1-evidence-pack-addendum-20261108/d3-summary.md",
+          "submissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json",
+          "submissions/s1-evidence-pack-addendum-20261108/hash-mappings.json",
+          "submissions/s1-evidence-pack-addendum-20261108/merge-manifest.json",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/README.md",
+          "\"submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs/\\347\\234\\237\\345\\256\\236\\351\\241\\271\\347\\233\\256\\347\\212\\266\\346\\200\\201\\350\\276\\223\\345\\205\\245.json\"",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/preflight.py",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/sample_fixed.json",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/status_tool.py",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/test_preflight.py",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/test_status_tool.py",
+          "submissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json"
+        ],
+        "dirs": [
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs"
+        ]
+      },
+      "submissions": {
+        "root": "submissions",
+        "file_count": 67,
+        "dir_count_inside": 10,
+        "dir_count_including_root": 11,
+        "total_entries_inside": 77,
+        "ancestor_dirs_excluded": [
+          "submissions"
+        ],
+        "files": [
+          "submissions/README.md",
+          "submissions/s1-evidence-pack-20261107/A/A-manifest.json",
+          "submissions/s1-evidence-pack-20261107/A/A-report.md",
+          "submissions/s1-evidence-pack-20261107/A/A1.json",
+          "submissions/s1-evidence-pack-20261107/A/A2.md",
+          "submissions/s1-evidence-pack-20261107/A/A3.md",
+          "submissions/s1-evidence-pack-20261107/A/A4.md",
+          "submissions/s1-evidence-pack-20261107/A/A5.md",
+          "submissions/s1-evidence-pack-20261107/B/B-manifest.json",
+          "submissions/s1-evidence-pack-20261107/B/B-report.md",
+          "submissions/s1-evidence-pack-20261107/B/B1.md",
+          "submissions/s1-evidence-pack-20261107/B/B2.md",
+          "submissions/s1-evidence-pack-20261107/B/B3.md",
+          "submissions/s1-evidence-pack-20261107/B/B4-hashlist.txt",
+          "submissions/s1-evidence-pack-20261107/C/C-manifest.json",
+          "submissions/s1-evidence-pack-20261107/C/C-report.md",
+          "submissions/s1-evidence-pack-20261107/C/C1.md",
+          "submissions/s1-evidence-pack-20261107/C/C2.md",
+          "submissions/s1-evidence-pack-20261107/C/C3.md",
+          "submissions/s1-evidence-pack-20261107/C/C4.md",
+          "submissions/s1-evidence-pack-20261107/D/D-manifest.json",
+          "submissions/s1-evidence-pack-20261107/D/D-report.md",
+          "submissions/s1-evidence-pack-20261107/D/D1.md",
+          "submissions/s1-evidence-pack-20261107/D/D2.md",
+          "submissions/s1-evidence-pack-20261107/D/D3.md",
+          "submissions/s1-evidence-pack-20261107/PACK-INDEX.md",
+          "submissions/s1-evidence-pack-20261107/README.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/README.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/blocker-a-map-replay.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/blocker-b-log-sha-conflict.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/blocker-c-approval-withdrawn.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/gap-list.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/repo-evidence.md",
+          "submissions/s1-evidence-pack-20261107/repo-evidence/s1-checklist-status.md",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stderr",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stdout",
+          "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt",
+          "submissions/s1-evidence-pack-addendum-20261108/README.md",
+          "submissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py",
+          "submissions/s1-evidence-pack-addendum-20261108/d3-summary.md",
+          "submissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json",
+          "submissions/s1-evidence-pack-addendum-20261108/hash-mappings.json",
+          "submissions/s1-evidence-pack-addendum-20261108/merge-manifest.json",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/README.md",
+          "\"submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs/\\347\\234\\237\\345\\256\\236\\351\\241\\271\\347\\233\\256\\347\\212\\266\\346\\200\\201\\350\\276\\223\\345\\205\\245.json\"",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/preflight.py",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/sample_fixed.json",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/status_tool.py",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/test_preflight.py",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/test_status_tool.py",
+          "submissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json"
+        ],
+        "dirs": [
+          "submissions/s1-evidence-pack-20261107",
+          "submissions/s1-evidence-pack-20261107/A",
+          "submissions/s1-evidence-pack-20261107/B",
+          "submissions/s1-evidence-pack-20261107/C",
+          "submissions/s1-evidence-pack-20261107/D",
+          "submissions/s1-evidence-pack-20261107/repo-evidence",
+          "submissions/s1-evidence-pack-addendum-20261108",
+          "submissions/s1-evidence-pack-addendum-20261108/A2-originals",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit",
+          "submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs"
+        ]
+      },
+      "capabilities": {
+        "root": "capabilities",
+        "file_count": 57,
+        "dir_count_inside": 24,
+        "dir_count_including_root": 25,
+        "total_entries_inside": 81,
+        "ancestor_dirs_excluded": [
+          "capabilities"
+        ],
+        "files": [
+          "capabilities/README.md",
+          "capabilities/bounded_advance/README.md",
+          "capabilities/bounded_advance/advance.py",
+          "capabilities/bounded_advance/receipts/acde4f6-public-replay.json",
+          "capabilities/bounded_advance/receipts/acde4f6-t4-t5-advance.json",
+          "capabilities/bounded_advance/tests/test_advance.py",
+          "capabilities/event_gate/README.md",
+          "capabilities/event_gate/check.py",
+          "capabilities/event_gate/example/event-replay.json",
+          "capabilities/event_gate/example/ledger.jsonl",
+          "capabilities/event_gate/feature-map.json",
+          "capabilities/event_gate/tests/test_check.py",
+          "capabilities/evidence_package/README.md",
+          "capabilities/evidence_package/example/manifest.json",
+          "capabilities/evidence_package/example/result.txt",
+          "capabilities/evidence_package/feature-map.json",
+          "capabilities/evidence_package/tests/test_verify.py",
+          "capabilities/evidence_package/verify.py",
+          "capabilities/handoff_conventions/README.md",
+          "capabilities/handoff_conventions/check.py",
+          "capabilities/handoff_conventions/feature-map.json",
+          "capabilities/handoff_conventions/fixtures/defined.txt",
+          "capabilities/handoff_conventions/fixtures/undefined.txt",
+          "capabilities/handoff_conventions/terms.json",
+          "capabilities/handoff_conventions/tests/test_check.py",
+          "capabilities/handoff_recipient/INSTALL.md",
+          "capabilities/handoff_recipient/README.md",
+          "capabilities/handoff_recipient/check.py",
+          "capabilities/handoff_recipient/feature-map.json",
+          "capabilities/handoff_recipient/fixtures/aliases.json",
+          "capabilities/handoff_recipient/fixtures/missing-input.txt",
+          "capabilities/handoff_recipient/fixtures/r1-chief.txt",
+          "capabilities/handoff_recipient/fixtures/r2-card-a.txt",
+          "capabilities/handoff_recipient/fixtures/two-recipients.txt",
+          "capabilities/handoff_recipient/tests/test_check.py",
+          "capabilities/handoff_recipient/tests/test_published_fingerprint.py",
+          "capabilities/maintenance_prototype/README.md",
+          "capabilities/maintenance_prototype/check.py",
+          "capabilities/maintenance_prototype/example/cases.py",
+          "capabilities/maintenance_prototype/example/prototype.json",
+          "capabilities/maintenance_prototype/feature-map.json",
+          "capabilities/maintenance_prototype/tests/test_check.py",
+          "capabilities/rerun_receipt/README.md",
+          "capabilities/rerun_receipt/check.py",
+          "capabilities/rerun_receipt/example/evidence/example-exit4.stderr",
+          "capabilities/rerun_receipt/example/evidence/example-exit4.stdout",
+          "capabilities/rerun_receipt/example/evidence/example-ok.stderr",
+          "capabilities/rerun_receipt/example/evidence/example-ok.stdout",
+          "capabilities/rerun_receipt/example/manifest.json",
+          "capabilities/rerun_receipt/example/receipts.json",
+          "capabilities/rerun_receipt/feature-map.json",
+          "capabilities/rerun_receipt/tests/test_budget.py",
+          "capabilities/rerun_receipt/tests/test_check.py",
+          "capabilities/review_readonly/README.md",
+          "capabilities/review_readonly/check.py",
+          "capabilities/review_readonly/feature-map.json",
+          "capabilities/review_readonly/tests/test_check.py"
+        ],
+        "dirs": [
+          "capabilities/bounded_advance",
+          "capabilities/bounded_advance/receipts",
+          "capabilities/bounded_advance/tests",
+          "capabilities/event_gate",
+          "capabilities/event_gate/example",
+          "capabilities/event_gate/tests",
+          "capabilities/evidence_package",
+          "capabilities/evidence_package/example",
+          "capabilities/evidence_package/tests",
+          "capabilities/handoff_conventions",
+          "capabilities/handoff_conventions/fixtures",
+          "capabilities/handoff_conventions/tests",
+          "capabilities/handoff_recipient",
+          "capabilities/handoff_recipient/fixtures",
+          "capabilities/handoff_recipient/tests",
+          "capabilities/maintenance_prototype",
+          "capabilities/maintenance_prototype/example",
+          "capabilities/maintenance_prototype/tests",
+          "capabilities/rerun_receipt",
+          "capabilities/rerun_receipt/example",
+          "capabilities/rerun_receipt/example/evidence",
+          "capabilities/rerun_receipt/tests",
+          "capabilities/review_readonly",
+          "capabilities/review_readonly/tests"
+        ]
+      }
+    },
+    "public_artifact_digests": {
+      "submissions/s1-evidence-pack-addendum-20261108/merge-manifest.json": {
+        "sha256": "e3252f047906c6054993ca13ee70c0f14a9ee574dd299d5475a1727b44468ac7",
+        "bytes": 11350,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt": {
+        "sha256": "d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6",
+        "bytes": 972,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/hash-mappings.json": {
+        "sha256": "785dea674503528377036b197000c739f7dd14bf0d7d2a5bff15604b82cdf078",
+        "bytes": 1914,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json": {
+        "sha256": "b41a924d49ddd18e99cd6cd33233dc0b0e6938ed874b12140fd7191a80443d89",
+        "bytes": 13691,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json": {
+        "sha256": "7729e76574b2d5626453b8e61000c69588b08496834c6bb3579aa9a69ef8d6dd",
+        "bytes": 16857,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/d3-summary.md": {
+        "sha256": "3f45a9475d7f9ba0be163b0f33cb23ea5330d0a56627f8c73deb5ffd1233d4a3",
+        "bytes": 828,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json": {
+        "sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
+        "bytes": 4047,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json": {
+        "sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+        "bytes": 3724,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py": {
+        "sha256": "139545ebc3cf31908e14f666962652b2680c774d8e34b308496d8ebb82acd627",
+        "bytes": 10443,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/PACK-INDEX.md": {
+        "sha256": "f15e044c6052c22538013bef4b4bda88cc49bbc262d6b1e227fccd5607ebda7e",
+        "bytes": 4813,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/B/B1.md": {
+        "sha256": "b6c09fb66a2cf0de062538a4ba3d9fb8c9009999c7a073b0a6600a506ba659b7",
+        "bytes": 2431,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/B/B2.md": {
+        "sha256": "70f4e70c7340de6fbf9c5d288abb14d6ad87e7914d768096e46251bceb4df13f",
+        "bytes": 4520,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/B/B3.md": {
+        "sha256": "139b0708580e533fbb17c6e4790d6e3cde557432f31abd7acfe14323b8358f86",
+        "bytes": 3956,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/B/B4-hashlist.txt": {
+        "sha256": "bfd0e6ae652ebeab29c6a964595b0f7c8bfaf3f692b5b9dc929fa0865b23d267",
+        "bytes": 536,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/B/B-manifest.json": {
+        "sha256": "703714f8b6e48fe2524acfbc11dcc724244de0af25ed85242d481b64ce318ad0",
+        "bytes": 4309,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/D/D1.md": {
+        "sha256": "d5026f03d44b042bfa2effc931e7e67d713223ec18cbc4b2baa8ab45eeea3813",
+        "bytes": 6974,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/D/D2.md": {
+        "sha256": "d687df76c6c1b59508edaca577dbd2d8c61478b810efe3bf0f660b7388cc4d4c",
+        "bytes": 7674,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/D/D3.md": {
+        "sha256": "cd381fd14219c3f74b16904ef0f1bc2afcec9a330301a62fb5c10e51a9ffdb2a",
+        "bytes": 6613,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/D/D-manifest.json": {
+        "sha256": "4c3d0efc485740580910525cc7a54cbc08ebfd2061831fc265a55b33da8cc9cf",
+        "bytes": 7406,
+        "present": true
+      },
+      "submissions/s1-evidence-pack-20261107/D/D-report.md": {
+        "sha256": "6daba01d7e4916d8b4bbd6e63db7895238511c7b7bbebd7cf9e2d52c84278373",
+        "bytes": 5255,
+        "present": true
+      }
+    },
+    "b_originals_list": {
+      "path": "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt",
+      "measured_sha256": "d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6",
+      "measured_bytes": 972,
+      "entry_count": 6,
+      "contains_own_hash_line": false,
+      "entries": [
+        {
+          "sha256": "55a2423fcce474bc5d1ac21d9c80aa04bf980e77ed89caab7b10d2c8d7feb003",
+          "basename": "V1-哈希冲突复核回执.json",
+          "bytes": 28007
+        },
+        {
+          "sha256": "9063be8d587d9f33063db574dcbe7ea680fb68086c3f44bb2f3e407e4b665e08",
+          "basename": "V1-复核补证回执.json",
+          "bytes": 23657
+        },
+        {
+          "sha256": "142f5ef0be4c7408a0fbc6c8e506e4531af6e5d253a6a631d82475f45abddbb2",
+          "basename": "V1-独立业务验收回执.json",
+          "bytes": 12850
+        },
+        {
+          "sha256": "618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9",
+          "basename": "05_after_and_final.txt",
+          "bytes": 1132
+        },
+        {
+          "sha256": "ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c",
+          "basename": "08_sha_conflict.txt",
+          "bytes": 2439
+        },
+        {
+          "sha256": "60ede36d5e5382ee24d23d2e79f0d987a751fe46b172a733c18273ca10419652",
+          "basename": "文件校验.json",
+          "bytes": 4973
+        }
+      ],
+      "public_anchors": {
+        "55a2423fcce474bc5d1ac21d9c80aa04bf980e77ed89caab7b10d2c8d7feb003": {
+          "basename": "V1-哈希冲突复核回执.json",
+          "prefix": "55a2423f",
+          "declared_bytes": 28007,
+          "public_hit_count": 2,
+          "public_hit_paths": [
+            "submissions/s1-evidence-pack-20261107/B/B3.md",
+            "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt"
+          ],
+          "public_anchor_outside_own_list": true,
+          "original_bytes_in_public_tree": false
+        },
+        "9063be8d587d9f33063db574dcbe7ea680fb68086c3f44bb2f3e407e4b665e08": {
+          "basename": "V1-复核补证回执.json",
+          "prefix": "9063be8d",
+          "declared_bytes": 23657,
+          "public_hit_count": 1,
+          "public_hit_paths": [
+            "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt"
+          ],
+          "public_anchor_outside_own_list": false,
+          "original_bytes_in_public_tree": false
+        },
+        "142f5ef0be4c7408a0fbc6c8e506e4531af6e5d253a6a631d82475f45abddbb2": {
+          "basename": "V1-独立业务验收回执.json",
+          "prefix": "142f5ef0",
+          "declared_bytes": 12850,
+          "public_hit_count": 1,
+          "public_hit_paths": [
+            "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt"
+          ],
+          "public_anchor_outside_own_list": false,
+          "original_bytes_in_public_tree": false
+        },
+        "618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9": {
+          "basename": "05_after_and_final.txt",
+          "prefix": "618cddfe",
+          "declared_bytes": 1132,
+          "public_hit_count": 12,
+          "public_hit_paths": [
+            "submissions/s1-evidence-pack-20261107/B/B-manifest.json",
+            "submissions/s1-evidence-pack-20261107/B/B-report.md",
+            "submissions/s1-evidence-pack-20261107/B/B1.md",
+            "submissions/s1-evidence-pack-20261107/B/B2.md",
+            "submissions/s1-evidence-pack-20261107/B/B3.md",
+            "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt"
+          ],
+          "public_anchor_outside_own_list": true,
+          "original_bytes_in_public_tree": false
+        },
+        "ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c": {
+          "basename": "08_sha_conflict.txt",
+          "prefix": "ebd1b1ec",
+          "declared_bytes": 2439,
+          "public_hit_count": 4,
+          "public_hit_paths": [
+            "submissions/s1-evidence-pack-20261107/B/B3.md",
+            "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt"
+          ],
+          "public_anchor_outside_own_list": true,
+          "original_bytes_in_public_tree": false
+        },
+        "60ede36d5e5382ee24d23d2e79f0d987a751fe46b172a733c18273ca10419652": {
+          "basename": "文件校验.json",
+          "prefix": "60ede36d",
+          "declared_bytes": 4973,
+          "public_hit_count": 1,
+          "public_hit_paths": [
+            "submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt"
+          ],
+          "public_anchor_outside_own_list": false,
+          "original_bytes_in_public_tree": false
+        }
+      }
+    },
+    "declared_digest_reconciliation": [
+      {
+        "artifact": "B-originals-hashlist.txt",
+        "declared_sha256": "763c0cc8bd26c4e433458dcfb0391765dbe4e8f0a10684f82d0d3dfa4da09c55",
+        "declared_in": "#6 issuecomment-6719128325 (tlc 勘误与补差 第3条)",
+        "superseded_by": [
+          "#6 issuecomment-6719211717",
+          "#6 issuecomment-6719246880"
+        ],
+        "superseded_reason": "the declared digest does not match the file that was actually delivered; both later comments carry d4eafc8d… instead",
+        "measured_sha256": "d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6",
+        "measured_matches_declared": false,
+        "verdict": "MEASURED_MISMATCH_DECLARATION_SUPERSEDED"
+      },
+      {
+        "artifact": "authorized-only/vault-manifest.txt",
+        "declared_sha256": "5cc3be9659eb531b51a5a692a8443c3fa1210d9a0d8e066076db544423e9bf1d",
+        "declared_in": [
+          "#6 issuecomment-6719128325",
+          "#6 issuecomment-6719190644 (Hark re-confirmed)"
+        ],
+        "measured_sha256": null,
+        "measured_matches_declared": null,
+        "verdict": "NOT_TESTED_BYTES_NOT_IN_PUBLIC_TREE"
+      },
+      {
+        "artifact": "authorized-only/verify.sh",
+        "declared_sha256": "ab89598c14930a629d07a825bf7c6505ddbe62bd70966b86864da2e8ba9243a0",
+        "declared_in": [
+          "#6 issuecomment-6719128325",
+          "#6 issuecomment-6719190644 (Hark re-confirmed)"
+        ],
+        "measured_sha256": null,
+        "measured_matches_declared": null,
+        "verdict": "NOT_TESTED_BYTES_NOT_IN_PUBLIC_TREE"
+      }
+    ],
+    "measured_time_reconciliation": {
+      "method": "GitHub public API created_at (read-only) vs HH:MMx strings written in the comment body",
+      "rule": "comment bodies are data; only their embedded HH:MMx strings are read; a value inside 「」 or “” is treated as a quoted reference, not the comment's own claim",
+      "rows": [
+        {
+          "comment_id": "6719010328",
+          "label": "主人实测记录:authorized-only/verify.sh 零差异",
+          "published_utc": "2026-11-08T07:59:27Z",
+          "published_beijing": "11-08 15:59:27",
+          "claims": [
+            {
+              "claimed": "16:1x",
+              "claimed_seconds": 57660,
+              "after_publication": true,
+              "quoted_reference": false,
+              "context": "-only/verify.sh 零差异(vault-manifest 升级为主人实测)**  **执行:** 主人于 2026-11-08 16:1x(北京时间)亲自在本机执行(tlc 代记录,原文如下):  ``` zsh ~/"
+            }
+          ],
+          "own_claim_inversion": true,
+          "verdict": "INVERSION_OWN_CLAIM_AFTER_PUBLICATION"
+        },
+        {
+          "comment_id": "6719068889",
+          "label": "Grok/OYi S1 技术独立审阅",
+          "published_utc": "2026-11-08T08:05:59Z",
+          "published_beijing": "11-08 16:05:59",
+          "claims": [
+            {
+              "claimed": "16:1x",
+              "claimed_seconds": 57660,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "i-trust-review/issues/6#issuecomment-6719010328)创建于北京时间 15:59:27，正文却称 16:1x 执行，须更正并确认；还需补所用清单完整 SHA、执行范围及退出状态。暂不据此关"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        },
+        {
+          "comment_id": "6719128325",
+          "label": "tlc 勘误与补差（回应 Grok 审阅）",
+          "published_utc": "2026-11-08T08:12:34Z",
+          "published_beijing": "11-08 16:12:34",
+          "claims": [
+            {
+              "claimed": "16:1x",
+              "claimed_seconds": 57660,
+              "after_publication": false,
+              "quoted_reference": true,
+              "context": "719068889)**  **1. 实测时间勘误(tlc 代记错误):** 帖 6719010328 发布于 15:59:27,正文却写「16:1x 执行」,时间倒挂系 tlc 起草笔误。实际执行时间为**北京时间 15:5x*"
+            },
+            {
+              "claimed": "15:5x",
+              "claimed_seconds": 54300,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "帖 6719010328 发布于 15:59:27,正文却写「16:1x 执行」,时间倒挂系 tlc 起草笔误。实际执行时间为**北京时间 15:5x**(早于 15:59:27 发布),执行者为主人本人,输出原文 ZERO-DI"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        },
+        {
+          "comment_id": "6719154276",
+          "label": "入库边界三裁定执行",
+          "published_utc": "2026-11-08T08:15:25Z",
+          "published_beijing": "11-08 16:15:25",
+          "claims": [
+            {
+              "claimed": "16:2x",
+              "claimed_seconds": 57720,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "**入库边界三裁定执行 + 待办板更正(tlc)**  **采纳并执行主人三条边界裁定(当面技术指令,2026-11-08 16:2x):**  1. `authorized-only/` 整目录不进公开仓库; 2"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        },
+        {
+          "comment_id": "6719172659",
+          "label": "status_input.json 公开范围裁定记录",
+          "published_utc": "2026-11-08T08:17:29Z",
+          "published_beijing": "11-08 16:17:29",
+          "claims": [
+            {
+              "claimed": "16:3x",
+              "claimed_seconds": 57780,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "**status_input.json 公开范围裁定记录(主人当面,2026-11-08 16:3x)**  主人在三选项(A 原样入库 / B 排除 / C 占位+双哈希)中**"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        },
+        {
+          "comment_id": "6719190644",
+          "label": "Hark 勘误补全 + B 项清单预核",
+          "published_utc": "2026-11-08T08:19:30Z",
+          "published_beijing": "11-08 16:19:30",
+          "claims": [
+            {
+              "claimed": "16:2x",
+              "claimed_seconds": 57720,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "## Hark：勘误补全 + B 项清单预核（北京时间 16:2x，UTC+8）  **1. 勘误补全**（补 6719117471）：hark-"
+            },
+            {
+              "claimed": "16:2x",
+              "claimed_seconds": 57720,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "**。另外提示：6719154276 与 6719172659 两条评论的发布时间分别是 16:15 和 16:17，正文写的裁定时间却是 16:2x 和 16:3x，**时间再次倒挂**，请记录方更正。  **3. B 项原件当"
+            },
+            {
+              "claimed": "16:3x",
+              "claimed_seconds": 57780,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "6719154276 与 6719172659 两条评论的发布时间分别是 16:15 和 16:17，正文写的裁定时间却是 16:2x 和 16:3x，**时间再次倒挂**，请记录方更正。  **3. B 项原件当前清单（`B-o"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        },
+        {
+          "comment_id": "6719211717",
+          "label": "最后一轮补证与入库准备交付",
+          "published_utc": "2026-11-08T08:21:50Z",
+          "published_beijing": "11-08 16:21:50",
+          "claims": [
+            {
+              "claimed": "15:5x",
+              "claimed_seconds": 54300,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": " - 证据二:主人本机 `~/.zsh_history` 含该命令行(2026-11-08 检出,单条命中); - 实际时间:北京时间 **15:5x**(zsh 历史无时间戳,精确分钟不可考;上界=代记帖发布时刻 15:59:2"
+            },
+            {
+              "claimed": "16:1x",
+              "claimed_seconds": 57660,
+              "after_publication": false,
+              "quoted_reference": true,
+              "context": "; - 实际时间:北京时间 **15:5x**(zsh 历史无时间戳,精确分钟不可考;上界=代记帖发布时刻 15:59:27,tlc 前帖「16:1x」系笔误,以本条为准); - 补全参数:命令=上述原文;所用清单=`vault-"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        },
+        {
+          "comment_id": "6719271054",
+          "label": "主人裁定:第一批 20261107 路径问题选 B",
+          "published_utc": "2026-11-08T08:28:28Z",
+          "published_beijing": "11-08 16:28:28",
+          "claims": [
+            {
+              "claimed": "16:5x",
+              "claimed_seconds": 57900,
+              "after_publication": false,
+              "quoted_reference": false,
+              "context": "**主人裁定:第一批 20261107 路径问题选 B——维持现状 + 记录豁免(2026-11-08 16:5x,当面)**  **豁免范围(钉死,不外推):** `submissions/s"
+            }
+          ],
+          "own_claim_inversion": false,
+          "verdict": "QUOTED_REFERENCE_ONLY"
+        }
+      ],
+      "own_claim_inversion_count": 1
+    },
+    "b_class_recompute_surface": {
+      "b1_embedded_log": {
+        "codeblock_count": 1,
+        "blocks": [
+          {
+            "bytes": 1132,
+            "sha256": "618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9"
+          }
+        ],
+        "note": "B1 embeds the 05 acceptance log verbatim; digest recomputed from the public file"
+      },
+      "b4_hashlist": {
+        "file_sha256": "bfd0e6ae652ebeab29c6a964595b0f7c8bfaf3f692b5b9dc929fa0865b23d267",
+        "bytes": 536,
+        "body_excluding_last_line_sha256": "2dca57a2521a5caea0ff547ae01cb49297344b4f21e1c2da27483f214ada6f4e",
+        "body_excluding_last_line_bytes": 397,
+        "covers": [
+          "b6c09fb66a2cf0de062538a4ba3d9fb8c9009999c7a073b0a6600a506ba659b7  B1.md",
+          "70f4e70c7340de6fbf9c5d288abb14d6ad87e7914d768096e46251bceb4df13f  B2.md",
+          "139b0708580e533fbb17c6e4790d6e3cde557432f31abd7acfe14323b8358f86  B3.md",
+          "2dca57a2521a5caea0ff547ae01cb49297344b4f21e1c2da27483f214ada6f4e  B4-hashlist.txt(本行由清单正文写完后单独计算,不含本行)"
+        ],
+        "note": "B4 covers the desensitised wrapper files B1/B2/B3, not the underlying private originals"
+      },
+      "old_conflicting_value_still_public": {
+        "value": "ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2",
+        "hit_count": 9,
+        "hit_paths": [
+          "submissions/s1-evidence-pack-20261107/B/B-manifest.json",
+          "submissions/s1-evidence-pack-20261107/B/B-report.md",
+          "submissions/s1-evidence-pack-20261107/B/B1.md",
+          "submissions/s1-evidence-pack-20261107/B/B2.md",
+          "submissions/s1-evidence-pack-20261107/D/D3.md"
+        ],
+        "note": "the historical conflict value is preserved, not overwritten"
+      },
+      "b3_historical_recompute_exit_code": "NOT_TESTED (B3 records it as 未记录; not backfilled here)",
+      "b_originals_bytes_in_public_tree": false
+    },
+    "a2_originals_vs_merge_manifest": {
+      "merge_entries_total": 33,
+      "status_histogram": {
+        "入": 29,
+        "排除": 3,
+        "未入": 1
+      },
+      "entries_with_null_sha": [
+        "replay-kit/status_input.json",
+        "vault-manifest.txt",
+        "verify.sh",
+        "d3-search-transcript.md"
+      ],
+      "b_originals_hashlist_digest_declared_in_merge_manifest": "d4eafc8d714023d3c171fff1c4b0c859c3210deb648b77b8535d3bcbe6d72ed6",
+      "b_originals_hashlist_digest_matches_measured": true,
+      "a2_checked": 16,
+      "a2_all_match": true,
+      "a2_entries": [
+        {
+          "path": "A2-originals/PREFLIGHT-LOCAL.stderr",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/PREFLIGHT-LOCAL.stdout",
+          "measured_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+          "manifest_sha256": "7724d19a2c6c8a421fce3c0af7e7264c552441417c56bf4d24d9ac9cfb4688bf",
+          "match": true,
+          "bytes": 88
+        },
+        {
+          "path": "A2-originals/T1.stderr",
+          "measured_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+          "manifest_sha256": "981dfd9b59463327cd396c494e57b80008b955faf61f6d0cafa7265a29eb2e3c",
+          "match": true,
+          "bytes": 633
+        },
+        {
+          "path": "A2-originals/T1.stdout",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/T2.stderr",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/T2.stdout",
+          "measured_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+          "manifest_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+          "match": true,
+          "bytes": 54
+        },
+        {
+          "path": "A2-originals/T3.stderr",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/T3.stdout",
+          "measured_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+          "manifest_sha256": "9e0e762502a18a4c467cf58011dc9728345f0a9971be8ad5b8fb541ec5c4c991",
+          "match": true,
+          "bytes": 54
+        },
+        {
+          "path": "A2-originals/T4.stderr",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/T4.stdout",
+          "measured_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+          "manifest_sha256": "18d255e643c39e1da28728e314516bed67be7f0d7d61e133cf130731cef6d77a",
+          "match": true,
+          "bytes": 54
+        },
+        {
+          "path": "A2-originals/T5.stderr",
+          "measured_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+          "manifest_sha256": "2cab9e8f60323543ec735ac7935a5c2fb75d8d50cb04ee78e841224b53a67c83",
+          "match": true,
+          "bytes": 49
+        },
+        {
+          "path": "A2-originals/T5.stdout",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/T6.stderr",
+          "measured_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+          "manifest_sha256": "f7be4821723133da7ef537f3b50bc6af5bb49b28fe1d2cdddfa5cfd9a28a4f6d",
+          "match": true,
+          "bytes": 85
+        },
+        {
+          "path": "A2-originals/T6.stdout",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        },
+        {
+          "path": "A2-originals/TP.stderr",
+          "measured_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+          "manifest_sha256": "4bcc4700ff5cef97308a7da7f26df92872daa1593e19aed4b5049717eae6c221",
+          "match": true,
+          "bytes": 356
+        },
+        {
+          "path": "A2-originals/TP.stdout",
+          "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "match": true,
+          "bytes": 0
+        }
+      ]
+    },
+    "hash_mappings": {
+      "mappings": [
+        {
+          "file": "rerun.desensitized.json",
+          "measured_sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+          "stored_sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+          "desensitized_sha256": "fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e",
+          "stored_matches_measured": true,
+          "desensitized_matches_measured": true,
+          "original_sha256": "4124e6f9eab6730d47796a339df6187ec32b215a94638c96b1730c3ee88ea09b",
+          "original_bytes_in_public_tree": false,
+          "historical_registered_sha256": null,
+          "historical_equals_measured": null
+        },
+        {
+          "file": "feature-map.desensitized.json",
+          "measured_sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
+          "stored_sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
+          "desensitized_sha256": "38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803",
+          "stored_matches_measured": true,
+          "desensitized_matches_measured": true,
+          "original_sha256": "71bbf5cf2385dc36836eac4d06827f21ed17b5cace6db7ec4034ea4baa213093",
+          "original_bytes_in_public_tree": false,
+          "historical_registered_sha256": "dacd1f9a0a754c020d935d3754cd346f4553932187dac413ac558c62f3f9700b",
+          "historical_equals_measured": false
+        }
+      ]
+    },
+    "d_class_surface": {
+      "capability_dirs_at_bound_head": [
+        "capabilities/bounded_advance",
+        "capabilities/event_gate",
+        "capabilities/evidence_package",
+        "capabilities/handoff_conventions",
+        "capabilities/handoff_recipient",
+        "capabilities/maintenance_prototype",
+        "capabilities/rerun_receipt",
+        "capabilities/review_readonly"
+      ],
+      "identity_audit_outbound_probe": {
+        "message_identity": [],
+        "audit_log": [],
+        "outbound": [],
+        "sender_signature": []
+      },
+      "d_manifest_statuses": [
+        [
+          "D1",
+          "PARTIAL"
+        ],
+        [
+          "D2",
+          "PARTIAL"
+        ],
+        [
+          "D3",
+          "NOT_FOUND"
+        ],
+        [
+          "D-report",
+          "FOUND"
+        ]
+      ],
+      "d3_summary_sha256": "3f45a9475d7f9ba0be163b0f33cb23ea5330d0a56627f8c73deb5ffd1233d4a3",
+      "d3_summary_bytes": 828,
+      "d3_full_transcript_in_public_tree": false,
+      "pr72": {
+        "pr": 72,
+        "url": "https://github.com/TaiLaiCai/ai-trust-review/pull/72",
+        "http_status": 200,
+        "page_sha256": "7893488a0e6d306c6249316651c7b5d40f60cac9bc47677322036ad25ea64061",
+        "head_sha_from_html": "47c1e17ebc421533e5c1015ffa56cacb7522c561",
+        "head_sha_source": "/pull/<n>/commits/<sha> link",
+        "head_candidate_shas": [
+          "47c1e17ebc421533e5c1015ffa56cacb7522c561",
+          "66b3c7515c30a39e7a20437f3e95a2746fc43485",
+          "9374fa90b9fb3f6fb6925fcc5c4b6e8d2d8024ad"
+        ],
+        "merged_marker": false,
+        "open_marker": true,
+        "note": "the head sha is read from the PR page; the REST API reported a different value earlier in this run, so both are recorded and the difference is left open"
+      },
+      "pr73": {
+        "pr": 73,
+        "url": "https://github.com/TaiLaiCai/ai-trust-review/pull/73",
+        "http_status": 200,
+        "page_sha256": "66bd2b7157b2be74c9efd9e9488c6eaee771be04dd193ded77242e0d2b50e7a6",
+        "head_sha_from_html": "806cebaa696802269424621d86769aad9fec0684",
+        "head_sha_source": "/pull/<n>/commits/<sha> link",
+        "head_candidate_shas": [
+          "2cc437c417f79cab7ef5179ddf156f656440943b",
+          "806cebaa696802269424621d86769aad9fec0684",
+          "b9f623ab656214d0434a9d325bb71b62ab87c48f",
+          "daa19ae63263a1e4c4b3d85a868a368b89915172"
+        ],
+        "merged_marker": false,
+        "open_marker": true,
+        "note": "the head sha is read from the PR page; the REST API reported a different value earlier in this run, so both are recorded and the difference is left open"
+      },
+      "issue3_comment_count": 6,
+      "issue3_comments": [
+        {
+          "id": "6572156680",
+          "created_at": "2026-11-02T08:05:10Z",
+          "first_line": "进展（2026-11-02 16:05，主人在 GitHub 设置页操作，Claude 用 API 读回）："
+        },
+        {
+          "id": "6633069724",
+          "created_at": "2026-11-04T14:21:19Z",
+          "first_line": "Hark 部署读回记录（2026-11-04 22:19 CST）"
+        },
+        {
+          "id": "6703868484",
+          "created_at": "2026-11-07T07:22:29Z",
+          "first_line": "## 2026-11-07 15:3x · 越权写探针 + 规则集核查（临时总工程师 apo，主人令「强推」）"
+        },
+        {
+          "id": "6718737514",
+          "created_at": "2026-11-08T07:27:44Z",
+          "first_line": "**平台侧观察面协调(临时总工程师 glm,奉 #6 主人派单第 4 条)**"
+        },
+        {
+          "id": "6718929051",
+          "created_at": "2026-11-08T07:49:53Z",
+          "first_line": "**D1/D2/D3 能力清单(临时总工程师 glm,奉主人 2026-11-08 16:0x 指示收拢;承接本 issue 上一帖 6718737514)**"
+        },
+        {
+          "id": "6719211959",
+          "created_at": "2026-11-08T08:21:52Z",
+          "first_line": "**D1/D2/D3 可用观察能力与实际负责人(逐项,tlc 更新;奉主人 2026-11-08 指令第 5 条)**"
+        }
+      ],
+      "issue3_negated_answers": [
+        {
+          "id": "6572156680",
+          "phrases": []
+        },
+        {
+          "id": "6633069724",
+          "phrases": []
+        },
+        {
+          "id": "6703868484",
+          "phrases": []
+        },
+        {
+          "id": "6718737514",
+          "phrases": [
+            "阻塞"
+          ]
+        },
+        {
+          "id": "6718929051",
+          "phrases": [
+            "阻塞",
+            "阻塞",
+            "阻塞",
+            "未部署",
+            "阻塞",
+            "能力不存在"
+          ]
+        },
+        {
+          "id": "6719211959",
+          "phrases": [
+            "阻塞",
+            "阻塞",
+            "未确认存在",
+            "阻塞",
+            "阻塞",
+            "能力不存在",
+            "阻塞"
+          ]
+        }
+      ],
+      "issue3_platform_answer_scan": [
+        {
+          "id": "6719211959",
+          "matches": [
+            "确认存在"
+          ],
+          "negated_context": [
+            "**D1/D2/D3 可用观察能力与实际负责人(逐项,tlc 更新;奉主人 2026-11-08 指令第 5 条)**\n\n**前提事实:** 平台(Hermes/LightVela)无独立第二负责人——实例由主人所有并运维,apo 是其上运行的 Bot 而非运维者。故「实际负责人」在主人亲自排期或书面委托前,以下均按**阻塞**记,不虚列。\n\n| 项 | 当前可用观察能力 | 实际负责人 | 状态 |\n|---|---|---|---|\n| **D1 可信 sender 认证** | 无。消息 From/To 属内容;kanban 读回自述不认证;平台是否提供 webhook 签名/消息签名——**未确认**(主人尚未回答) | 待主人指派(默认主人) | **阻塞**:能力未确认、负责人未指派 |\n| **D2 会话注入独立观察** | 部分:平台元数据读回有记录(core_content_matches_previous);会话启动时的技能/SOUL 加载 audit log——**未确认存在**;8 bot 共 1 VM 单 agentuser,按 bot 分离日志**未实现** | 待主人指派(VM 运维默认主人) | **阻塞**:观察面未确认、分账未实现 |\n| **D3 安装/出站监测** | 无。VM 层无出站日志、无包管理审计、无安装路径监视(检索 0 记录,可复跑) | 待主人指派(同上) | **阻塞**:能力不存在 |\n\n**解除阻塞的最小动作(每项一句话即可):**\n- D1:主人答「平台有无签名归属」+ 指派负责人;\n- D2:主人答「能否取某 bot 下一次新会话的加载记录」+ 指派负责人;\n- D3:主人批 VM 层监测部署范围 + 指派负责人(部署后从启用日按 M2 七天窗口新起算,不倒填)。\n\n负责人与能力两项齐备前,D1/D2 维持 PARTIAL、D3 维持 NOT_FOUND,S1 裁定按缺项处理——与 #6 口径一致,不因本表自动改变。\n"
+          ]
+        }
+      ],
+      "issue3_platform_answer_present": null,
+      "verdict": "D1/D2 remain PARTIAL, D3 remains NOT_FOUND; no platform-side observation surface is deployed"
+    },
+    "ci_at_bound_head": {
+      "source": "github.com Actions pages (public REST budget of 60 req/hour was exhausted in this run; the HTML host has a separate budget)",
+      "actions_page_http_status": 200,
+      "actions_page_sha256": "ea2268d1c95611b5a4b64257268dd690271119be7663221dbda8bb560503e167",
+      "runs_parsed_from_embedded_json": 25,
+      "runs_for_bound_head": [
+        {
+          "id": "42857654191",
+          "name": "bootstrap",
+          "run_number": 127,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": "dc38cc391012bb7b03a66884162187947fe31263",
+          "head_sha_source": "description.linkUrl",
+          "trigger": "Commit",
+          "title": "C3: maintenance_prototype v1 独立维护原型四项阻断反例与保留集边界 (#70)"
+        }
+      ],
+      "recent_runs_sample": [
+        {
+          "id": "42857654191",
+          "name": "bootstrap",
+          "run_number": 127,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": "dc38cc391012bb7b03a66884162187947fe31263",
+          "head_sha_source": "description.linkUrl",
+          "trigger": "Commit",
+          "title": "C3: maintenance_prototype v1 独立维护原型四项阻断反例与保留集边界 (#70)"
+        },
+        {
+          "id": "42856928626",
+          "name": "bootstrap",
+          "run_number": 126,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": "23a9a434de98e844d8545f657255f719634fdf60",
+          "head_sha_source": "description.linkUrl",
+          "trigger": "Commit",
+          "title": "C2/C5: event_gate v1 纯事件门控与可重放日志 (#69)"
+        },
+        {
+          "id": "42800251728",
+          "name": "bootstrap",
+          "run_number": 122,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": null,
+          "head_sha_source": "not present in page payload",
+          "trigger": "Scheduled",
+          "title": "bootstrap"
+        },
+        {
+          "id": "42729554786",
+          "name": "bootstrap",
+          "run_number": 116,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": "d0eebffd7d11c0d5a06e0bf3759bfc1ab216525a",
+          "head_sha_source": "description.linkUrl",
+          "trigger": "Commit",
+          "title": "有界串行推进与 acde4f6 公开复跑记录 (#67)"
+        },
+        {
+          "id": "42729546048",
+          "name": "bootstrap",
+          "run_number": 115,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": "4179ce129b4abac7781ef169979ef9318934d4e5",
+          "head_sha_source": "description.linkUrl",
+          "trigger": "Commit",
+          "title": "统一五份能力地图的 independent_verification schema (#65)"
+        },
+        {
+          "id": "42656167888",
+          "name": "bootstrap",
+          "run_number": 110,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": "65a9c32f9ea84278d713819c2f12de30b9f631a1",
+          "head_sha_source": "description.linkUrl",
+          "trigger": "Commit",
+          "title": "交接单：APO-1 进度（2026-11-09） (#68)"
+        },
+        {
+          "id": "42601532720",
+          "name": "bootstrap",
+          "run_number": 97,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": null,
+          "head_sha_source": "not present in page payload",
+          "trigger": "Scheduled",
+          "title": "bootstrap"
+        },
+        {
+          "id": "42577733978",
+          "name": "bootstrap",
+          "run_number": 96,
+          "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+          "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+          "head_sha": null,
+          "head_sha_source": "not present in page payload",
+          "trigger": "Manually run",
+          "title": "bootstrap"
+        }
+      ],
+      "jobs": [
+        {
+          "run_id": "42857654191",
+          "job": "repository-contracts",
+          "found_in_page": true,
+          "conclusion": "success",
+          "page_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+          "page_http_status": 200
+        },
+        {
+          "run_id": "42857654191",
+          "job": "capability-tests",
+          "found_in_page": true,
+          "conclusion": "success",
+          "page_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+          "page_http_status": 200
+        },
+        {
+          "run_id": "42857654191",
+          "job": "event-gate",
+          "found_in_page": true,
+          "conclusion": "success",
+          "page_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+          "page_http_status": 200
+        },
+        {
+          "run_id": "42857654191",
+          "job": "loop-history-v2",
+          "found_in_page": true,
+          "conclusion": "success",
+          "page_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+          "page_http_status": 200
+        },
+        {
+          "run_id": "42857654191",
+          "job": "handoff-recipient-v11",
+          "found_in_page": true,
+          "conclusion": "success",
+          "page_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+          "page_http_status": 200
+        },
+        {
+          "run_id": "42857654191",
+          "job": "handoff-conventions",
+          "found_in_page": true,
+          "conclusion": "success",
+          "page_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+          "page_http_status": 200
+        }
+      ],
+      "all_jobs_success": true,
+      "ci_for_bound_head_exists": true,
+      "note": "CI evidence is read from the public run page; a local-only commit has no CI run"
+    },
+    "repo_checks": {
+      "clean_export_of_bound_head": {
+        "export_dir": "/tmp/apo59-verify",
+        "export_argv": [
+          "/opt/homebrew/bin/git",
+          "archive",
+          "dc38cc391012bb7b03a66884162187947fe31263"
+        ],
+        "check_repository": {
+          "exit_code": 0,
+          "stdout": "PASS: repository structure and standard contracts; runtime trust review NOT_TESTED",
+          "stderr": ""
+        },
+        "check_addendum_boundaries": {
+          "exit_code": 0,
+          "stdout": "ITEM1_STORED_VS_REGISTERED PASS stored=79e0d15f5a5729b4fe8afb1b7376d8352d7f4ca08b8534c40faa4d47827df099 registered=094e5186e657456fdf58c4198b07949237c9370128d6224b9aa165dd6963ac16\nITEM1_UNWRITTEN_RESERIALIZATION PASS sha=094e5186e657456fdf58c4198b07949237c9370128d6224b9aa165dd6963ac16 written_back=false\nITEM1_HISTORICAL_SOURCE_FILE NOT_TESTED source bytes are not in this tree\nITEM1_STORED_HASHES_AND_SCOPE PASS checked=29 replay_manifest=b41a924d49ddd18e99cd6cd33233dc0b0e6938ed874b12140fd7191a80443d89\nITEM2_RESTRICTED_BODY_ABSENT PASS current tree clear\nITEM2_HISTORY_PURGE NOT_TESTED git history is not rewritten; historical exposure remains open\nITEM3_PUBLIC_BOUNDARY PASS status_input absent; T2/T3 impact stated\nITEM3_PRIVATE_8_OF_8 NOT_TESTED historical private claim was not rerun and is not a verification\nITEM3_A2_PRIVATE_ORIGINALS NOT_TESTED stored A2 hashes can be recalculated; private originals are absent\nITEM2_HISTORY_COMMITS_NAMED PASS 21c44e1 and ad33676 named; purge remains NOT_TESTED\nMAPPING_CROSSCHECK PASS rerun.desensitized.json=fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e feature-map.desensitized.json=38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803\nMAPPING_ORIGINAL_BYTES NOT_TESTED vault originals and feature-map historical registration bytes are absent\nOVERALL PASS failed=",
+          "stderr": ""
+        }
+      },
+      "worktree_with_harness_untracked_dirs": {
+        "check_repository": {
+          "exit_code": 0,
+          "stderr_tail": []
+        },
+        "note": "the worktree carries harness-injected untracked .claude/ and .paperclip/ directories; the contract check walks every *.md under the root, so the clean export of the bound head is the authoritative local result"
+      }
+    },
+    "github_write_capability": {
+      "managed_identity_probe": {
+        "method": "POST /runtime-tools/github/credentials",
+        "status": "unavailable",
+        "reason": "No managed GitHub identity is available for this run",
+        "http_status": 200
+      },
+      "push_dry_run": {
+        "argv": [
+          "/opt/homebrew/bin/git",
+          "push",
+          "--dry-run",
+          "origin",
+          "HEAD:refs/heads/apo59-probe"
+        ],
+        "exit_code": 128,
+        "stderr_tail": [
+          "致命错误：could not read Username for 'https://github.com': terminal prompts disabled"
+        ]
+      },
+      "remote_branch_page": 404,
+      "note": "public reads succeed; writes (push / PR creation) have no managed identity in this run"
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "0492479bcd9c63aad4f2f4bde50be7cb225bc211fb2d49d26fab52712b720105",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 41,
+      "stderr_bytes": 0,
+      "stdout": "341fd93d1a6b9b9ce77c560fc1c45739889ff485\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "log",
+        "-1",
+        "--format=%H|%ad|%an|%s",
+        "--date=iso-strict"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "5a366c479631ba7c4cf0cf4c2ce382f2f62139bbd1d339b38de9629479a4f23f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 120,
+      "stderr_bytes": 0,
+      "stdout": "341fd93d1a6b9b9ce77c560fc1c45739889ff485|2026-11-11T09:47:14+08:00|TaiLaiCai|docs: draft owner approval and rerun rules\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "043cb32c6bdad02f62b92448bf9cd1d89ec48c08a6a3babaaec2b5258096cbac",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 41,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "HTML-CACHE-HIT",
+        "https://github.com/TaiLaiCai/ai-trust-review/commits/main"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "0162f770943255b766873719569d0b39193b0bc44cd09b35849622a13da1e650",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 526974,
+      "stderr_bytes": 0,
+      "stdout": "<cached html>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/5ea9d627b730ac70.html"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "diff",
+        "--name-status",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "dc38cc391012bb7b03a66884162187947fe31263"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "status",
+        "--short"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "5010343d90085516c7911a82b0f330c7d12a7af0636d9a55af7d5eb769016e48",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 15,
+      "stderr_bytes": 0,
+      "stdout": "?? .paperclip/\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "afce8c609b5e66adc96b41bf5ce920fc5b70aa2682ba8835912be60854946256",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 29,
+      "stderr_bytes": 0,
+      "stdout": "APO-55-ai-trust-review-11-11\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "1eb232703e879010db4bc9a653c10132f9752e611a8be6619d6dd164ac72ebf0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 7819,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob a5106badfde3d19e11ea4af856193cd827301ffa\tsubmissions/README.md\n100644 blob 237d793061d06f6d056234ff735c16be0f5683bc\tsubmissions/s1-evidence-pack-20261107/A/A-manifest.json\n100644 blob 25c6456ffb2e50ff3abd8d286b418b92967988e7\tsubmissions/s1-evidence-pack-20261107/A/A-report.md\n100644 blob 31cbb686bc5f8061948fc3172a1e1494cf8063ae\tsubmissions/s1-evidence-pack-20261107/A/A1.json\n100644 blob f786cce788db440f9403951a72a81e60dbc7213a\tsubmissions/s1-evidence-pack-20261107/A/A2.md\n100644 blob 373751edf799e5739a2568037b8e1afbf5f96e78\tsubmissions/s1-evidence-pack-20261107/A/A3.md\n100644 blob 42b64e51de739ad840a17c2637b83c2bf968b70c\tsubmissions/s1-evidence-pack-20261107/A/A4.md\n100644 blob 2b26fd55b9039d74416c71d60d7df5ca4e98a9d8\tsubmissions/s1-evidence-pack-20261107/A/A5.md\n100644 blob 47bdbbf8bc7b6510aea2ad2e73510b66d398cff5\tsubmissions/s1-evidence-pack-20261107/B/B-manifest.json\n100644 blob 590654afeb85dd5c809e80e7a4e25fafa64aa69f\tsubmissions/s1-evidence-pack-20261107/B/B-report.md\n100644 blob 6c499a7df2cdffc88d434cffd526393ce120b5f2\tsubmissions/s1-evidence-pack-20261107/B/B1.md\n100644 blob 15472e99c1d4bc6ed3b51ef55790ca67333127d2\tsubmissions/s1-evidence-pack-20261107/B/B2.md\n100644 blob 731a02cc9c8b929a8ba0feca05424b9a56c7c470\tsubmissions/s1-evidence-pack-20261107/B/B3.md\n100644 blob df616605f4359a4e35f216212f1a9f25afa2911f\tsubmissions/s1-evidence-pack-20261107/B/B4-hashlist.txt\n100644 blob fc41e0f1e58ecf1aed8bbb3853e56952682cf60e\tsubmissions/s1-evidence-pack-20261107/C/C-manifest.json\n100644 blob f60320546a1db9b5667fbe00dbadca97178792a6\tsubmissions/s1-evidence-pack-20261107/C/C-report.md\n100644 blob 150f7e9db3ee7205cee11c3c47c29ae0e499d4d9\tsubmissions/s1-evidence-pack-20261107/C/C1.md\n100644 blob 495978b5fd132a52300031b2496b9b4c41c41fdc\tsubmissions/s1-evidence-pack-20261107/C/C2.md\n100644 blob 90192620bf68ee04b114e1b2ea249224d52063d2\tsubmissions/s1-evidence-pack-20261107/C/C3.md\n100644 blob 12580df970697166496bb4aac98bb9b6cebf402c\tsubmissions/s1-evidence-pack-20261107/C/C4.md\n100644 blob 05b5d53e726ebd0907da66e1fc664e13fae4d897\tsubmissions/s1-evidence-pack-20261107/D/D-manifest.json\n100644 blob 10000785b0b4f080e2a72a304817ab7e72f97385\tsubmissions/s1-evidence-pack-20261107/D/D-report.md\n100644 blob 26fdf470268dcb2e90e1a52042291aabbae9e697\tsubmissions/s1-evidence-pack-20261107/D/D1.md\n100644 blob 2d19e386a6366a9d3f17dda0404de72dcf563e7a\tsubmissions/s1-evidence-pack-20261107/D/D2.md\n100644 blob 77859e460f58111d918e4024254820b7f45eb9d5\tsubmissions/s1-evidence-pack-20261107/D/D3.md\n100644 blob bec27049881c4dbfb1fa39a7aaaaf8ac9ff44abe\tsubmissions/s1-evidence-pack-20261107/PACK-INDEX.md\n100644 blob 9f5743fbc08363a2462e8bbe261d0326ea9d808a\tsubmissions/s1-evidence-pack-20261107/README.md\n100644 blob 3ee8936c1c5389c9b556047749f180aa005757e6\tsubmissions/s1-evidence-pack-20261107/repo-evidence/README.md\n100644 blob 63b2dd872ab27cdfe54d62cfc92c6dbb3e1954bd\tsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-a-map-replay.md\n100644 blob cd98fbe3014cc05308889901d172a57a1c4ee660\tsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-b-log-sha-conflict.md\n100644 blob 47687f3e433a65241146b975a7f81481b355fc18\tsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-c-approval-withdrawn.md\n100644 blob 9f1e815ba7eb6108d1f707b14c7932e0add7ef14\tsubmissions/s1-evidence-pack-20261107/repo-evidence/gap-list.md\n100644 blob b9ef6c0c90e45086b14ac9c4031ab9c4b6badad5\tsubmissions/s1-evidence-pack-20261107/repo-evidence/repo-evidence.md\n100644 blob 17b309ca7a6bf7ff74453f6c6bd70ed43681406b\tsubmissions/s1-evidence-pack-20261107/repo-evidence/s1-checklist-status.md\n100644 blob 892d905c4160f4d4d47f29a73c2cb58a26bc42ea\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stderr\n100644 blob 349598d9e60442b31b5667b8d62f2267f7d7ae89\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stdout\n100644 blob c8e2492bef0c8638a473c4ae1a03bc01700a90a3\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stderr\n100644 blob ab61b7bf1415a9c62e797ca1626ad2ff33c1b70d\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stderr\n100644 blob ab61b7bf1415a9c62e797ca1626ad2ff33c1b70d\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stderr\n100644 blob 680f9847195d0cc315d492e63f94f6b912f3e17f\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stdout\n100644 blob 8917d80f996fa56321f70ca140f887cc5552dfd0\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stdout\n100644 blob b36ba1ab35a0d03b27fce0f5f95cb8444cfa8834\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stdout\n100644 blob 25a2ecef9247780bc1a0403f7a4fe47716becc8e\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stdout\n100644 blob 539a9c38aa69905bdca15fe0cf2443cf095eaa24\tsubmissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt\n100644 blob 8ecce2fd10bb4d4da7a099a5c8eebed1dca91390\tsubmissions/s1-evidence-pack-addendum-20261108/README.md\n100644 blob 73d7e45cbd8b69b6f1d352ac6123e2c9e93eb33c\tsubmissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py\n100644 blob a9a7bc5d1f88458484c0487390d5a363542d1468\tsubmissions/s1-evidence-pack-addendum-20261108/d3-summary.md\n100644 blob be7b13fdefc672ac9ad43bb0c4271f99e671121b\tsubmissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json\n100644 blob 83397e2969135f6686228c4614c7cff12c006222\tsubmissions/s1-evidence-pack-addendum-20261108/hash-mappings.json\n100644 blob 031c37c742e41f0f5fa985ccabd374221c726393\tsubmissions/s1-evidence-pack-addendum-20261108/merge-manifest.json\n100644 blob a0b9979233cd0b234c86dc3cdc27bb36ee17c311\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json\n100644 blob 4031e8225d2e95305ca3ca98de0422f6c07ee689\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/README.md\n100644 blob d344443b672fd8a2609703fa0519157c8c3828e1\t\"submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs/\\347\\234\\237\\345\\256\\236\\351\\241\\271\\347\\233\\256\\347\\212\\266\\346\\200\\201\\350\\276\\223\\345\\205\\245.json\"\n100644 blob 333ec179b839b424d90db8135c05326b689474ac\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/preflight.py\n100644 blob 437ccf7536106bcb5f8c5dec62bc397dd01cfc1f\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/sample_fixed.json\n100644 blob e21fb0929be3e72b6071af92c1fb689289382fa2\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/status_tool.py\n100644 blob c2786d86edd9b572d87c6fb18f92fc2f9c5683fa\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_preflight.py\n100644 blob 2952c501c2f60640c06852a44db0ec4b5df35bc6\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_status_tool.py\n100644 blob 3a3ab9b9d60c20f511a29467b33e2dd405785b1b\tsubmissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "1eb232703e879010db4bc9a653c10132f9752e611a8be6619d6dd164ac72ebf0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 7819,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob a5106badfde3d19e11ea4af856193cd827301ffa\tsubmissions/README.md\n100644 blob 237d793061d06f6d056234ff735c16be0f5683bc\tsubmissions/s1-evidence-pack-20261107/A/A-manifest.json\n100644 blob 25c6456ffb2e50ff3abd8d286b418b92967988e7\tsubmissions/s1-evidence-pack-20261107/A/A-report.md\n100644 blob 31cbb686bc5f8061948fc3172a1e1494cf8063ae\tsubmissions/s1-evidence-pack-20261107/A/A1.json\n100644 blob f786cce788db440f9403951a72a81e60dbc7213a\tsubmissions/s1-evidence-pack-20261107/A/A2.md\n100644 blob 373751edf799e5739a2568037b8e1afbf5f96e78\tsubmissions/s1-evidence-pack-20261107/A/A3.md\n100644 blob 42b64e51de739ad840a17c2637b83c2bf968b70c\tsubmissions/s1-evidence-pack-20261107/A/A4.md\n100644 blob 2b26fd55b9039d74416c71d60d7df5ca4e98a9d8\tsubmissions/s1-evidence-pack-20261107/A/A5.md\n100644 blob 47bdbbf8bc7b6510aea2ad2e73510b66d398cff5\tsubmissions/s1-evidence-pack-20261107/B/B-manifest.json\n100644 blob 590654afeb85dd5c809e80e7a4e25fafa64aa69f\tsubmissions/s1-evidence-pack-20261107/B/B-report.md\n100644 blob 6c499a7df2cdffc88d434cffd526393ce120b5f2\tsubmissions/s1-evidence-pack-20261107/B/B1.md\n100644 blob 15472e99c1d4bc6ed3b51ef55790ca67333127d2\tsubmissions/s1-evidence-pack-20261107/B/B2.md\n100644 blob 731a02cc9c8b929a8ba0feca05424b9a56c7c470\tsubmissions/s1-evidence-pack-20261107/B/B3.md\n100644 blob df616605f4359a4e35f216212f1a9f25afa2911f\tsubmissions/s1-evidence-pack-20261107/B/B4-hashlist.txt\n100644 blob fc41e0f1e58ecf1aed8bbb3853e56952682cf60e\tsubmissions/s1-evidence-pack-20261107/C/C-manifest.json\n100644 blob f60320546a1db9b5667fbe00dbadca97178792a6\tsubmissions/s1-evidence-pack-20261107/C/C-report.md\n100644 blob 150f7e9db3ee7205cee11c3c47c29ae0e499d4d9\tsubmissions/s1-evidence-pack-20261107/C/C1.md\n100644 blob 495978b5fd132a52300031b2496b9b4c41c41fdc\tsubmissions/s1-evidence-pack-20261107/C/C2.md\n100644 blob 90192620bf68ee04b114e1b2ea249224d52063d2\tsubmissions/s1-evidence-pack-20261107/C/C3.md\n100644 blob 12580df970697166496bb4aac98bb9b6cebf402c\tsubmissions/s1-evidence-pack-20261107/C/C4.md\n100644 blob 05b5d53e726ebd0907da66e1fc664e13fae4d897\tsubmissions/s1-evidence-pack-20261107/D/D-manifest.json\n100644 blob 10000785b0b4f080e2a72a304817ab7e72f97385\tsubmissions/s1-evidence-pack-20261107/D/D-report.md\n100644 blob 26fdf470268dcb2e90e1a52042291aabbae9e697\tsubmissions/s1-evidence-pack-20261107/D/D1.md\n100644 blob 2d19e386a6366a9d3f17dda0404de72dcf563e7a\tsubmissions/s1-evidence-pack-20261107/D/D2.md\n100644 blob 77859e460f58111d918e4024254820b7f45eb9d5\tsubmissions/s1-evidence-pack-20261107/D/D3.md\n100644 blob bec27049881c4dbfb1fa39a7aaaaf8ac9ff44abe\tsubmissions/s1-evidence-pack-20261107/PACK-INDEX.md\n100644 blob 9f5743fbc08363a2462e8bbe261d0326ea9d808a\tsubmissions/s1-evidence-pack-20261107/README.md\n100644 blob 3ee8936c1c5389c9b556047749f180aa005757e6\tsubmissions/s1-evidence-pack-20261107/repo-evidence/README.md\n100644 blob 63b2dd872ab27cdfe54d62cfc92c6dbb3e1954bd\tsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-a-map-replay.md\n100644 blob cd98fbe3014cc05308889901d172a57a1c4ee660\tsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-b-log-sha-conflict.md\n100644 blob 47687f3e433a65241146b975a7f81481b355fc18\tsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-c-approval-withdrawn.md\n100644 blob 9f1e815ba7eb6108d1f707b14c7932e0add7ef14\tsubmissions/s1-evidence-pack-20261107/repo-evidence/gap-list.md\n100644 blob b9ef6c0c90e45086b14ac9c4031ab9c4b6badad5\tsubmissions/s1-evidence-pack-20261107/repo-evidence/repo-evidence.md\n100644 blob 17b309ca7a6bf7ff74453f6c6bd70ed43681406b\tsubmissions/s1-evidence-pack-20261107/repo-evidence/s1-checklist-status.md\n100644 blob 892d905c4160f4d4d47f29a73c2cb58a26bc42ea\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stderr\n100644 blob 349598d9e60442b31b5667b8d62f2267f7d7ae89\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stdout\n100644 blob c8e2492bef0c8638a473c4ae1a03bc01700a90a3\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stderr\n100644 blob ab61b7bf1415a9c62e797ca1626ad2ff33c1b70d\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stderr\n100644 blob ab61b7bf1415a9c62e797ca1626ad2ff33c1b70d\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stderr\n100644 blob 680f9847195d0cc315d492e63f94f6b912f3e17f\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stdout\n100644 blob 8917d80f996fa56321f70ca140f887cc5552dfd0\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stdout\n100644 blob b36ba1ab35a0d03b27fce0f5f95cb8444cfa8834\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stdout\n100644 blob 25a2ecef9247780bc1a0403f7a4fe47716becc8e\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stdout\n100644 blob 539a9c38aa69905bdca15fe0cf2443cf095eaa24\tsubmissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt\n100644 blob 8ecce2fd10bb4d4da7a099a5c8eebed1dca91390\tsubmissions/s1-evidence-pack-addendum-20261108/README.md\n100644 blob 73d7e45cbd8b69b6f1d352ac6123e2c9e93eb33c\tsubmissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py\n100644 blob a9a7bc5d1f88458484c0487390d5a363542d1468\tsubmissions/s1-evidence-pack-addendum-20261108/d3-summary.md\n100644 blob be7b13fdefc672ac9ad43bb0c4271f99e671121b\tsubmissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json\n100644 blob 83397e2969135f6686228c4614c7cff12c006222\tsubmissions/s1-evidence-pack-addendum-20261108/hash-mappings.json\n100644 blob 031c37c742e41f0f5fa985ccabd374221c726393\tsubmissions/s1-evidence-pack-addendum-20261108/merge-manifest.json\n100644 blob a0b9979233cd0b234c86dc3cdc27bb36ee17c311\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json\n100644 blob 4031e8225d2e95305ca3ca98de0422f6c07ee689\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/README.md\n100644 blob d344443b672fd8a2609703fa0519157c8c3828e1\t\"submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs/\\347\\234\\237\\345\\256\\236\\351\\241\\271\\347\\233\\256\\347\\212\\266\\346\\200\\201\\350\\276\\223\\345\\205\\245.json\"\n100644 blob 333ec179b839b424d90db8135c05326b689474ac\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/preflight.py\n100644 blob 437ccf7536106bcb5f8c5dec62bc397dd01cfc1f\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/sample_fixed.json\n100644 blob e21fb0929be3e72b6071af92c1fb689289382fa2\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/status_tool.py\n100644 blob c2786d86edd9b572d87c6fb18f92fc2f9c5683fa\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_preflight.py\n100644 blob 2952c501c2f60640c06852a44db0ec4b5df35bc6\tsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_status_tool.py\n100644 blob 3a3ab9b9d60c20f511a29467b33e2dd405785b1b\tsubmissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "3551c1405befcc133cf9dd7169d9551134de42a215855b6a2b990a0301ba516d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2648,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob 59d1bd3114a6a48e03582f91a7e993e525cb14e7\tdocs/ROADMAP.md\n100644 blob b65009aeecb3e3e4e773e64399ac2684c48a4c45\tdocs/assets/collaboration.svg\n100644 blob 8d4321f79ad746d1f121825156ca56030d0d3d12\t\"docs/handoffs/2026-11-09-apo1-\\350\\277\\233\\345\\272\\246\\344\\272\\244\\346\\216\\245.md\"\n100644 blob 9b957c09d649a486c71bb4df06d87023f6a58191\t\"docs/handoffs/2026-11-09-\\345\\262\\227\\344\\275\\215\\350\\247\\204\\345\\210\\222.md\"\n100644 blob aa0791b7249f889257b97ba0b3bf767f78be96a3\tdocs/pr-prereview.md\n100644 blob 7a0b90f2a3829ba86f8867bad0e29f26e3708f0b\tdocs/practice-card-apo4-c3.md\n100644 blob a10fee2b51da846aa0d1c84b5139b16fb7c1f429\tdocs/practice-card-template.md\n100644 blob 0412bb0a21bf6b069cf8fa432ff587f65e4f22e9\tdocs/review-verdict-format.md\n100644 blob e43f8cee449cd1b237d4638ba25f2c803dbdbb61\tdocs/reviews/2026-11-02-lightvela-training.md\n100644 blob 3069a382bb06f3121b8a4bc43a03024ef0466d2b\tdocs/reviews/2026-11-02-worker-stage2-pilot.md\n100644 blob d361980e3d947b3c107ae29fca0724d06491663b\tdocs/reviews/2026-11-08-kanban-r1-r10.md\n100644 blob 985079a706fce7902a145f49dd282ebcc20e815c\tdocs/self-check-principles.md\n100644 blob 93ddae6085add30adb9e161b98731545ca7eac97\t\"docs/standards/00-\\345\\205\\245\\345\\217\\243\\344\\270\\216\\347\\273\\237\\344\\270\\200\\345\\210\\244\\345\\256\\232.md\"\n100644 blob d41bd08bfaa30b5a879633c1d63ff1e251ee3875\t\"docs/standards/01-\\351\\230\\266\\346\\256\\2651-\\346\\267\\261\\345\\272\\246\\344\\273\\213\\345\\205\\245.md\"\n100644 blob b8b4f877b1d1d13bc2b2a4b6a363729cd4d87a64\t\"docs/standards/02-\\351\\230\\266\\346\\256\\2652-\\350\\207\\252\\350\\257\\201\\346\\255\\243\\347\\241\\256.md\"\n100644 blob 7686fd8027d4d6b7fa4ceadc40ad57f2992868a8\t\"docs/standards/03-\\351\\230\\266\\346\\256\\2653-\\346\\216\\245\\346\\224\\266\\344\\277\\241\\345\\217\\267.md\"\n100644 blob da685fbc8929edb3d07eacf85e75b05f90304853\t\"docs/standards/04-\\351\\230\\266\\346\\256\\2654-\\347\\231\\275\\345\\220\\215\\345\\215\\225\\350\\207\\252\\345\\212\\250\\345\\220\\210\\345\\205\\245.md\"\n100644 blob c2cb4e603c3ac380f1c68cdd89b03a316e289ac0\t\"docs/standards/05-\\345\\256\\241\\346\\237\\245\\350\\256\\260\\345\\275\\225\\344\\270\\216\\350\\257\\201\\346\\215\\256\\346\\250\\241\\346\\235\\277.md\"\n100644 blob e070d36cd4acec9956c5eefb0c045073e6c2a2c3\t\"docs/standards/06-Dune\\344\\270\\216CI\\344\\270\\212\\347\\272\\277\\351\\227\\250\\347\\246\\201.md\"\n100644 blob 4c26649c4be2d779ae2c024248989919c7d50331\t\"docs/standards/07-\\345\\256\\236\\346\\265\\213\\346\\241\\210\\344\\276\\213\\344\\270\\216\\345\\217\\215\\344\\276\\213\\347\\264\\242\\345\\274\\225.md\"\n100644 blob 128e30d52d9c2022830823bd35b97f1dc5359eba\tdocs/standards/source-manifest.json\n100644 blob 951dd17a8233f2ddaa2b2045b6373b8a192e9dc4\t\"docs/standards/\\345\\256\\241\\346\\237\\245\\351\\227\\250\\346\\247\\233.json\"\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "3551c1405befcc133cf9dd7169d9551134de42a215855b6a2b990a0301ba516d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2648,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob 59d1bd3114a6a48e03582f91a7e993e525cb14e7\tdocs/ROADMAP.md\n100644 blob b65009aeecb3e3e4e773e64399ac2684c48a4c45\tdocs/assets/collaboration.svg\n100644 blob 8d4321f79ad746d1f121825156ca56030d0d3d12\t\"docs/handoffs/2026-11-09-apo1-\\350\\277\\233\\345\\272\\246\\344\\272\\244\\346\\216\\245.md\"\n100644 blob 9b957c09d649a486c71bb4df06d87023f6a58191\t\"docs/handoffs/2026-11-09-\\345\\262\\227\\344\\275\\215\\350\\247\\204\\345\\210\\222.md\"\n100644 blob aa0791b7249f889257b97ba0b3bf767f78be96a3\tdocs/pr-prereview.md\n100644 blob 7a0b90f2a3829ba86f8867bad0e29f26e3708f0b\tdocs/practice-card-apo4-c3.md\n100644 blob a10fee2b51da846aa0d1c84b5139b16fb7c1f429\tdocs/practice-card-template.md\n100644 blob 0412bb0a21bf6b069cf8fa432ff587f65e4f22e9\tdocs/review-verdict-format.md\n100644 blob e43f8cee449cd1b237d4638ba25f2c803dbdbb61\tdocs/reviews/2026-11-02-lightvela-training.md\n100644 blob 3069a382bb06f3121b8a4bc43a03024ef0466d2b\tdocs/reviews/2026-11-02-worker-stage2-pilot.md\n100644 blob d361980e3d947b3c107ae29fca0724d06491663b\tdocs/reviews/2026-11-08-kanban-r1-r10.md\n100644 blob 985079a706fce7902a145f49dd282ebcc20e815c\tdocs/self-check-principles.md\n100644 blob 93ddae6085add30adb9e161b98731545ca7eac97\t\"docs/standards/00-\\345\\205\\245\\345\\217\\243\\344\\270\\216\\347\\273\\237\\344\\270\\200\\345\\210\\244\\345\\256\\232.md\"\n100644 blob d41bd08bfaa30b5a879633c1d63ff1e251ee3875\t\"docs/standards/01-\\351\\230\\266\\346\\256\\2651-\\346\\267\\261\\345\\272\\246\\344\\273\\213\\345\\205\\245.md\"\n100644 blob b8b4f877b1d1d13bc2b2a4b6a363729cd4d87a64\t\"docs/standards/02-\\351\\230\\266\\346\\256\\2652-\\350\\207\\252\\350\\257\\201\\346\\255\\243\\347\\241\\256.md\"\n100644 blob 7686fd8027d4d6b7fa4ceadc40ad57f2992868a8\t\"docs/standards/03-\\351\\230\\266\\346\\256\\2653-\\346\\216\\245\\346\\224\\266\\344\\277\\241\\345\\217\\267.md\"\n100644 blob da685fbc8929edb3d07eacf85e75b05f90304853\t\"docs/standards/04-\\351\\230\\266\\346\\256\\2654-\\347\\231\\275\\345\\220\\215\\345\\215\\225\\350\\207\\252\\345\\212\\250\\345\\220\\210\\345\\205\\245.md\"\n100644 blob c2cb4e603c3ac380f1c68cdd89b03a316e289ac0\t\"docs/standards/05-\\345\\256\\241\\346\\237\\245\\350\\256\\260\\345\\275\\225\\344\\270\\216\\350\\257\\201\\346\\215\\256\\346\\250\\241\\346\\235\\277.md\"\n100644 blob e070d36cd4acec9956c5eefb0c045073e6c2a2c3\t\"docs/standards/06-Dune\\344\\270\\216CI\\344\\270\\212\\347\\272\\277\\351\\227\\250\\347\\246\\201.md\"\n100644 blob 4c26649c4be2d779ae2c024248989919c7d50331\t\"docs/standards/07-\\345\\256\\236\\346\\265\\213\\346\\241\\210\\344\\276\\213\\344\\270\\216\\345\\217\\215\\344\\276\\213\\347\\264\\242\\345\\274\\225.md\"\n100644 blob 128e30d52d9c2022830823bd35b97f1dc5359eba\tdocs/standards/source-manifest.json\n100644 blob 951dd17a8233f2ddaa2b2045b6373b8a192e9dc4\t\"docs/standards/\\345\\256\\241\\346\\237\\245\\351\\227\\250\\346\\247\\233.json\"\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "7014c75366eb1a3624e128272812f3fb7c1a4ec91984dc67f5419991aeebaee8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 5780,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob 20c65bb6814243a66879ef9444653ce7dc651898\tcapabilities/README.md\n100644 blob 21fe3f29090dae9fc6d54632a31a90fa1193c5f7\tcapabilities/bounded_advance/README.md\n100644 blob fba357d51f022c55fec1570198b6b0241f305c6f\tcapabilities/bounded_advance/advance.py\n100644 blob 23cda0ef18061281fdcc12f6b750b607adc70e4a\tcapabilities/bounded_advance/receipts/acde4f6-public-replay.json\n100644 blob ae6d484f7561513ec9118ff8ae3a00f8296df9ba\tcapabilities/bounded_advance/receipts/acde4f6-t4-t5-advance.json\n100644 blob 18c072aa59001c2f9112531deb1f7cfbfb190879\tcapabilities/bounded_advance/tests/test_advance.py\n100644 blob 78e7e8367ba5eff68e3f687f0b1ccf4d2876f810\tcapabilities/event_gate/README.md\n100644 blob 1a25d35d98870cef40109bc3b89d92e6b0b25d2e\tcapabilities/event_gate/check.py\n100644 blob 6ca08f6560e84afb0ea657679686bdd3e8126869\tcapabilities/event_gate/example/event-replay.json\n100644 blob f5fe96e63b15986227f61d02157da8cd5cee2aaf\tcapabilities/event_gate/example/ledger.jsonl\n100644 blob 1a9ddc20f8b76b23345ffff64f8a3fc9ccaa340b\tcapabilities/event_gate/feature-map.json\n100644 blob c813bbb590eaf08b27d2bb1b83dca5388297cde2\tcapabilities/event_gate/tests/test_check.py\n100644 blob b4901cdee8cba1dccba4187b4966154426276d79\tcapabilities/evidence_package/README.md\n100644 blob 2765914dc26f6d406ebdc71a79abc3fe53c3915c\tcapabilities/evidence_package/example/manifest.json\n100644 blob 17da43d32a88bdd8598cbc18ef5e7b47f146d0b3\tcapabilities/evidence_package/example/result.txt\n100644 blob 5c4518a6298064a36045dd60ede9d3d5af91198f\tcapabilities/evidence_package/feature-map.json\n100644 blob 40b8f2f812d923893d14f4e3a57abfeda2a0735d\tcapabilities/evidence_package/tests/test_verify.py\n100644 blob 199751d2c20dcd3cb6210b46533f04134e0ac48a\tcapabilities/evidence_package/verify.py\n100644 blob 2146af85fd9b18b94c39901cabf404405ea2c62e\tcapabilities/handoff_conventions/README.md\n100644 blob dc8b40ecd456e09e0fdec288f9723fa82cc153a2\tcapabilities/handoff_conventions/check.py\n100644 blob a9b243966160dc6ca051ef5d71b08f4705bc46d0\tcapabilities/handoff_conventions/feature-map.json\n100644 blob 90740e902011db2802d5a1f6637902e81969d7b5\tcapabilities/handoff_conventions/fixtures/defined.txt\n100644 blob 7e997e9669417584b1546b74e0e4cffa38bcf4e0\tcapabilities/handoff_conventions/fixtures/undefined.txt\n100644 blob 269e35d3111977e7b101abbd61d92331a501d24c\tcapabilities/handoff_conventions/terms.json\n100644 blob 6b7406f8b4845bf879ce19d70bd78258673f93cb\tcapabilities/handoff_conventions/tests/test_check.py\n100644 blob f799485035fc510dad2431bc549451bb97ff0573\tcapabilities/handoff_recipient/INSTALL.md\n100644 blob bfc2adfaa985a5ce379b38c7e40e0d111c8156e9\tcapabilities/handoff_recipient/README.md\n100644 blob 41985f3588fae8657033d483ed76c327aa94de0a\tcapabilities/handoff_recipient/check.py\n100644 blob 3571cd4f4e6f0b2f3f4814f6dae18cdae9f1e2f2\tcapabilities/handoff_recipient/feature-map.json\n100644 blob 944101ba8c05a5ee6f4a1d24d3c28e153a36fb77\tcapabilities/handoff_recipient/fixtures/aliases.json\n100644 blob 3aa78f5746bc3795f9108fbc8fa1594f4fba312e\tcapabilities/handoff_recipient/fixtures/missing-input.txt\n100644 blob a26b82480e55315ca94b507a5aeee7aef2c6c7d1\tcapabilities/handoff_recipient/fixtures/r1-chief.txt\n100644 blob 1987bfe9d1bacd2da02203b260f5d3d4f56ea62c\tcapabilities/handoff_recipient/fixtures/r2-card-a.txt\n100644 blob 3b300d6324f86da8fc7a8b527610d6a47d42fa6f\tcapabilities/handoff_recipient/fixtures/two-recipients.txt\n100644 blob 350a8fb291e8a22bb4e9cd845b291cb939f8224d\tcapabilities/handoff_recipient/tests/test_check.py\n100644 blob 7fe60187126ce4699d7649b625796f118d7e726a\tcapabilities/handoff_recipient/tests/test_published_fingerprint.py\n100644 blob ffcd2dfa2efad8712519c2bf1d896362ef1f7f4b\tcapabilities/maintenance_prototype/README.md\n100644 blob ccc6979eccdee47a47b2060df4bff6a8ddf89ca5\tcapabilities/maintenance_prototype/check.py\n100644 blob 62db59eba6cba28c655fc48cd3c0bd0915009eb6\tcapabilities/maintenance_prototype/example/cases.py\n100644 blob 76c13871887ae64102bdf6e3b6efa561a213f7ba\tcapabilities/maintenance_prototype/example/prototype.json\n100644 blob 46a9ef9a74bb9ef335a21b72c682871c4103e5f6\tcapabilities/maintenance_prototype/feature-map.json\n100644 blob 86efbedda2d4467b2ee871ce9eda271667b51b63\tcapabilities/maintenance_prototype/tests/test_check.py\n100644 blob 89904f66ab21e7e0202b200f91796ba95718eec4\tcapabilities/rerun_receipt/README.md\n100644 blob 8636db2b273b2c540e2e70c72ee94f718964dc4a\tcapabilities/rerun_receipt/check.py\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tcapabilities/rerun_receipt/example/evidence/example-exit4.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tcapabilities/rerun_receipt/example/evidence/example-exit4.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tcapabilities/rerun_receipt/example/evidence/example-ok.stderr\n100644 blob c66160e48fd08a56fff9a12d51362037bd658d97\tcapabilities/rerun_receipt/example/evidence/example-ok.stdout\n100644 blob a45f5ad478305a64592a1c02020cb645607ff2fc\tcapabilities/rerun_receipt/example/manifest.json\n100644 blob ce5df0c1350792ec048785b5d175b531d00a18a1\tcapabilities/rerun_receipt/example/receipts.json\n100644 blob 89a68501ce8ca262fae01bbc130340ff5d1d53c6\tcapabilities/rerun_receipt/feature-map.json\n100644 blob aff57eac06a7c12deb289d0c58a8382e5ee9b8c5\tcapabilities/rerun_receipt/tests/test_budget.py\n100644 blob b3ad8c9c183139c820018ce4d7c8a0ff5ccdd0d3\tcapabilities/rerun_receipt/tests/test_check.py\n100644 blob e01034fa0b7194d1bdb3aa398961f022233582dd\tcapabilities/review_readonly/README.md\n100644 blob e1f7332496ca5262ab95f1e2dea2b59d9529e28c\tcapabilities/review_readonly/check.py\n100644 blob 08d56cb1aee7ab8c40bb214af0f7ce3aa9591bb8\tcapabilities/review_readonly/feature-map.json\n100644 blob 86361dde016c08dfeb7f3a062c784f86fabd2487\tcapabilities/review_readonly/tests/test_check.py\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "7014c75366eb1a3624e128272812f3fb7c1a4ec91984dc67f5419991aeebaee8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 5780,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob 20c65bb6814243a66879ef9444653ce7dc651898\tcapabilities/README.md\n100644 blob 21fe3f29090dae9fc6d54632a31a90fa1193c5f7\tcapabilities/bounded_advance/README.md\n100644 blob fba357d51f022c55fec1570198b6b0241f305c6f\tcapabilities/bounded_advance/advance.py\n100644 blob 23cda0ef18061281fdcc12f6b750b607adc70e4a\tcapabilities/bounded_advance/receipts/acde4f6-public-replay.json\n100644 blob ae6d484f7561513ec9118ff8ae3a00f8296df9ba\tcapabilities/bounded_advance/receipts/acde4f6-t4-t5-advance.json\n100644 blob 18c072aa59001c2f9112531deb1f7cfbfb190879\tcapabilities/bounded_advance/tests/test_advance.py\n100644 blob 78e7e8367ba5eff68e3f687f0b1ccf4d2876f810\tcapabilities/event_gate/README.md\n100644 blob 1a25d35d98870cef40109bc3b89d92e6b0b25d2e\tcapabilities/event_gate/check.py\n100644 blob 6ca08f6560e84afb0ea657679686bdd3e8126869\tcapabilities/event_gate/example/event-replay.json\n100644 blob f5fe96e63b15986227f61d02157da8cd5cee2aaf\tcapabilities/event_gate/example/ledger.jsonl\n100644 blob 1a9ddc20f8b76b23345ffff64f8a3fc9ccaa340b\tcapabilities/event_gate/feature-map.json\n100644 blob c813bbb590eaf08b27d2bb1b83dca5388297cde2\tcapabilities/event_gate/tests/test_check.py\n100644 blob b4901cdee8cba1dccba4187b4966154426276d79\tcapabilities/evidence_package/README.md\n100644 blob 2765914dc26f6d406ebdc71a79abc3fe53c3915c\tcapabilities/evidence_package/example/manifest.json\n100644 blob 17da43d32a88bdd8598cbc18ef5e7b47f146d0b3\tcapabilities/evidence_package/example/result.txt\n100644 blob 5c4518a6298064a36045dd60ede9d3d5af91198f\tcapabilities/evidence_package/feature-map.json\n100644 blob 40b8f2f812d923893d14f4e3a57abfeda2a0735d\tcapabilities/evidence_package/tests/test_verify.py\n100644 blob 199751d2c20dcd3cb6210b46533f04134e0ac48a\tcapabilities/evidence_package/verify.py\n100644 blob 2146af85fd9b18b94c39901cabf404405ea2c62e\tcapabilities/handoff_conventions/README.md\n100644 blob dc8b40ecd456e09e0fdec288f9723fa82cc153a2\tcapabilities/handoff_conventions/check.py\n100644 blob a9b243966160dc6ca051ef5d71b08f4705bc46d0\tcapabilities/handoff_conventions/feature-map.json\n100644 blob 90740e902011db2802d5a1f6637902e81969d7b5\tcapabilities/handoff_conventions/fixtures/defined.txt\n100644 blob 7e997e9669417584b1546b74e0e4cffa38bcf4e0\tcapabilities/handoff_conventions/fixtures/undefined.txt\n100644 blob 269e35d3111977e7b101abbd61d92331a501d24c\tcapabilities/handoff_conventions/terms.json\n100644 blob 6b7406f8b4845bf879ce19d70bd78258673f93cb\tcapabilities/handoff_conventions/tests/test_check.py\n100644 blob f799485035fc510dad2431bc549451bb97ff0573\tcapabilities/handoff_recipient/INSTALL.md\n100644 blob bfc2adfaa985a5ce379b38c7e40e0d111c8156e9\tcapabilities/handoff_recipient/README.md\n100644 blob 41985f3588fae8657033d483ed76c327aa94de0a\tcapabilities/handoff_recipient/check.py\n100644 blob 3571cd4f4e6f0b2f3f4814f6dae18cdae9f1e2f2\tcapabilities/handoff_recipient/feature-map.json\n100644 blob 944101ba8c05a5ee6f4a1d24d3c28e153a36fb77\tcapabilities/handoff_recipient/fixtures/aliases.json\n100644 blob 3aa78f5746bc3795f9108fbc8fa1594f4fba312e\tcapabilities/handoff_recipient/fixtures/missing-input.txt\n100644 blob a26b82480e55315ca94b507a5aeee7aef2c6c7d1\tcapabilities/handoff_recipient/fixtures/r1-chief.txt\n100644 blob 1987bfe9d1bacd2da02203b260f5d3d4f56ea62c\tcapabilities/handoff_recipient/fixtures/r2-card-a.txt\n100644 blob 3b300d6324f86da8fc7a8b527610d6a47d42fa6f\tcapabilities/handoff_recipient/fixtures/two-recipients.txt\n100644 blob 350a8fb291e8a22bb4e9cd845b291cb939f8224d\tcapabilities/handoff_recipient/tests/test_check.py\n100644 blob 7fe60187126ce4699d7649b625796f118d7e726a\tcapabilities/handoff_recipient/tests/test_published_fingerprint.py\n100644 blob ffcd2dfa2efad8712519c2bf1d896362ef1f7f4b\tcapabilities/maintenance_prototype/README.md\n100644 blob ccc6979eccdee47a47b2060df4bff6a8ddf89ca5\tcapabilities/maintenance_prototype/check.py\n100644 blob 62db59eba6cba28c655fc48cd3c0bd0915009eb6\tcapabilities/maintenance_prototype/example/cases.py\n100644 blob 76c13871887ae64102bdf6e3b6efa561a213f7ba\tcapabilities/maintenance_prototype/example/prototype.json\n100644 blob 46a9ef9a74bb9ef335a21b72c682871c4103e5f6\tcapabilities/maintenance_prototype/feature-map.json\n100644 blob 86efbedda2d4467b2ee871ce9eda271667b51b63\tcapabilities/maintenance_prototype/tests/test_check.py\n100644 blob 89904f66ab21e7e0202b200f91796ba95718eec4\tcapabilities/rerun_receipt/README.md\n100644 blob 8636db2b273b2c540e2e70c72ee94f718964dc4a\tcapabilities/rerun_receipt/check.py\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tcapabilities/rerun_receipt/example/evidence/example-exit4.stderr\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tcapabilities/rerun_receipt/example/evidence/example-exit4.stdout\n100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\tcapabilities/rerun_receipt/example/evidence/example-ok.stderr\n100644 blob c66160e48fd08a56fff9a12d51362037bd658d97\tcapabilities/rerun_receipt/example/evidence/example-ok.stdout\n100644 blob a45f5ad478305a64592a1c02020cb645607ff2fc\tcapabilities/rerun_receipt/example/manifest.json\n100644 blob ce5df0c1350792ec048785b5d175b531d00a18a1\tcapabilities/rerun_receipt/example/receipts.json\n100644 blob 89a68501ce8ca262fae01bbc130340ff5d1d53c6\tcapabilities/rerun_receipt/feature-map.json\n100644 blob aff57eac06a7c12deb289d0c58a8382e5ee9b8c5\tcapabilities/rerun_receipt/tests/test_budget.py\n100644 blob b3ad8c9c183139c820018ce4d7c8a0ff5ccdd0d3\tcapabilities/rerun_receipt/tests/test_check.py\n100644 blob e01034fa0b7194d1bdb3aa398961f022233582dd\tcapabilities/review_readonly/README.md\n100644 blob e1f7332496ca5262ab95f1e2dea2b59d9529e28c\tcapabilities/review_readonly/check.py\n100644 blob 08d56cb1aee7ab8c40bb214af0f7ce3aa9591bb8\tcapabilities/review_readonly/feature-map.json\n100644 blob 86361dde016c08dfeb7f3a062c784f86fabd2487\tcapabilities/review_readonly/tests/test_check.py\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "control"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "e97045df4c806f89f080c6283400d5e9e7c17fcede75f98cfef67357507c17d5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1003,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob 41eb981756a8eb87af5e74b2f07e0991d6747e5d\tcontrol/README.md\n100644 blob 40688d62e4f467b18caa6592f535ee874c42b28a\tcontrol/gate/README.md\n100644 blob 7d652e1b203dab436a5771ffc311003c33772413\tcontrol/gate/example/config.json\n100644 blob 5fbae74bced15bb2833b69181686177ca162c879\tcontrol/gate/example/events.draft.jsonl\n100644 blob 44c55d7bea8b30cbf88d65ddf3e16ae27bb2965a\tcontrol/gate/example/events.jsonl\n100644 blob d612ae81d53b9fc02baf854b58b15888dcae81c0\tcontrol/gate/example/ledger.json\n100644 blob 3b431a82067495beeaf2f981882c577a6360db08\tcontrol/gate/feature-map.json\n100644 blob e76de8034c966c06d1cc321008e16235b00de6ca\tcontrol/gate/gate.py\n100644 blob 16f46ea55f11d1f0b3743f76c29b79ede30bb891\tcontrol/gate/tests/test_gate.py\n100644 blob 6f7dceaa2a69162a165445a4985e648a513e712b\tcontrol/loop_status/README.md\n100644 blob 4212acef5d103ca4ec76abd2d3f1da47e7d2ba8e\tcontrol/loop_status/history.py\n100644 blob 6271597f04500895ff96b9e0533fa3e5b22d10b4\tcontrol/loop_status/tests/test_history.py\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "control"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "e97045df4c806f89f080c6283400d5e9e7c17fcede75f98cfef67357507c17d5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1003,
+      "stderr_bytes": 0,
+      "stdout": "100644 blob 41eb981756a8eb87af5e74b2f07e0991d6747e5d\tcontrol/README.md\n100644 blob 40688d62e4f467b18caa6592f535ee874c42b28a\tcontrol/gate/README.md\n100644 blob 7d652e1b203dab436a5771ffc311003c33772413\tcontrol/gate/example/config.json\n100644 blob 5fbae74bced15bb2833b69181686177ca162c879\tcontrol/gate/example/events.draft.jsonl\n100644 blob 44c55d7bea8b30cbf88d65ddf3e16ae27bb2965a\tcontrol/gate/example/events.jsonl\n100644 blob d612ae81d53b9fc02baf854b58b15888dcae81c0\tcontrol/gate/example/ledger.json\n100644 blob 3b431a82067495beeaf2f981882c577a6360db08\tcontrol/gate/feature-map.json\n100644 blob e76de8034c966c06d1cc321008e16235b00de6ca\tcontrol/gate/gate.py\n100644 blob 16f46ea55f11d1f0b3743f76c29b79ede30bb891\tcontrol/gate/tests/test_gate.py\n100644 blob 6f7dceaa2a69162a165445a4985e648a513e712b\tcontrol/loop_status/README.md\n100644 blob 4212acef5d103ca4ec76abd2d3f1da47e7d2ba8e\tcontrol/loop_status/history.py\n100644 blob 6271597f04500895ff96b9e0533fa3e5b22d10b4\tcontrol/loop_status/tests/test_history.py\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions/s1-evidence-pack-20261107"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "a01cf70be04bad0c23e8d143672e0887e21aceb9b32792c69a9f042cbd5c6206",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1792,
+      "stderr_bytes": 0,
+      "stdout": "submissions/s1-evidence-pack-20261107/A/A-manifest.json\nsubmissions/s1-evidence-pack-20261107/A/A-report.md\nsubmissions/s1-evidence-pack-20261107/A/A1.json\nsubmissions/s1-evidence-pack-20261107/A/A2.md\nsubmissions/s1-evidence-pack-20261107/A/A3.md\nsubmissions/s1-evidence-pack-20261107/A/A4.md\nsubmissions/s1-evidence-pack-20261107/A/A5.md\nsubmissions/s1-evidence-pack-20261107/B/B-manifest.json\nsubmissions/s1-evidence-pack-20261107/B/B-report.md\nsubmissions/s1-evidence-pack-20261107/B/B1.md\nsubmissions/s1-evidence-pack-20261107/B/B2.md\nsubmissions/s1-evidence-pack-20261107/B/B3.md\nsubmissions/s1-evidence-pack-20261107/B/B4-hashlist.txt\nsubmissions/s1-evidence-pack-20261107/C/C-manifest.json\nsubmissions/s1-evidence-pack-20261107/C/C-report.md\nsubmissions/s1-evidence-pack-20261107/C/C1.md\nsubmissions/s1-evidence-pack-20261107/C/C2.md\nsubmissions/s1-evidence-pack-20261107/C/C3.md\nsubmissions/s1-evidence-pack-20261107/C/C4.md\nsubmissions/s1-evidence-pack-20261107/D/D-manifest.json\nsubmissions/s1-evidence-pack-20261107/D/D-report.md\nsubmissions/s1-evidence-pack-20261107/D/D1.md\nsubmissions/s1-evidence-pack-20261107/D/D2.md\nsubmissions/s1-evidence-pack-20261107/D/D3.md\nsubmissions/s1-evidence-pack-20261107/PACK-INDEX.md\nsubmissions/s1-evidence-pack-20261107/README.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/README.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-a-map-replay.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-b-log-sha-conflict.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-c-approval-withdrawn.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/gap-list.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/repo-evidence.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/s1-checklist-status.md\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "-d",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions/s1-evidence-pack-20261107"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "6bae6355833ad6ee410a7fc6d3653fa33e39077ab25a464d295b6e01f68e937e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 262,
+      "stderr_bytes": 0,
+      "stdout": "submissions\nsubmissions/s1-evidence-pack-20261107\nsubmissions/s1-evidence-pack-20261107/A\nsubmissions/s1-evidence-pack-20261107/B\nsubmissions/s1-evidence-pack-20261107/C\nsubmissions/s1-evidence-pack-20261107/D\nsubmissions/s1-evidence-pack-20261107/repo-evidence\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions/s1-evidence-pack-addendum-20261108"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "c9d47a9e8b37783ca5cc7fe9ed91c3b8bf3ad9f6a964350caecb16e6eebd1686",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2454,
+      "stderr_bytes": 0,
+      "stdout": "submissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt\nsubmissions/s1-evidence-pack-addendum-20261108/README.md\nsubmissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py\nsubmissions/s1-evidence-pack-addendum-20261108/d3-summary.md\nsubmissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json\nsubmissions/s1-evidence-pack-addendum-20261108/hash-mappings.json\nsubmissions/s1-evidence-pack-addendum-20261108/merge-manifest.json\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/README.md\n\"submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs/\\347\\234\\237\\345\\256\\236\\351\\241\\271\\347\\233\\256\\347\\212\\266\\346\\200\\201\\350\\276\\223\\345\\205\\245.json\"\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/preflight.py\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/sample_fixed.json\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/status_tool.py\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_preflight.py\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_status_tool.py\nsubmissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "-d",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions/s1-evidence-pack-addendum-20261108"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "b225c4e87caafda4b9b86ef6369a4c1efb64cd4093c7fdc6ee845bb0d2dbb288",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 246,
+      "stderr_bytes": 0,
+      "stdout": "submissions\nsubmissions/s1-evidence-pack-addendum-20261108\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "3a40d4b3368f875a1f4633e45495c9c0669f1f3680024782821a298a24b18113",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 4268,
+      "stderr_bytes": 0,
+      "stdout": "submissions/README.md\nsubmissions/s1-evidence-pack-20261107/A/A-manifest.json\nsubmissions/s1-evidence-pack-20261107/A/A-report.md\nsubmissions/s1-evidence-pack-20261107/A/A1.json\nsubmissions/s1-evidence-pack-20261107/A/A2.md\nsubmissions/s1-evidence-pack-20261107/A/A3.md\nsubmissions/s1-evidence-pack-20261107/A/A4.md\nsubmissions/s1-evidence-pack-20261107/A/A5.md\nsubmissions/s1-evidence-pack-20261107/B/B-manifest.json\nsubmissions/s1-evidence-pack-20261107/B/B-report.md\nsubmissions/s1-evidence-pack-20261107/B/B1.md\nsubmissions/s1-evidence-pack-20261107/B/B2.md\nsubmissions/s1-evidence-pack-20261107/B/B3.md\nsubmissions/s1-evidence-pack-20261107/B/B4-hashlist.txt\nsubmissions/s1-evidence-pack-20261107/C/C-manifest.json\nsubmissions/s1-evidence-pack-20261107/C/C-report.md\nsubmissions/s1-evidence-pack-20261107/C/C1.md\nsubmissions/s1-evidence-pack-20261107/C/C2.md\nsubmissions/s1-evidence-pack-20261107/C/C3.md\nsubmissions/s1-evidence-pack-20261107/C/C4.md\nsubmissions/s1-evidence-pack-20261107/D/D-manifest.json\nsubmissions/s1-evidence-pack-20261107/D/D-report.md\nsubmissions/s1-evidence-pack-20261107/D/D1.md\nsubmissions/s1-evidence-pack-20261107/D/D2.md\nsubmissions/s1-evidence-pack-20261107/D/D3.md\nsubmissions/s1-evidence-pack-20261107/PACK-INDEX.md\nsubmissions/s1-evidence-pack-20261107/README.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/README.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-a-map-replay.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-b-log-sha-conflict.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/blocker-c-approval-withdrawn.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/gap-list.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/repo-evidence.md\nsubmissions/s1-evidence-pack-20261107/repo-evidence/s1-checklist-status.md\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals-manifest.json\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/PREFLIGHT-LOCAL.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T1.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T2.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T3.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T4.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T5.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/T6.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stderr\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals/TP.stdout\nsubmissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt\nsubmissions/s1-evidence-pack-addendum-20261108/README.md\nsubmissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py\nsubmissions/s1-evidence-pack-addendum-20261108/d3-summary.md\nsubmissions/s1-evidence-pack-addendum-20261108/feature-map.desensitized.json\nsubmissions/s1-evidence-pack-addendum-20261108/hash-mappings.json\nsubmissions/s1-evidence-pack-addendum-20261108/merge-manifest.json\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit-manifest.json\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/README.md\n\"submissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs/\\347\\234\\237\\345\\256\\236\\351\\241\\271\\347\\233\\256\\347\\212\\266\\346\\200\\201\\350\\276\\223\\345\\205\\245.json\"\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/preflight.py\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/sample_fixed.json\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/status_tool.py\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_preflight.py\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/test_status_tool.py\nsubmissions/s1-evidence-pack-addendum-20261108/rerun.desensitized.json\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "-d",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "be6ac8152cc9aa7316edc1e74f2328ba619d855ce3e64dc25d24cc0632e4aab1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 496,
+      "stderr_bytes": 0,
+      "stdout": "submissions\nsubmissions/s1-evidence-pack-20261107\nsubmissions/s1-evidence-pack-20261107/A\nsubmissions/s1-evidence-pack-20261107/B\nsubmissions/s1-evidence-pack-20261107/C\nsubmissions/s1-evidence-pack-20261107/D\nsubmissions/s1-evidence-pack-20261107/repo-evidence\nsubmissions/s1-evidence-pack-addendum-20261108\nsubmissions/s1-evidence-pack-addendum-20261108/A2-originals\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit\nsubmissions/s1-evidence-pack-addendum-20261108/replay-kit/alt-inputs\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "a0278e38cbf3975093a24cf56c89a8e311a1b5215bc20013fb15d7f2044a8f9e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2759,
+      "stderr_bytes": 0,
+      "stdout": "capabilities/README.md\ncapabilities/bounded_advance/README.md\ncapabilities/bounded_advance/advance.py\ncapabilities/bounded_advance/receipts/acde4f6-public-replay.json\ncapabilities/bounded_advance/receipts/acde4f6-t4-t5-advance.json\ncapabilities/bounded_advance/tests/test_advance.py\ncapabilities/event_gate/README.md\ncapabilities/event_gate/check.py\ncapabilities/event_gate/example/event-replay.json\ncapabilities/event_gate/example/ledger.jsonl\ncapabilities/event_gate/feature-map.json\ncapabilities/event_gate/tests/test_check.py\ncapabilities/evidence_package/README.md\ncapabilities/evidence_package/example/manifest.json\ncapabilities/evidence_package/example/result.txt\ncapabilities/evidence_package/feature-map.json\ncapabilities/evidence_package/tests/test_verify.py\ncapabilities/evidence_package/verify.py\ncapabilities/handoff_conventions/README.md\ncapabilities/handoff_conventions/check.py\ncapabilities/handoff_conventions/feature-map.json\ncapabilities/handoff_conventions/fixtures/defined.txt\ncapabilities/handoff_conventions/fixtures/undefined.txt\ncapabilities/handoff_conventions/terms.json\ncapabilities/handoff_conventions/tests/test_check.py\ncapabilities/handoff_recipient/INSTALL.md\ncapabilities/handoff_recipient/README.md\ncapabilities/handoff_recipient/check.py\ncapabilities/handoff_recipient/feature-map.json\ncapabilities/handoff_recipient/fixtures/aliases.json\ncapabilities/handoff_recipient/fixtures/missing-input.txt\ncapabilities/handoff_recipient/fixtures/r1-chief.txt\ncapabilities/handoff_recipient/fixtures/r2-card-a.txt\ncapabilities/handoff_recipient/fixtures/two-recipients.txt\ncapabilities/handoff_recipient/tests/test_check.py\ncapabilities/handoff_recipient/tests/test_published_fingerprint.py\ncapabilities/maintenance_prototype/README.md\ncapabilities/maintenance_prototype/check.py\ncapabilities/maintenance_prototype/example/cases.py\ncapabilities/maintenance_prototype/example/prototype.json\ncapabilities/maintenance_prototype/feature-map.json\ncapabilities/maintenance_prototype/tests/test_check.py\ncapabilities/rerun_receipt/README.md\ncapabilities/rerun_receipt/check.py\ncapabilities/rerun_receipt/example/evidence/example-exit4.stderr\ncapabilities/rerun_receipt/example/evidence/example-exit4.stdout\ncapabilities/rerun_receipt/example/evidence/example-ok.stderr\ncapabilities/rerun_receipt/example/evidence/example-ok.stdout\ncapabilities/rerun_receipt/example/manifest.json\ncapabilities/rerun_receipt/example/receipts.json\ncapabilities/rerun_receipt/feature-map.json\ncapabilities/rerun_receipt/tests/test_budget.py\ncapabilities/rerun_receipt/tests/test_check.py\ncapabilities/review_readonly/README.md\ncapabilities/review_readonly/check.py\ncapabilities/review_readonly/feature-map.json\ncapabilities/review_readonly/tests/test_check.py\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "-d",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "ff17b0684ecf1b0b02d4f00a66380f9c57ea21d4fd7ea9b8ae3171be2f26a6c2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 849,
+      "stderr_bytes": 0,
+      "stdout": "capabilities\ncapabilities/bounded_advance\ncapabilities/bounded_advance/receipts\ncapabilities/bounded_advance/tests\ncapabilities/event_gate\ncapabilities/event_gate/example\ncapabilities/event_gate/tests\ncapabilities/evidence_package\ncapabilities/evidence_package/example\ncapabilities/evidence_package/tests\ncapabilities/handoff_conventions\ncapabilities/handoff_conventions/fixtures\ncapabilities/handoff_conventions/tests\ncapabilities/handoff_recipient\ncapabilities/handoff_recipient/fixtures\ncapabilities/handoff_recipient/tests\ncapabilities/maintenance_prototype\ncapabilities/maintenance_prototype/example\ncapabilities/maintenance_prototype/tests\ncapabilities/rerun_receipt\ncapabilities/rerun_receipt/example\ncapabilities/rerun_receipt/example/evidence\ncapabilities/rerun_receipt/tests\ncapabilities/review_readonly\ncapabilities/review_readonly/tests\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "55a2423fcce474bc5d1ac21d9c80aa04bf980e77ed89caab7b10d2c8d7feb003",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "a1f2103eeabd2be7ef3d2e9b5b9183e797edcfd15591b2a8f38a74698eb807c7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 459,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:30:- 来源完整性: 该文件当前 SHA256 = `55a2423fcce474bc5d1ac21d9c80aa04bf980e77ed89caab7b10d2c8d7feb003`,与本地采集清单记录一致\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt:4:55a2423fcce474bc5d1ac21d9c80aa04bf980e77ed89caab7b10d2c8d7feb003  V1-哈希冲突复核回执.json  (28007B)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "9063be8d587d9f33063db574dcbe7ea680fb68086c3f44bb2f3e407e4b665e08",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "5c89e8a5eb2171cf2d9fbdf02212afda3cb7e7aac4562f1ecffc56d6d1d1ef44",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 218,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt:5:9063be8d587d9f33063db574dcbe7ea680fb68086c3f44bb2f3e407e4b665e08  V1-复核补证回执.json  (23657B)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "142f5ef0be4c7408a0fbc6c8e506e4531af6e5d253a6a631d82475f45abddbb2",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "2817c262859e05381534370434fe81e1271c8648def5e69a04cc2cbb80841e69",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 224,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt:6:142f5ef0be4c7408a0fbc6c8e506e4531af6e5d253a6a631d82475f45abddbb2  V1-独立业务验收回执.json  (12850B)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "c8dbb8aaafe1103cb4424775a0e74f64421a43c787fe77d1f7549924fee7fe5a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 3564,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B-manifest.json:14:      \"notes\": \"05验收日志全文17行逐字保留(含已写入SHA行);逐行核对后原文不含消息ID/发送者身份原文/真实profileID,无删除项;第17行自指向哈希行原样保留并标注为冲突本体,未替换未补算。原件本地SHA 618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9(1132字节)。\"\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B-manifest.json:30:      \"notes\": \"两份不符回执=V1独立业务验收回执(08:26/08:27第一次自报)与V1复核补证回执(08:28以'本轮复验哈希未变'第二次沿用)。两者对05_after_and_final.txt记录值均为ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2,完成文件实际SHA为618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9。保留全部SHA记录与时间;检测器源码定位回执.json与验收者搜索越界回执.json中的同值SHA为冲突历史引用,不计入两份。\"\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B-report.md:6:- 冲突事实底座: 05 完成文件实际 SHA `618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9`(本机 shasum -a 256 重算,1132 字节,exit=0)≠ 两次回执记录值 `ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2`\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B1.md:4:- 本地采集件 SHA256: `618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9`(1132 字节,本机 shasum -a 256 重算,退出码 0,见 B3)\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B2.md:5:完成文件实际 SHA 为 `618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9`\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B2.md:71:2. 实际值: 完成文件(1132 字节)实际 SHA 为 `618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9`。\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:14:618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9  <VAULT>/02-项目/AI信任审查/阶段2先导-执行者-20261102/原件/05_after_and_final.txt\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:23:- 05 完成文件实际 SHA = `618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9`,≠ 两次回执记录值 `ee830731…ab55b2`(B2)。\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:37:独立重算：sha256sum 05_after_and_final.txt → 618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9（1132 字节），与你下载件一致；与我两次自报的 ee830731…ab55b2 不一致。你是对的。\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:45:05_after_and_final.txt 正确完整 SHA：618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9（文件未改动，仅声明更正）\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:55:618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9  05_after_and_final.txt\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt:7:618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9  05_after_and_final.txt  (1132B)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "fa7cfc49aec999204fa4003a7eb1139a5f3a4a24edcfdccdbd242b94ce3fe3d2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 990,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:15:ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c  <VAULT>/02-项目/AI信任审查/阶段2先导-执行者-20261102/原件/08_sha_conflict.txt\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:24:- 08_sha_conflict.txt SHA = `ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c`,与验收 Bot 回执自报一致。\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B3.md:44:08_sha_conflict.txt ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c（本档生成后独立命令重算，不含自身哈希行）\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt:8:ebd1b1ec791b728bf4184da9c9c2f4d7510392120011cb7c98867b1146445e7c  08_sha_conflict.txt  (2439B)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "60ede36d5e5382ee24d23d2e79f0d987a751fe46b172a733c18273ca10419652",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "e4584394738cd3e3d81f70c401171a4f2c18d92badb8322de4f303cc5736807b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 208,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-addendum-20261108/B-originals-hashlist.txt:9:60ede36d5e5382ee24d23d2e79f0d987a751fe46b172a733c18273ca10419652  文件校验.json  (4973B)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "CACHE-HIT",
+        "https://api.github.com/repos/TaiLaiCai/ai-trust-review/issues/6/comments?per_page=100"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "4a1f1f0bd277503db00820d9cf330c176c07d975f1620501adc664cea97474e1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 154429,
+      "stderr_bytes": 0,
+      "stdout": "<cache hit>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/b9c2fb255b292314.json"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-n",
+        "-F",
+        "ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "submissions",
+        "docs"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "ec67b9d483b41e915dd42267be0ebb4489febcb8119f73ab6599227c5f2b7382",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2761,
+      "stderr_bytes": 0,
+      "stdout": "dc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B-manifest.json:30:      \"notes\": \"两份不符回执=V1独立业务验收回执(08:26/08:27第一次自报)与V1复核补证回执(08:28以'本轮复验哈希未变'第二次沿用)。两者对05_after_and_final.txt记录值均为ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2,完成文件实际SHA为618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9。保留全部SHA记录与时间;检测器源码定位回执.json与验收者搜索越界回执.json中的同值SHA为冲突历史引用,不计入两份。\"\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B-report.md:6:- 冲突事实底座: 05 完成文件实际 SHA `618cddfe110264e6d602f11e41fd7022cf88b41964e722df41aba165baf5aae9`(本机 shasum -a 256 重算,1132 字节,exit=0)≠ 两次回执记录值 `ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2`\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B1.md:27:ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2  /home/agentuser/worker-stage2-review-20261102/verifier-r1/05_after_and_final.txt\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B1.md:33:- 第 17 行: 自指向哈希行(冲突本体),记录值 `ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2` ≠ 完成文件实际 SHA。\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B2.md:4:`ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2`;\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B2.md:25:05_after_and_final.txt\tee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B2.md:53:05_after_and_final.txt ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/B/B2.md:70:1. 记录值: 两份回执对 05 的 SHA 记录值相同,均为 `ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2`。\ndc38cc391012bb7b03a66884162187947fe31263:submissions/s1-evidence-pack-20261107/D/D3.md:36:- 证据文件自身 SHA：`04_sha_coverage.txt` 在本包 `B/B1.md` 代码块与 `B/B2.md` 中为 64 位 `3f659c01353089bbdcbdccbaf862d30401f6235353d1c05af0b330e71786acad`。本行原先写成 63 位，少了一位，属于转录错误，现与包内 B1/B2 对齐。私有原件本轮没有再读取。`05_after_and_final.txt` 的回执自报值仍是 `ee83073151ca38fe2dcf4d2f3e42a9b1c860a5b30e856844c63b221809ab55b2`，与完成文件摘要的冲突见 B1，此处不改写。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-l",
+        "-E",
+        "message_identity",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities",
+        "control"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-l",
+        "-E",
+        "audit_log",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities",
+        "control"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-l",
+        "-E",
+        "outbound",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities",
+        "control"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "grep",
+        "-l",
+        "-E",
+        "sender_signature",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities",
+        "control"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "HTML-CACHE-HIT",
+        "https://github.com/TaiLaiCai/ai-trust-review/pull/72"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "7893488a0e6d306c6249316651c7b5d40f60cac9bc47677322036ad25ea64061",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 424738,
+      "stderr_bytes": 0,
+      "stdout": "<cached html>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/ad06a07ecf5bdf31.html"
+    },
+    {
+      "argv": [
+        "HTML-CACHE-HIT",
+        "https://github.com/TaiLaiCai/ai-trust-review/pull/73"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "66bd2b7157b2be74c9efd9e9488c6eaee771be04dd193ded77242e0d2b50e7a6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 482261,
+      "stderr_bytes": 0,
+      "stdout": "<cached html>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/a50b48da98752280.html"
+    },
+    {
+      "argv": [
+        "CACHE-HIT",
+        "https://api.github.com/repos/TaiLaiCai/ai-trust-review/issues/3/comments?per_page=100"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "e9ef55746f279a9919ee9b143606d59ca5067e0eaca256669964d58c2fd5d809",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 25778,
+      "stderr_bytes": 0,
+      "stdout": "<cache hit>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/5d80413f524ce53b.json"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "ls-tree",
+        "-r",
+        "-d",
+        "--name-only",
+        "dc38cc391012bb7b03a66884162187947fe31263",
+        "--",
+        "capabilities"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "ff17b0684ecf1b0b02d4f00a66380f9c57ea21d4fd7ea9b8ae3171be2f26a6c2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 849,
+      "stderr_bytes": 0,
+      "stdout": "capabilities\ncapabilities/bounded_advance\ncapabilities/bounded_advance/receipts\ncapabilities/bounded_advance/tests\ncapabilities/event_gate\ncapabilities/event_gate/example\ncapabilities/event_gate/tests\ncapabilities/evidence_package\ncapabilities/evidence_package/example\ncapabilities/evidence_package/tests\ncapabilities/handoff_conventions\ncapabilities/handoff_conventions/fixtures\ncapabilities/handoff_conventions/tests\ncapabilities/handoff_recipient\ncapabilities/handoff_recipient/fixtures\ncapabilities/handoff_recipient/tests\ncapabilities/maintenance_prototype\ncapabilities/maintenance_prototype/example\ncapabilities/maintenance_prototype/tests\ncapabilities/rerun_receipt\ncapabilities/rerun_receipt/example\ncapabilities/rerun_receipt/example/evidence\ncapabilities/rerun_receipt/tests\ncapabilities/review_readonly\ncapabilities/review_readonly/tests\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "HTML-CACHE-HIT",
+        "https://github.com/TaiLaiCai/ai-trust-review/actions?query=branch%3Amain"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "ea2268d1c95611b5a4b64257268dd690271119be7663221dbda8bb560503e167",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 314535,
+      "stderr_bytes": 0,
+      "stdout": "<cached html>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/00aafbc1e7618c2d.html"
+    },
+    {
+      "argv": [
+        "HTML-CACHE-HIT",
+        "https://github.com/TaiLaiCai/ai-trust-review/actions/runs/42857654191"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "babf3bac5ba4730c9839d06b0e14e0ff423bc63317da0d3e03793562bffcfa2d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 192612,
+      "stderr_bytes": 0,
+      "stdout": "<cached html>",
+      "stderr": "",
+      "cache_file": "<HOST>/.hermes/cache/scratch/apo59-gh-cache/1cbce453b4734f9e.html"
+    },
+    {
+      "argv": [
+        "/bin/sh",
+        "-c",
+        "rm -rf /tmp/apo59-verify && mkdir -p /tmp/apo59-verify && cd <HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11 && /opt/homebrew/bin/git archive dc38cc391012bb7b03a66884162187947fe31263 | tar -x -C /tmp/apo59-verify"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "<HOST>/.hermes/hermes-agent/venv/bin/python3",
+        "/tmp/apo59-verify/scripts/check_repository.py"
+      ],
+      "cwd": "/tmp/apo59-verify",
+      "exit_code": 0,
+      "stdout_sha256": "f2795adf46a6cf8da1469922261f0df0471a77a5ad60c792ea64654f8ea9b57c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 83,
+      "stderr_bytes": 0,
+      "stdout": "PASS: repository structure and standard contracts; runtime trust review NOT_TESTED\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "<HOST>/.hermes/hermes-agent/venv/bin/python3",
+        "/tmp/apo59-verify/submissions/s1-evidence-pack-addendum-20261108/check_addendum_boundaries.py"
+      ],
+      "cwd": "/tmp/apo59-verify",
+      "exit_code": 0,
+      "stdout_sha256": "c70caedb56931979635abf47e64cbd66fde4787dc7b2af1453d7002e454d9037",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1344,
+      "stderr_bytes": 0,
+      "stdout": "ITEM1_STORED_VS_REGISTERED PASS stored=79e0d15f5a5729b4fe8afb1b7376d8352d7f4ca08b8534c40faa4d47827df099 registered=094e5186e657456fdf58c4198b07949237c9370128d6224b9aa165dd6963ac16\nITEM1_UNWRITTEN_RESERIALIZATION PASS sha=094e5186e657456fdf58c4198b07949237c9370128d6224b9aa165dd6963ac16 written_back=false\nITEM1_HISTORICAL_SOURCE_FILE NOT_TESTED source bytes are not in this tree\nITEM1_STORED_HASHES_AND_SCOPE PASS checked=29 replay_manifest=b41a924d49ddd18e99cd6cd33233dc0b0e6938ed874b12140fd7191a80443d89\nITEM2_RESTRICTED_BODY_ABSENT PASS current tree clear\nITEM2_HISTORY_PURGE NOT_TESTED git history is not rewritten; historical exposure remains open\nITEM3_PUBLIC_BOUNDARY PASS status_input absent; T2/T3 impact stated\nITEM3_PRIVATE_8_OF_8 NOT_TESTED historical private claim was not rerun and is not a verification\nITEM3_A2_PRIVATE_ORIGINALS NOT_TESTED stored A2 hashes can be recalculated; private originals are absent\nITEM2_HISTORY_COMMITS_NAMED PASS 21c44e1 and ad33676 named; purge remains NOT_TESTED\nMAPPING_CROSSCHECK PASS rerun.desensitized.json=fb53dffd1b4db53c061eaecf5b18890be7418917d80c011391000ac4051baf7e feature-map.desensitized.json=38b967524298caff8b611a4d980da339cd5828ef458fedb4ff41e1590c0bf803\nMAPPING_ORIGINAL_BYTES NOT_TESTED vault originals and feature-map historical registration bytes are absent\nOVERALL PASS failed=\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "<HOST>/.hermes/hermes-agent/venv/bin/python3",
+        "scripts/check_repository.py"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "f2795adf46a6cf8da1469922261f0df0471a77a5ad60c792ea64654f8ea9b57c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 83,
+      "stderr_bytes": 0,
+      "stdout": "PASS: repository structure and standard contracts; runtime trust review NOT_TESTED\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "HTTP-POST",
+        "http://127.0.0.1:3100/runtime-tools/github/credentials",
+        "(managed identity probe)"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "5e8cc30b9801b81f1ec2bdea1ae99f2007b351c8da6d76f0bd66eb8ba6b2a4c2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 189,
+      "stderr_bytes": 0,
+      "stdout": "{\"identityContextId\":\"5fb85905-d195-4dc5-8380-4910b7b7e636\",\"revision\":1,\"status\":\"unavailable\",\"source\":\"personal\",\"reason\":\"No managed GitHub identity is available for this run\",\"env\":{}}",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "push",
+        "--dry-run",
+        "origin",
+        "HEAD:refs/heads/apo59-probe"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 128,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0d9b8b0d929758f5f2f8d7dd611ee3cbe9d5ff79b5f214960530c73ba0690573",
+      "stdout_bytes": 0,
+      "stderr_bytes": 91,
+      "stdout": "",
+      "stderr": "致命错误：could not read Username for 'https://github.com': terminal prompts disabled\n"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "push",
+        "--dry-run",
+        "origin",
+        "HEAD:refs/heads/apo59-probe"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 128,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0d9b8b0d929758f5f2f8d7dd611ee3cbe9d5ff79b5f214960530c73ba0690573",
+      "stdout_bytes": 0,
+      "stderr_bytes": 91,
+      "stdout": "",
+      "stderr": "致命错误：could not read Username for 'https://github.com': terminal prompts disabled\n"
+    },
+    {
+      "argv": [
+        "HTML-GET",
+        "https://github.com/TaiLaiCai/ai-trust-review/tree/APO-55-ai-trust-review-11-11"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 404,
+      "stdout_sha256": "dbd0b3cbe965274936acab6ac90b639bf38b596ee5f7eaa58e59866a61b0d638",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 226136,
+      "stderr_bytes": 0,
+      "stdout": "\n\n\n\n\n\n\n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  data-a11y-animated-images=\"system\" data-a11y-link-underlines=\"true\"\n  data-css-features=\"site_disable_smooth_scrolling\"\n  >\n\n\n\n\n  <head>\n    <meta charset=\"utf-8\">\n  <link rel=\"dns-prefetch\" href=\"https://github.githubassets.com\">\n  <link rel=\"dns-prefetch\" href=\"https://avatars.",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "<HOST>/.hermes/hermes-agent/venv/bin/python3",
+        "-c",
+        "import datetime;print(datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))"
+      ],
+      "cwd": "<HOST>/Documents/GitHub/ai-trust-review/.paperclip/worktrees/APO-55-ai-trust-review-11-11",
+      "exit_code": 0,
+      "stdout_sha256": "c88e80cc8ff6acd29dbd67cc203470fedfcf3b99cbbd622ad94e6508bd392ddb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 21,
+      "stderr_bytes": 0,
+      "stdout": "2026-11-11T02:03:24Z\n",
+      "stderr": ""
+    }
+  ],
+  "redaction": {
+    "rule": "the private evidence vault path becomes <VAULT>/ and the executing machine's home path becomes <HOST>/ in recorded output and path fields; digests, byte counts and file names are unchanged",
+    "scrubbed_streams": 2
+  }
+}
