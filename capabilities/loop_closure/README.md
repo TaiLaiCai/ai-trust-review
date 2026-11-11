@@ -34,6 +34,16 @@ Refs APO-5 / docs/ROADMAP.md 第 5 项。把「闭环是否闭合」从 Bot 自�
 
 这是 S2-02 / LS-3/4 的结构检查。它不生成复跑回执，也不把现有 `feature-map.json` 改写成 loop-map/v1。
 
+## 纠正登记列 · correction-index/v1
+
+纯函数 `assess_index(index_raw, registrations)` 与 `assess_registry_table(table_text, registrations)` 在 [registry.py](registry.py)。`registrations` 是调用方给出的 `{测试登记: 源文件字节}`。函数自己不打开文件、不声称 CI 跑过这些测试。
+
+登记列固定为 `id`、`closed`、`fix_kind`、`test_registration`、`old_impl_sha256`、`new_impl_sha256`、`registered_by`、`closed_at`，顺序也必须一致。HTML 注释、`display:none` / `hidden`、或只剩 Cf 的表头/单元格记 `hidden_table_column`，不能靠剥标签后当成这一列已经存在。缺列或乱序记 `registry_columns_mismatch`。
+
+测试登记为空、只有 Cf，或 `::` 右侧为空 → `empty_test_name`。不在调用方给出的字节里（没有对应的 `def 名字(`）→ `missing_test_name`。`fix_kind=soft` 保持 soft，不改写成 hard。`old_impl_red_green` 恒为 `NOT_TESTED`：本函数不跑旧实现，也不把退出 0 写成红绿已核对。
+
+时间只接受 `YYYY-MM-DDTHH:MM[:SS]±HH:MM`。`Z` 结尾退出 5。退出码同样是 0 / 1 / 5，退出 0 不是闭环闭合。
+
 ## 验证
 
 ```bash
@@ -49,6 +59,6 @@ python3 capabilities/loop_closure/detect.py --version
 
 ## 当前验收状态
 
-名字比较前去 Cf 再 NFKC 的回归在 `tests/test_detect.py`（仅零宽、夹零宽、ZWJ 前缀、全角、真实大小写）。地图覆盖在 `tests/test_map_coverage.py`。计数以 `python3 -m unittest discover -s capabilities/loop_closure/tests -v` 打印的 Ran 行为准，本文件不另写手写总数。
+名字比较前去 Cf 再 NFKC 的回归在 `tests/test_detect.py`（仅零宽、夹零宽、ZWJ 前缀、全角、真实大小写）。地图覆盖在 `tests/test_map_coverage.py`。登记列在 `tests/test_registry.py`。计数以 `python3 -m unittest discover -s capabilities/loop_closure/tests -v` 打印的 Ran 行为准，本文件不另写手写总数。
 
-独立主体复跑 NOT_TESTED，不能自签验收。真实闭环报告上的实测 NOT_TESTED。与 `control/loop_status` 棘轮的联合接入 NOT_TESTED（本组件不调用它，也不改 `control/`）。LS-5 纠正 INDEX、LS-6 信号/回滚记录、LS-9 旧实现红证据、LS-10 真实根首次运行在本提交仍未实现。LS-1/LS-2 的 v4.1 原文不在本仓库，不在这里另造判据。
+独立主体复跑 NOT_TESTED，不能自签验收。真实闭环报告上的实测 NOT_TESTED。与 `control/loop_status` 棘轮的联合接入 NOT_TESTED（本组件不调用它，也不改 `control/`）。LS-5 这里只做列结构和调用方给来的测试字节；旧实现上变红、新实现上变绿、文件在真实树上、CI 作业跑到该测试，均为 NOT_TESTED。LS-6 信号/回滚记录、LS-9 旧检测器红证据、LS-10 真实根首次运行仍未实现。LS-1/LS-2 的 v4.1 原文不在本仓库，不在这里另造判据。`control/loop_status` 的身份比较仍只做 casefold；全角或 U+200B 形态的自批不在本分支修改。

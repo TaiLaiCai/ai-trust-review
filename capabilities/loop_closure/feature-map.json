@@ -68,6 +68,20 @@
       ]
     },
     {
+      "id": "registry-columns",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "correction-index/v1 and markdown registry columns: hidden columns, missing or reordered columns, empty or unknown test names are exit 1; soft stays soft; old_impl_red_green stays NOT_TESTED; exit 0 is not loop closure",
+      "tests": [
+        "test_index_clear_keeps_red_green_not_tested",
+        "test_soft_fix_is_not_rewritten_to_hard",
+        "test_empty_and_unknown_test_names",
+        "test_hidden_table_column",
+        "test_missing_reordered_and_empty_test_names",
+        "test_fullwidth_header_still_matches_column",
+        "test_index_input_errors_stay_5_and_do_not_claim_red_green"
+      ]
+    },
+    {
       "id": "fingerprint",
       "command": "python3 capabilities/loop_closure/detect.py --version",
       "expected": "exit 0 printing v1 plus full sha256 of detect.py, locked by test",
