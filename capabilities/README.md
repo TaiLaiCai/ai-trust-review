@@ -11,8 +11,10 @@ Each directory is one atomic capability with an explicit contract, its own tests
 | [message_identity](message_identity/README.md) | 真实平台消息身份适配器 · binds a platform message to the sender the platform machine fields assert (body `author_role` never authenticates) |
 | [review_readonly](review_readonly/README.md) | 审查前后字节/SHA256；`--tree` 能看见目录内新增文件 · before/after bytes; `--tree` catches files added inside the review directory |
 | [rerun_receipt](rerun_receipt/README.md) | 复跑产生并只读核验回执 · emit records a re-run at a bound head, verify re-checks receipts and evidence bytes |
-| [maintenance_prototype](bounded_advance/README.md) | 有限计划串行推进、重复投递不重跑、失败停止 · finite serial plan, duplicate delivery does not re-run, failure stops |
+| [bounded_advance](bounded_advance/README.md) | 有限计划串行推进、重复投递不重跑、失败停止 · finite serial plan, duplicate delivery does not re-run, failure stops |
 | [durable_trigger](durable_trigger/README.md) | 持久触发、租约锁、游标、重启续作、原子应用与读回、失败恢复 · durable trigger, lease lock with fencing, cursor, restart continuation, atomic apply + readback, failure recovery |
+| [maintenance_prototype](maintenance_prototype/README.md) | 独立维护原型四项阻断反例与后续事故的只读校验 + 保留集边界 · read-only check of the four blocking counterexamples and retention-set boundary |
+| [loop_closure](loop_closure/README.md) | 闭环检测组件：步骤证据、地图覆盖与作者独立性；摘要 closed 不算闭合，也不是完整 C6 · closure component: step evidence, map coverage and author independence; a summary of closed is not closure and this is not full C6 |
 | [maintenance_prototype](maintenance_prototype/README.md) | 独立维护原型四项阻断反例与后续事故的只读校验 + 保留集边界 · read-only check of the four blocking counterexamples and retention-set boundary |
 | [loop_closure](loop_closure/README.md) | 闭环检测器：只认步骤证据，不认摘要 closed · closure detector: step evidence only, summary status is not evidence |
 
