@@ -25,5 +25,43 @@
     "status_input.json (owner ruling: not public)"
   ],
   "hash_scope": "sha256 covers the file bytes in this tree; the manifest does not hash itself",
-  "public_authorization": "NOT_TESTED — this package is not itself a public-publication approval; the owner decides what enters the public repository"
+  "public_authorization": "NOT_TESTED — this package is not itself a public-publication approval; the owner decides what enters the public repository",
+  "continuation_run": {
+    "run_id": "e1d0dc23-9ac5-4822-aa78-ddfa1c9a014e",
+    "prior_run_id": "32842b07-752c-4ef1-9823-e69536fb894f",
+    "reason": "prior run timed out after writing the receipt heading; §4.3 gates had no command record, so the prior run could not report delivery",
+    "bound_base_head": "dc38cc391012bb7b03a66884162187947fe31263",
+    "worktree_head": "ec946d7945d12de45f6752e52f29be1c6d8cbbe0",
+    "gates": {
+      "handoff_recipient": {
+        "exit_code": 0,
+        "verdict": "ACCEPT"
+      },
+      "handoff_conventions": {
+        "exit_code": 0,
+        "verdict": "LEXICAL_CLEAR"
+      },
+      "evidence_package_verify": {
+        "exit_code": 0,
+        "verdict": "PASS"
+      },
+      "rerun_receipt_emit": {
+        "exit_code": 0,
+        "verdict": "PASS"
+      },
+      "rerun_receipt_verify": {
+        "exit_code": 0,
+        "verdict": "PASS"
+      },
+      "review_readonly_verify": {
+        "exit_code": 0,
+        "delivery_allowed": true,
+        "verdict": "UNCHANGED"
+      }
+    },
+    "pr_created": false,
+    "pr_blocker": "no managed GitHub identity in this run (status=unavailable); git push --dry-run exit 128; remote branch absent",
+    "s1_ruling": "NOT_TESTED — out of scope for this card",
+    "s2_admission": "NOT_TESTED — out of scope for this card"
+  }
 }
