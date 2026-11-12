@@ -1,0 +1,125 @@
+{
+  "capability": "loop-closure/v1",
+  "version": "1",
+  "producer": "Pi (paperclip_runner) implementation in this PR; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "id": "closure-happy-path",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "complete step evidence with matching head, digest, citation and independent verifier yields exit 0 CLOSED_VERIFIED; status field echoed as status_ignored only",
+      "tests": [
+        "test_closed_verified",
+        "test_history_kept_when_loop_present"
+      ]
+    },
+    {
+      "id": "roadmap-failure-modes",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "empty steps, missing/non-independent verifier, stale head sha, deleted historical loop, misquoted or out-of-range line each produce their finding with exit 1; summary closed never changes the verdict",
+      "tests": [
+        "test_empty_steps_rejected_even_when_status_closed",
+        "test_missing_or_nonindependent_verifier",
+        "test_stale_head_sha",
+        "test_history_deleted_loop",
+        "test_line_misquote",
+        "test_line_out_of_range_and_missing_file",
+        "test_summary_closed_cannot_override_failed_evidence"
+      ]
+    },
+    {
+      "id": "evidence-integrity",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "failed step, missing output bytes and digest mismatch are findings; malformed reports, bad expected head, duplicate keys exit 5, never 1; output canonical and deterministic; no filesystem writes",
+      "tests": [
+        "test_failed_step_and_digest_mismatch_and_missing_output",
+        "test_input_errors_exit_5",
+        "test_expected_head_missing_or_malformed_is_input_error",
+        "test_all_findings_listed_at_once",
+        "test_deterministic_bytes",
+        "test_read_only_no_filesystem_writes"
+      ]
+    },
+    {
+      "id": "unicode-name-independence",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "Cf-only, embedded Cf, ZWJ prefix, fullwidth Latin and real case differences are verifier_not_independent exit 1; distinct names stay exit 0",
+      "tests": [
+        "test_bypass1_pure_zero_width_verifier_treated_as_missing",
+        "test_bypass2_zero_width_embedded_in_name_rejected",
+        "test_bypass3_cf_prefix_zwj_same_name_rejected",
+        "test_bypass4_fullwidth_nfkc_same_name_rejected",
+        "test_real_case_difference_still_rejected",
+        "test_distinct_names_still_pass_after_normalization",
+        "test_ideographic_space_collapses_and_does_not_join"
+      ]
+    },
+    {
+      "id": "map-coverage",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "loop-map/v1: empty steps, missing or extra step ids, stale map sha256, and author/alias self-check are exit 1 REGRESSION; null verifier is exit 5; a matching map is exit 0 NO_REGRESSION and not loop closure",
+      "tests": [
+        "test_matching_map_is_no_regression_and_not_closed",
+        "test_empty_steps_rejected",
+        "test_missing_and_extra_coverage",
+        "test_stale_map_sha",
+        "test_author_alias_and_unicode_self_check",
+        "test_verifier_only_format_chars_is_missing",
+        "test_distinct_names_pass",
+        "test_null_verifier_is_input_error",
+        "test_complete_capability_map_is_not_called_closed",
+        "test_not_tested_status_cannot_exit_zero",
+        "test_non_reproduced_status_fails_when_receipt_and_sha_align",
+        "test_repo_feature_maps_are_not_reported_closed"
+      ]
+    },
+    {
+      "id": "registry-columns",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "correction-index/v1 and markdown registry columns: hidden columns, missing or reordered columns, empty or unknown test names are exit 1; soft stays soft; old_impl_red_green stays NOT_TESTED; exit 0 is not loop closure",
+      "tests": [
+        "test_index_clear_keeps_red_green_not_tested",
+        "test_soft_fix_is_not_rewritten_to_hard",
+        "test_empty_and_unknown_test_names",
+        "test_hidden_table_column",
+        "test_missing_reordered_and_empty_test_names",
+        "test_fullwidth_header_still_matches_column",
+        "test_index_input_errors_stay_5_and_do_not_claim_red_green"
+      ]
+    },
+    {
+      "id": "detector-replay",
+      "command": "python3 -m unittest discover -s capabilities/loop_closure/tests -v",
+      "expected": "standards/06 detector-review checklist: each test_replay_* fails closed on one distortion; exit 0 is NO_REGRESSION or, for detect.py, CLOSED_VERIFIED of that report only, and neither is a stage change",
+      "tests": [
+        "test_replay_empty_steps",
+        "test_replay_missing_coverage",
+        "test_replay_verifier_missing_or_null",
+        "test_replay_author_alias_self_check",
+        "test_replay_stale_map_sha",
+        "test_replay_hidden_table_column",
+        "test_replay_missing_or_empty_test_name",
+        "test_replay_nonmonotonic_timestamps",
+        "test_replay_time_travel",
+        "test_replay_deleted_history",
+        "test_replay_duplicate_snapshots",
+        "test_replay_self_written_waiver",
+        "test_replay_output_order",
+        "test_replay_independent_root_determinism",
+        "test_replay_exit_codes_zero_is_not_closed"
+      ]
+    },
+    {
+      "id": "fingerprint",
+      "command": "python3 capabilities/loop_closure/detect.py --version",
+      "expected": "exit 0 printing v1 plus full sha256 of detect.py, locked by test",
+      "tests": [
+        "test_version_fingerprint"
+      ]
+    }
+  ],
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}
