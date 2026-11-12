@@ -50,9 +50,9 @@ flowchart TD
 
 执行 Bot 交出的自检项，以仓库里已经写明的字段为准，见下文「交付前自检」。[证据包](capabilities/evidence_package/README.md) 只核对清单内字节。总工程师核对的是这包证据和独立复跑，不是 Bot 的自我评价。
 
-### 代码侧：PR、四项必需检查、预审评论、合并
+### 代码侧：PR、规则集必需检查、预审评论、合并
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在 `pull_request` 上运行六项作业。其中四项是规则集必需的状态检查，彼此没有 `needs` 依赖，都是只读 checkout（`persist-credentials: false`）：
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在 `pull_request` 上运行七项作业。规则集必需的状态检查是六项（2026-11-12 只读读回，见下文）：`repository-contracts`、`capability-tests`、`event-gate`、`loop-history-v2`、`handoff-conventions`、`handoff-recipient-v11`。它们彼此没有 `needs` 依赖，都是只读 checkout（`persist-credentials: false`）：
 
 | 作业 | 仓库里它实际做的事 |
 |---|---|
@@ -61,12 +61,12 @@ flowchart TD
 | `event-gate` | 运行 `control/gate` 测试，对示例账本做逐字节 `verify`；篡改后的账本必须退出 1（REGRESSION） |
 | `loop-history-v2` | 运行 `control/loop_status/tests`；发现 0 条测试则失败 |
 
-另有 `handoff-recipient-v11` 与 `handoff-conventions` 两项夹具断言作业：它们在各自测试套件之外再跑真实卡片的红绿退出码，不在规则集的必需检查里。
+另有 `handoff-recipient-v11`、`handoff-conventions` 与 `review-independence` 三项夹具断言作业：前两项在各自测试套件之外再跑真实卡片的红绿退出码，且已列入规则集必需检查（2026-11-12 读回）；`review-independence`（[capabilities/review_independence](capabilities/review_independence/README.md)）断言审查独立性夹具（回执与平台 review 两路）的红绿退出码，并在 pull_request 上用工作流 token 实拉 PR Review API，要求非作者对当前 head 的平台认证 APPROVED 才绿（无可信审查证据即红，fail-closed）；`docs/reviews/independence/` 回执仅作补充证据。它不在规则集的必需检查里，列入与否由主人收尾。
 
 ```mermaid
 flowchart TD
   pr["Pull Request"]
-  subgraph checks ["ci.yml 的四项必需检查"]
+  subgraph checks ["ci.yml 的规则集必需检查"]
     a["repository-contracts"]
     b["capability-tests"]
     c["event-gate"]
@@ -81,13 +81,15 @@ flowchart TD
   pre --> merge
 ```
 
-Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.md](docs/pr-prereview.md)。触发是 PR opened（任何人），在 Cursor 云端运行；允许的工具是 Memories 和 Comment on Pull Request，不允许 PR Approval。它以 `cursor[bot]` 发中文预审，结论只取「建议合并」「需修改」「阻塞」之一。这条自动化不在本仓库的 workflow 里。评论不能批准，也不能合并。要合并，三件事同时成立：规则集里的四项必需检查全绿、该预审结论为「建议合并」、总工程师核对。[AGENTS.md](AGENTS.md) 写明不自动合并。规则集的 `required_approving_review_count` 为 0；后两项是仓库约定，不是 status check。
+Cursor Automation「信任审查 PR 预审」的约定写在 [docs/pr-prereview.md](docs/pr-prereview.md)。触发是 PR opened（任何人），在 Cursor 云端运行；允许的工具是 Memories 和 Comment on Pull Request，不允许 PR Approval。它以 `cursor[bot]` 发中文预审，结论只取「建议合并」「需修改」「阻塞」之一。这条自动化不在本仓库的 workflow 里。评论不能批准，也不能合并。要合并，三件事同时成立：规则集里的六项必需检查全绿、该预审结论为「建议合并」、总工程师核对。[AGENTS.md](AGENTS.md) 写明不自动合并。规则集的 `required_approving_review_count` 为 0；后两项是仓库约定，不是 status check。
 
 2026-11-04 对 `TaiLaiCai/ai-trust-review` 做了只读 GitHub API 查询，没有修改规则集。读回时默认分支头是 `045ed7caaccf0f49b4255e87f63498b9b358d93e`。
 
 规则集 `main`（id `26351164`，[规则页](https://github.com/TaiLaiCai/ai-trust-review/rules/26351164)）`enforcement` 为 `active`，`target` 为 `branch`，`conditions.ref_name.include` 为 `~DEFAULT_BRANCH`，`updated_at` 为 `2026-11-04T07:42:31.783Z`，`current_user_can_bypass` 为 `never`。`GET /repos/TaiLaiCai/ai-trust-review/rulesets/26351164` 的 `required_status_checks` 包含这四项，`integration_id` 都是 `15368`：`repository-contracts`、`capability-tests`、`event-gate`、`loop-history-v2`。`strict_required_status_checks_policy` 为 false，`do_not_enforce_on_create` 为 false。同一条规则集还有 `deletion`、`non_fast_forward`，以及 `pull_request`（`required_approving_review_count` 为 0，`dismiss_stale_reviews_on_push` 为 false，`required_reviewers` 为空，`require_code_owner_review` 为 false，`require_last_push_approval` 为 false，`required_review_thread_resolution` 为 false，`require_extra_approval_for_unattributed_changes` 为 true，`allowed_merge_methods` 为 merge、squash、rebase）。`GET /repos/TaiLaiCai/ai-trust-review/rules/branches/main` 返回的有效规则与此相同。该提交的 check-runs 中，这四项的 `app.slug` 是 `github-actions`，`app.id` 是 `15368`，`conclusion` 都是 `success`。因此四项都已是该规则集的必需状态检查，并且限定在 integration `15368`；在这次提交上，该 id 对应 GitHub Actions。
 
 `GET /repos/TaiLaiCai/ai-trust-review/branches/main/protection` 返回 403，正文是 `Resource not accessible by integration`。`GET /repos/TaiLaiCai/ai-trust-review/branches/main` 里 `protected` 为 true，内嵌 `protection.enabled` 为 false，`required_status_checks.contexts` 为空。GraphQL 字段 `branchProtectionRules` 同样返回 `Resource not accessible by integration`。经典分支保护是否另有一套必需检查，本次查不到，保留**待确认**，原因是当前令牌读不了该端点。上面的四项必需检查来自规则集读回，不依赖这次没读到的经典保护正文。规则集若之后被改，以 GitHub 上的规则集为准，本段不会自动更新。
+
+2026-11-12 的另一次只读读回：规则集 `26351164` 未再被写入（`updated_at` 为 `2026-11-07T09:35:45.375Z`），必需检查已增至六项，新增 `handoff-conventions`、`handoff-recipient-v11`，仍都挂在 integration `15368`；`review-independence` 不在其中。上文 2026-11-04 的「四项」是该日的历史读回。
 
 2026-11-02 的训练记录写的是当时的三项 CI。第四项 `loop-history-v2` 后来接入 workflow（合并说明见 `c69d1ab`）。本次读回表明规则集已经把四项都列为必需。
 
