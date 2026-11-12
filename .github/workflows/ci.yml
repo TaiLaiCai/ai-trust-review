@@ -102,17 +102,44 @@ jobs:
               ("receipt-self-review.json", 1),
               ("receipt-stale-head.json", 1),
               ("receipt-valid.json", 0),
+              ("reviews-empty.json", 1),
+              ("reviews-self-only.json", 1),
+              ("reviews-stale-commit.json", 1),
+              ("reviews-superseded.json", 1),
+              ("reviews-valid.json", 0),
           ):
+              if fixture.startswith("receipt-"):
+                  sub, flag = "check", "--receipt"
+              else:
+                  sub, flag = "reviews", "--reviews-file"
               p = subprocess.run(
-                  [sys.executable, root + "/check.py", "check",
+                  [sys.executable, root + "/check.py", sub,
                    "--pr-author", "TaiLaiCai", "--pr-head-sha", head,
-                   "--receipt", root + "/fixtures/" + fixture],
+                   flag, root + "/fixtures/" + fixture],
                   capture_output=True, text=True, timeout=30)
               print(fixture, "rc=" + str(p.returncode), p.stdout, end="")
               if p.returncode != code:
                   raise SystemExit("fixture regression: " + fixture)
           PY
-      - name: Apply gate to PR-declared rerun receipts (if any)
+      - name: Require platform-authenticated non-author review bound to PR head
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          curl -sfS --retry 3 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/reviews?per_page=100" \
+            -o "$RUNNER_TEMP/pr-reviews.json"
+          python3 capabilities/review_independence/check.py reviews \
+            --pr-author "$PR_AUTHOR" --pr-head-sha "$PR_HEAD" \
+            --reviews-file "$RUNNER_TEMP/pr-reviews.json"
+      - name: Check PR-declared rerun receipts as supplementary evidence (if any)
         if: github.event_name == 'pull_request'
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -127,7 +154,7 @@ jobs:
             python3 capabilities/review_independence/check.py check \
               --pr-author "$PR_AUTHOR" --pr-head-sha "$PR_HEAD" "${args[@]}"
           else
-            echo "no receipts declared under docs/reviews/independence/; machine enforcement deferred until ruleset inclusion (NOT_TESTED)"
+            echo "no supplementary receipts under docs/reviews/independence/; primary gate is the platform-review step above (do not commit receipts into the reviewed tree: their head_sha goes stale by design)"
           fi
   handoff-recipient-v11:
     runs-on: ubuntu-latest

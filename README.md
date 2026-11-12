@@ -61,7 +61,7 @@ flowchart TD
 | `event-gate` | 运行 `control/gate` 测试，对示例账本做逐字节 `verify`；篡改后的账本必须退出 1（REGRESSION） |
 | `loop-history-v2` | 运行 `control/loop_status/tests`；发现 0 条测试则失败 |
 
-另有 `handoff-recipient-v11`、`handoff-conventions` 与 `review-independence` 三项夹具断言作业：前两项在各自测试套件之外再跑真实卡片的红绿退出码，且已列入规则集必需检查（2026-11-12 读回）；`review-independence`（[capabilities/review_independence](capabilities/review_independence/README.md)）断言审查独立性夹具的红绿退出码，并在 pull_request 上对 `docs/reviews/independence/` 里声明的 rerun 回执实跑「非作者 + head 绑定」检查，但它不在规则集的必需检查里，列入与否由主人收尾。
+另有 `handoff-recipient-v11`、`handoff-conventions` 与 `review-independence` 三项夹具断言作业：前两项在各自测试套件之外再跑真实卡片的红绿退出码，且已列入规则集必需检查（2026-11-12 读回）；`review-independence`（[capabilities/review_independence](capabilities/review_independence/README.md)）断言审查独立性夹具（回执与平台 review 两路）的红绿退出码，并在 pull_request 上用工作流 token 实拉 PR Review API，要求非作者对当前 head 的平台认证 APPROVED 才绿（无可信审查证据即红，fail-closed）；`docs/reviews/independence/` 回执仅作补充证据。它不在规则集的必需检查里，列入与否由主人收尾。
 
 ```mermaid
 flowchart TD

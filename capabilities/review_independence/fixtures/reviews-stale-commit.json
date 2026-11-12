@@ -1,0 +1,8 @@
+[
+  {
+    "user": {"login": "hermes-bot"},
+    "state": "APPROVED",
+    "commit_id": "0123456789abcdef0123456789abcdef01234567",
+    "submitted_at": "2026-11-09T00:00:00Z"
+  }
+]
