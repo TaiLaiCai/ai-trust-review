@@ -46,6 +46,8 @@ python3 capabilities/isolation_probe/probe.py write --root /tmp/layout --backend
 
 退出码 1，`verdict=FAIL`。控制面保持可写时，同一个写必须被报成 `written`，控制面字节也确实会变。**这条保证探针不是恒拒**：一个永远输出「已拒绝」的探针在这条上必然失败。
 
+`keep` 模式下的字节检查受一条硬规则约束：**只有当至少一条预期为「拒绝」的检查已经失败时，字节变化才被豁免**。posix 上拒绝项失败、字节变了、判定保持 FAIL；`seatbelt` 上沙箱内拒绝全部成立时，字节检查保留真实结果——若字节仍被改写（沙箱泄漏），判定同样是 FAIL，`strength` 不可能是 `kernel-enforced` 的 PASS。也就是说 **`keep` + `seatbelt` 永远不会产出 PASS**：负控写必然落在（控制面在该模式下确实可写），FAIL 是这条组合的正确结论。
+
 ## E03：工具权限探针
 
 判定绑定在**进程真实的 uid/gid** 上。策略文件按 uid/gid 登记发送方；探针查的是「当前进程是谁」，不是「调用方说它是谁」。
@@ -76,9 +78,15 @@ python3 capabilities/isolation_probe/probe.py readback \
 
 ### 策略持有方必须与调用方分离
 
-策略文件**或其所在目录**对调用方可写时，探针**拒绝判定**：退出码 5，`verdict=REFUSED_TO_JUDGE`。理由很直接——可改写的策略挡不住「把自己加进白名单」，它绑定的身份就不可信。
+策略文件**或其所在目录**对调用方可写时，探针**拒绝判定**：退出码 5，`verdict=REFUSED_TO_JUDGE`。「可写」按**调用方的真实能力**判定，不只是权限位：
 
-这条对仓库内检入的策略同样成立：仓库里的 [fixtures/policy.example.json](fixtures/policy.example.json) 对任何能写仓库的人都是可写的，所以**直接用它跑 `tool` 会得到退出码 5**。真实策略必须放在 Bot 写不到的地方。
+- 文件或目录的**属主是当前进程 uid** —— 属主随时可以 chmod 回可写再改写，所以同一 uid 的 `0o400`/`0o500` **不是持有方分离**，同样退出 5；
+- 调用方当前**实际有写权限**（`access(2)`，覆盖组/其他人写位）；
+- 文件或目录 stat 失败（无法核验，宁可拒绝）。
+
+理由很直接——可改写的策略挡不住「把自己加进白名单」，它绑定的身份就不可信。传统形态的**真正分离**（如 root 属主 `0644` 文件放在 `0755` 目录、调用方非属主也无写位）不会被这条误拒。想在本套件（调用方=属主）里跑判定表，只有显式 `--allow-writable-policy` 一条路；**真实的持有方分离需要另一个 uid**，本机没有 sudo、没有第二个 UID，`NOT_TESTED`。
+
+这条对仓库内检入的策略同样成立：仓库里的 [fixtures/policy.example.json](fixtures/policy.example.json) 被任何能写仓库的人复制后，副本属主就是复制者，**直接用它跑 `tool` 会得到退出码 5**。真实策略必须放在 Bot 所属 uid 之外的主体手里。
 
 ### 策略格式
 
@@ -95,7 +103,9 @@ python3 capabilities/isolation_probe/probe.py readback \
 }
 ```
 
-必需键：`senders`（非空，每项带 `uid`）、`stages`（每阶段带 `tools` 数组）、`reserved_tools`。阶段键在 JSON 里是字符串、在命令行是整数，探针在策略边界统一归一。
+必需键：`senders`（非空，每项带 `uid`）、`stages`（每阶段带 `tools` 数组）、`reserved_tools`。阶段键在 JSON 里是字符串、在命令行是整数，探针在策略边界统一归一。每个 sender 还必须有**数值型 `max_stage`**（缺失或类型不对都退出 5 `PROBE_ERROR`——「没写上限」不等于「没有上限」，坏类型也不能占用退出码 1 与「拒绝该调用」混同）；`expires_at` 若给出同样必须是数值或 null。
+
+`readback` 的 `effective_whitelist` 与门禁用同一条过期判定：**已过期 sender 不计入有效白名单**（`--now` 可回放判定时刻，缺省为当前时间）。
 
 ## 退出码
 
@@ -123,13 +133,13 @@ python3 capabilities/isolation_probe/probe.py readback \
 python3 -m unittest discover -s capabilities/isolation_probe/tests -v
 ```
 
-43 项测试，全部起真实子进程、断言真实退出码与真实 errno。其中带 `POSIX` 的用例断言的是**逃逸成功**（owner 改权限后写进去了）——那正是 `posix` 后端必须报 `WEAK` 的原因；带 `seatbelt` 的用例断言 chmod 逃逸**被拒**。
+43 项测试，全部起真实子进程、断言真实退出码与真实 errno。其中带 `POSIX` 的用例断言的是**逃逸成功**（owner 改权限后写进去了）——那正是 `posix` 后端必须报 `WEAK` 的原因；带 `seatbelt` 的用例断言 chmod 逃逸**被拒**。（修订后套件为 53 项，新增：seatbelt+keep 组合永不 PASS、符号链接 root 拒绝、缺文件布局 CLI 锁、过期 sender 剔除出有效白名单、属主策略判定拒绝与 chmod 翻转回归锁、`max_stage` 缺失/坏类型退出 5。）
 
 ### 复跑：探针必须能重建自己锁死的布局
 
 探针会**故意**把控制面、保留集和密钥目录收紧（`0o500` / `0o300`）。这些权限位挡住 owner 列目录和删文件，所以对同一个 root 再跑一次 `--fresh` 时，普通 `rmtree` 会以 `EACCES` 失败。
 
-探针自己知道这一点，因此它先把这些目录的属主权限恢复回来再删（符号链接不动，删的只是链接本身）。这条的实测后果是：**对同一个 root 连跑三次 `--fresh`，三次都出同一份判定**，不会因为上一轮留下的收紧目录而崩掉。构建不了边界时探针退出 5 并打印 `PROBE_ERROR`，不会抛 traceback——「探针没跑起来」和「边界没生效」必须是两回事。
+探针自己知道这一点，因此它先把这些目录的属主权限恢复回来再删（符号链接不动，删的只是链接本身）。**root 路径本身是符号链接时直接退出 5 `PROBE_ERROR`**：`os.chmod` 会跟随链接，任何 chmod/walk 都可能先放宽链接目标树的权限——所以在动第一个权限位之前就用 `islink` 拒绝；目录遍历内的 chmod 全部带 `follow_symlinks=False`。这条的实测后果是：**对同一个 root 连跑三次 `--fresh`，三次都出同一份判定**，不会因为上一轮留下的收紧目录而崩掉，也不会碰链接目标。构建不了边界时探针退出 5 并打印 `PROBE_ERROR`，不会抛 traceback——「探针没跑起来」和「边界没生效」必须是两回事。
 
 回滚：删除 `capabilities/isolation_probe/` 目录即可；CI 的 `capability-tests` 按 glob 自动发现能力目录，目录删除后自动少跑一个套件。
 

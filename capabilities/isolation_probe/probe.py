@@ -74,20 +74,25 @@ def remove_tree(path):
     access first, then remove.
 
     Symlinks are never chmod-ed: rmtree unlinks the link itself, and
-    chmod-ing it would touch whatever it points at.
+    chmod-ing it would touch whatever it points at. A root that is itself a
+    symlink is refused outright: os.chmod on it would follow the link and
+    loosen the permissions of whatever tree it points at, before any check
+    could run.
     """
     if not os.path.lexists(path):
         return
+    if os.path.islink(path):
+        raise ProbeError(f"root must not be a symlink: {path}")
     os.chmod(path, 0o700)
     for root, dirs, files in os.walk(path):
         for name in dirs:
             target = os.path.join(root, name)
             if not os.path.islink(target):
-                os.chmod(target, 0o700)
+                os.chmod(target, 0o700, follow_symlinks=False)
         for name in files:
             target = os.path.join(root, name)
             if not os.path.islink(target):
-                os.chmod(target, 0o600)
+                os.chmod(target, 0o600, follow_symlinks=False)
     shutil.rmtree(path)
 
 
@@ -276,6 +281,11 @@ def probe_write(args):
         raise ProbeError("sandbox-exec is not available on this host")
 
     root = args.root
+    # A symlink root must be refused before anything is chmod-ed or walked:
+    # os.chmod follows links, so --fresh would first loosen the permissions
+    # of whatever the link points at.
+    if os.path.islink(root):
+        raise ProbeError(f"root must not be a symlink: {root}")
     layout = Layout(root)
     tighten = args.control_permissions == "tighten"
     if args.fresh:
@@ -449,16 +459,26 @@ def probe_write(args):
 
     weak = False
     if args.control_permissions == "keep":
-        # In keep mode the control plane is deliberately writable: the point
-        # is to show the probe reports "written" and fails the requirement.
-        # A changed digest is the expected outcome here, so this check is
-        # informational; the direct write check above is the one that fails.
-        bytes_check["ok"] = True
-        bytes_check["note"] = (
-            "keep mode: the control plane is deliberately writable, so a changed "
-            "digest is expected here; the direct write check above is the one "
-            "that must fail"
-        )
+        # In keep mode the control plane is deliberately writable, so a
+        # changed digest is expected only when a denial has actually failed
+        # (as on posix, where the direct write goes through). When every
+        # denial still holds (as under seatbelt), a changed digest means the
+        # boundary leaked bytes despite the refusals: that must stay a
+        # failure and can never be reported as kernel-enforced PASS.
+        if denials_effective:
+            bytes_check["ok"] = unchanged
+            bytes_check["note"] = (
+                "keep mode: every denial still held, so a changed control-plane "
+                "digest is NOT expected and must fail; bytes changed: "
+                + (", ".join(changed_files) if changed_files else "none")
+            )
+        else:
+            bytes_check["ok"] = True
+            bytes_check["note"] = (
+                "keep mode: the control plane is deliberately writable, so a changed "
+                "digest is expected here; the direct write check above is the one "
+                "that must fail"
+            )
         failed = [c for c in checks if not c["ok"]]
         verdict = "PASS" if not failed else "FAIL"
     elif verdict == "FAIL" and backend == "posix" and denials_effective and escape_succeeded:
@@ -522,6 +542,19 @@ def load_policy(path):
             raise ProbeError(f"sender {name} must be an object")
         if "uid" not in sender:
             raise ProbeError(f"sender {name} has no uid")
+        # A missing ceiling is not "unlimited": a policy that omits the
+        # stage ceiling cannot be judged, and a non-numeric one would crash
+        # the comparison later with a traceback on exit code 1 - the same
+        # code as "this call is denied". Both are "the probe cannot run".
+        max_stage = sender.get("max_stage")
+        if max_stage is None:
+            raise ProbeError(f"sender {name} has no max_stage")
+        if isinstance(max_stage, bool) or not isinstance(max_stage, (int, float)):
+            raise ProbeError(f"sender {name} max_stage must be a number")
+        expires = sender.get("expires_at")
+        if expires is not None and (isinstance(expires, bool)
+                                    or not isinstance(expires, (int, float))):
+            raise ProbeError(f"sender {name} expires_at must be a number or null")
     if not isinstance(data["stages"], dict):
         raise ProbeError("policy stages must be an object")
     # Stage keys are strings in JSON; the CLI passes an integer. Normalise
@@ -534,26 +567,47 @@ def load_policy(path):
 
 
 def policy_is_caller_writable(path):
-    """True when the caller could rewrite the policy.
+    """True when the caller could rewrite the policy, now or after a chmod.
 
     A policy the caller can change is not an authority: the caller could
-    simply add itself to the whitelist. Both the file and its directory are
-    checked, because a writable directory lets a caller swap the file.
+    simply add itself to the whitelist. Three ways of getting write access
+    all count as writable:
+
+      * the caller owns the file or its directory - an owner can always
+        chmod the object back to writable and then rewrite it, so a
+        same-uid 0o400/0o500 lock-down is NOT holder separation;
+      * the caller has actual write access right now (write bits granted
+        to a class the caller belongs to, checked with access(2));
+      * the file or its directory cannot be stat-ed - nothing to verify.
+
+    Both the file and its directory are checked, because a writable
+    directory lets a caller swap the file. A policy owned by somebody else
+    with no write access for the caller's classes (a conventional
+    root-owned 0644 file in a 0755 directory) is NOT caller-writable.
     """
     reasons = []
+    uid = os.getuid()
     try:
-        mode = os.stat(path).st_mode
+        info = os.stat(path)
     except OSError:
         return True, ["policy file is missing"]
-    if mode & stat.S_IWUSR:
-        reasons.append("policy file is writable by its owner")
+    if info.st_uid == uid:
+        reasons.append(
+            "policy file is owned by the caller, who can chmod it writable and rewrite it"
+        )
+    elif os.access(path, os.W_OK):
+        reasons.append("policy file is writable by the caller")
     directory = os.path.dirname(os.path.abspath(path))
     try:
-        dmode = os.stat(directory).st_mode
+        dinfo = os.stat(directory)
     except OSError:
         return True, ["policy directory is missing"]
-    if dmode & stat.S_IWUSR:
-        reasons.append("policy directory is writable by its owner")
+    if dinfo.st_uid == uid:
+        reasons.append(
+            "policy directory is owned by the caller, who can chmod it writable and swap the file"
+        )
+    elif os.access(directory, os.W_OK):
+        reasons.append("policy directory is writable by the caller")
     return bool(reasons), reasons
 
 
@@ -650,7 +704,7 @@ def probe_tool(args):
     return 0 if allowed else 1
 
 
-def readback_whitelist(policy, stage):
+def readback_whitelist(policy, stage, now):
     """The effective tool whitelist for a stage.
 
     A tool is effective only when the stage allows it AND every bound sender
@@ -665,6 +719,12 @@ def readback_whitelist(policy, stage):
         usable = False
         for name, sender in policy["senders"].items():
             if tool in sender.get("tools", []):
+                # The same expiration predicate the gate uses: a sender
+                # whose authorization has lapsed must not make a tool look
+                # usable in the effective whitelist.
+                expires = sender.get("expires_at")
+                if expires is not None and now > expires:
+                    continue
                 max_stage = sender.get("max_stage")
                 if max_stage is None or stage <= max_stage:
                     usable = True
@@ -686,12 +746,13 @@ def probe_readback(args):
             "policy_writable_reasons": reasons,
         }, ensure_ascii=False, sort_keys=True))
         return 5
+    now = args.now if args.now is not None else time.time()
     report = {
         "schema_version": "isolation-probe-readback/v1",
         "verdict": "OK",
         "stage": args.stage,
         "stage_whitelist": policy["stages"].get(str(args.stage), {}).get("tools", []),
-        "effective_whitelist": readback_whitelist(policy, args.stage),
+        "effective_whitelist": readback_whitelist(policy, args.stage, now),
         "reserved_tools": policy.get("reserved_tools", []),
         "senders": {
             name: {
@@ -742,6 +803,7 @@ def main(argv=None):
     readback = sub.add_parser("readback", help="E03: read back the effective whitelist")
     readback.add_argument("--policy", required=True)
     readback.add_argument("--stage", type=int, required=True)
+    readback.add_argument("--now", type=float, default=None)
     readback.add_argument("--allow-writable-policy", action="store_true")
 
     args = parser.parse_args(argv)

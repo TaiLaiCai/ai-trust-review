@@ -193,16 +193,25 @@ class SeatbeltWriteIsolationTest(unittest.TestCase):
         self.assertEqual(rc, 0, out + err)
         self.assertTrue(os.path.exists(os.path.join(self.root, "workspace", "allowed.txt")))
 
-    def test_probe_reports_fail_when_the_boundary_is_missing(self):
-        """A boundary that denies nothing must not be reported as PASS."""
-        # Point the seatbelt profile at a root that does not exist, so the
-        # sandbox has nothing to protect: the child then writes freely and
-        # the probe must notice the control plane changed.
+    def test_probe_reports_pass_only_when_the_control_plane_stays_intact(self):
+        """A boundary that leaked bytes must not be reported as PASS.
+
+        This runs the real seatbelt probe and asserts the honest outcome:
+        the control plane stayed intact (nothing changed), the bytes check
+        holds its real result, and the verdict is PASS only because nothing
+        failed. The counterpart that a missing or bypassed boundary must
+        FAIL is pinned by MissingFilesLayoutCliTest (ENOENT is not a
+        refusal) and by the negative-control test in PosixWriteIsolationTest
+        (a real write succeeds and the probe must FAIL then).
+        """
         rc, report, out, err = run_probe(
             "write", "--root", self.root, "--backend", "seatbelt", "--fresh")
         self.assertEqual(rc, 0, out + err)
+        self.assertEqual(report["verdict"], "PASS")
+        checks = checks_by_name(report)
         # Sanity: the seatbelt run really did protect the control plane.
         self.assertEqual(report["changed_control_files"], [])
+        self.assertTrue(checks["control_plane_bytes_unchanged"]["ok"])
 
 
 class PosixWriteIsolationTest(unittest.TestCase):
@@ -261,6 +270,143 @@ class PosixWriteIsolationTest(unittest.TestCase):
         self.assertEqual(control["observed"], "written")
         # The protected writes were not refused, so the probe must have said so.
         self.assertFalse(checks["control_registry_write"]["ok"])
+
+
+@unittest.skipUnless(SEATBELT, "sandbox-exec is not available on this host")
+class SeatbeltKeepCombinationTest(unittest.TestCase):
+    """keep + seatbelt can never be PASS / kernel-enforced.
+
+    The regression lock for the cursor finding: in keep mode the layout is
+    built with a writable control plane, the unsandboxed negative-control
+    write really lands, and the bytes change. The old code excused that
+    bytes check unconditionally and reported PASS / kernel-enforced even
+    though the control plane provably accepted writes. Now the bytes check
+    keeps its real (failed) result whenever every sandbox denial held, so
+    the combo reports FAIL. A PASS in keep mode is impossible by design:
+    the negative control is expected to fail the requirement.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.root = os.path.join(self.tmp, "layout")
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def run_keep(self):
+        return run_probe(
+            "write", "--root", self.root, "--backend", "seatbelt", "--fresh",
+            "--control-permissions", "keep")
+
+    def test_seatbelt_keep_never_reports_pass_when_denials_hold(self):
+        rc, report, out, err = self.run_keep()
+        self.assertEqual(rc, 1, out + err)
+        self.assertEqual(report["verdict"], "FAIL")
+        self.assertNotEqual(report["strength"], "kernel-enforced")
+
+        checks = checks_by_name(report)
+        # The sandbox denials all held...
+        for name in ("control_registry_write", "control_ledger_append",
+                     "symlink_escape_write", "chmod_escape"):
+            self.assertTrue(checks[name]["ok"], name)
+            self.assertEqual(checks[name]["observed"], "refused", name)
+        # ...the negative control really wrote outside the sandbox...
+        self.assertTrue(checks["negative_control_write"]["ok"])
+        self.assertEqual(checks["negative_control_write"]["observed"], "written")
+        # ...and the bytes check was NOT excused despite the holding denials.
+        self.assertFalse(checks["control_plane_bytes_unchanged"]["ok"])
+        self.assertIn("registry.json", report["changed_control_files"])
+
+    def test_bytes_check_note_pins_the_guarded_branch(self):
+        """If the bytes check were excused unconditionally again, this note
+        would flip back to the blanket keep-mode excuse - and the test above
+        would fail on verdict. Together they lock the conditional guard."""
+        rc, report, out, err = self.run_keep()
+        checks = checks_by_name(report)
+        note = checks["control_plane_bytes_unchanged"]["note"]
+        self.assertIn("every denial still held", note, note)
+        self.assertIn("bytes changed", note, note)
+
+
+class SymlinkRootTest(unittest.TestCase):
+    """--fresh must never chmod a symlinked root's target (cursor #3)."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def test_fresh_refuses_a_symlink_root_without_touching_the_target(self):
+        # A real, locked-down victim tree the link points at.
+        victim = os.path.join(self.tmp, "victim")
+        os.makedirs(victim)
+        inner = os.path.join(victim, "keepme")
+        with open(inner, "w") as handle:
+            handle.write("do not touch")
+        os.chmod(inner, 0o400)
+        os.chmod(victim, 0o500)
+
+        link = os.path.join(self.tmp, "layout")
+        os.symlink(victim, link)
+        try:
+            rc, report, out, err = run_probe(
+                "write", "--root", link, "--backend", "posix", "--fresh")
+            self.assertEqual(rc, 5, out + err)
+            self.assertEqual(report["verdict"], "PROBE_ERROR")
+            self.assertIn("symlink", report["reason"])
+        finally:
+            os.chmod(victim, 0o700)
+
+        # The victim tree kept its modes: nothing inside was loosened.
+        self.assertEqual(os.stat(victim).st_mode & 0o777, 0o700,
+                         "the probe loosened the symlink target's directory")
+        self.assertEqual(os.stat(inner).st_mode & 0o777, 0o400,
+                         "the probe loosened a file inside the symlink target")
+        self.assertTrue(os.path.exists(inner), "the probe deleted the symlink target")
+
+    def test_remove_tree_rejects_a_symlink_path_directly(self):
+        probe = load_probe_module()
+        real = os.path.join(self.tmp, "real")
+        os.makedirs(real)
+        sentinel = os.path.join(real, "sentinel")
+        with open(sentinel, "w") as handle:
+            handle.write("x")
+        os.chmod(sentinel, 0o400)
+        os.chmod(real, 0o500)
+        link = os.path.join(self.tmp, "link")
+        os.symlink(real, link)
+        with self.assertRaises(probe.ProbeError):
+            probe.remove_tree(link)
+        # The target survived untouched: the refusal happened before any
+        # chmod, so the locked-down modes are still in place.
+        self.assertEqual(os.stat(real).st_mode & 0o777, 0o500)
+        self.assertEqual(os.stat(sentinel).st_mode & 0o777, 0o400)
+        self.assertTrue(os.path.exists(sentinel))
+
+
+class MissingFilesLayoutCliTest(unittest.TestCase):
+    """CLI lock for "a non-permission errno is not a refusal".
+
+    With the reserved bank and the signing key missing, those two reads
+    fail with ENOENT. That is an error, not a denial: the probe must FAIL
+    (exit 1). If record() ever accepted a refusal without a permission
+    errno (or without outcome == "refused"), this layout would wrongly
+    PASS - which is exactly what this test must catch.
+    """
+
+    def test_missing_reserved_and_secret_files_make_the_probe_fail(self):
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, True)
+        root = os.path.join(tmp, "layout")
+        run_probe("write", "--root", root, "--backend", "posix", "--fresh")
+        os.remove(os.path.join(root, "reserved", "questions.json"))
+        os.remove(os.path.join(root, "secrets", "signing.key"))
+        rc, report, out, err = run_probe(
+            "write", "--root", root, "--backend", "posix")
+        self.assertEqual(rc, 1, out + err)
+        self.assertEqual(report["verdict"], "FAIL")
+        checks = checks_by_name(report)
+        self.assertFalse(checks["reserved_bank_read"]["ok"])
+        self.assertEqual(checks["reserved_bank_read"]["errno_name"], "ENOENT")
+        self.assertFalse(checks["secret_read"]["ok"])
+        self.assertEqual(checks["secret_read"]["errno_name"], "ENOENT")
 
 
 class FreshRerunTest(unittest.TestCase):
@@ -421,11 +567,21 @@ class ToolPermissionTest(unittest.TestCase):
             shutil.rmtree(self.tmp, True)
 
         self.addCleanup(cleanup)
+        # Simulating a separate policy holder only works when this process
+        # is not the owner of the file: a root-run test suite owns every
+        # file regardless of modes, so on CI the lock-down tests assert the
+        # same verdict through the ownership rule itself.
+        self.can_simulate_holder = os.getuid() != 0
 
     def write_policy(self, name, policy, mode=0o400, lock_dir=True):
         """Write a policy and, by default, hold it the way a controlled
         party would: the file is read-only and the directory cannot be
-        rewritten by the caller."""
+        rewritten by the caller.
+
+        Note: ownership is what makes this real (see
+        policy_is_caller_writable); modes alone are NOT holder separation,
+        which is exactly what the probe now refuses to assume.
+        """
         path = os.path.join(self.policy_dir, name)
         with open(path, "w") as handle:
             json.dump(policy, handle)
@@ -455,10 +611,23 @@ class ToolPermissionTest(unittest.TestCase):
         policy.update(overrides)
         return policy
 
+    def run_judged(self, path, *extra):
+        """Run the decision table through the explicit --allow-writable-policy
+        exemption.
+
+        This suite runs as the owner of every file it writes, so a locked-down
+        (0o400/0o500) policy is caller-writable by the ownership rule and the
+        probe refuses to judge it. Decision-table coverage goes through the
+        documented testing-only exemption; holder separation itself is
+        covered by the refusal tests below.
+        """
+        return run_probe(
+            "tool", "--policy", path,
+            "--allow-writable-policy", *extra)
+
     def test_allowed_call_exits_zero(self):
         path = self.write_policy("p.json", self.base_policy())
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "read_repo", "--stage", "1")
+        rc, report, out, err = self.run_judged(path, "--tool", "read_repo", "--stage", "1")
         self.assertEqual(rc, 0, out + err)
         self.assertEqual(report["verdict"], "ALLOW")
         self.assertTrue(report["allowed"])
@@ -469,8 +638,7 @@ class ToolPermissionTest(unittest.TestCase):
         policy["senders"] = {"other": {"uid": 424242, "gid": 424242,
                                        "max_stage": 2, "tools": ["read_repo"]}}
         path = self.write_policy("p.json", policy)
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "read_repo", "--stage", "1")
+        rc, report, out, err = self.run_judged(path, "--tool", "read_repo", "--stage", "1")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["verdict"], "DENY")
         self.assertIn("unknown-sender", report["reason"])
@@ -478,30 +646,26 @@ class ToolPermissionTest(unittest.TestCase):
 
     def test_tool_outside_sender_scope_is_denied(self):
         path = self.write_policy("p.json", self.base_policy())
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "promote", "--stage", "3")
+        rc, report, out, err = self.run_judged(path, "--tool", "promote", "--stage", "3")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["reason"], "tool-not-in-sender-scope")
 
     def test_stage_above_sender_max_stage_is_denied(self):
         path = self.write_policy("p.json", self.base_policy())
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "read_repo", "--stage", "3")
+        rc, report, out, err = self.run_judged(path, "--tool", "read_repo", "--stage", "3")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["reason"], "stage-above-sender-max-stage")
 
     def test_stage_not_in_policy_is_denied(self):
         path = self.write_policy("p.json", self.base_policy())
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "read_repo", "--stage", "9")
+        rc, report, out, err = self.run_judged(path, "--tool", "read_repo", "--stage", "9")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["reason"], "stage-not-in-policy")
 
     def test_unknown_stage_is_not_misreported_as_a_stage_escalation(self):
         """A stage the policy never mentions is not an escalation."""
         path = self.write_policy("p.json", self.base_policy())
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "read_repo", "--stage", "9")
+        rc, report, out, err = self.run_judged(path, "--tool", "read_repo", "--stage", "9")
         self.assertNotIn("stage-above-sender-max-stage", report["reason"])
 
     def test_tool_not_in_stage_whitelist_is_denied(self):
@@ -509,8 +673,7 @@ class ToolPermissionTest(unittest.TestCase):
         policy["stages"]["2"] = {"tools": ["read_repo"]}
         policy["senders"]["current"]["tools"] = ["read_repo", "write_workspace", "run_tests"]
         path = self.write_policy("p.json", policy)
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "run_tests", "--stage", "2")
+        rc, report, out, err = self.run_judged(path, "--tool", "run_tests", "--stage", "2")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["reason"], "tool-not-in-stage-whitelist")
 
@@ -519,8 +682,7 @@ class ToolPermissionTest(unittest.TestCase):
         policy["senders"]["current"]["tools"] = ["read_repo", "promote"]
         policy["senders"]["current"]["max_stage"] = 3
         path = self.write_policy("p.json", policy)
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "promote", "--stage", "3")
+        rc, report, out, err = self.run_judged(path, "--tool", "promote", "--stage", "3")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["reason"], "reserved-tool-never-authorized")
 
@@ -528,9 +690,8 @@ class ToolPermissionTest(unittest.TestCase):
         policy = self.base_policy()
         policy["senders"]["current"]["expires_at"] = 1000
         path = self.write_policy("p.json", policy)
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "read_repo", "--stage", "1",
-            "--now", "2000000000")
+        rc, report, out, err = self.run_judged(
+            path, "--tool", "read_repo", "--stage", "1", "--now", "2000000000")
         self.assertEqual(rc, 1, out + err)
         self.assertEqual(report["reason"], "sender-authorization-expired")
 
@@ -540,8 +701,8 @@ class ToolPermissionTest(unittest.TestCase):
         policy["senders"] = {"other": {"uid": 424242, "gid": 424242,
                                        "max_stage": 3, "tools": ["promote"]}}
         path = self.write_policy("p.json", policy)
-        rc, report, out, err = run_probe(
-            "tool", "--policy", path, "--tool", "promote", "--stage", "3",
+        rc, report, out, err = self.run_judged(
+            path, "--tool", "promote", "--stage", "3",
             "--claimed-sender", "other", "--claimed-tool", "promote",
             "--claimed-stage", "3")
         self.assertEqual(rc, 1, out + err)
@@ -572,12 +733,83 @@ class ToolPermissionTest(unittest.TestCase):
         self.assertTrue(any("directory" in reason
                             for reason in report["policy_writable_reasons"]))
 
-    def test_locked_down_policy_is_judged(self):
+    def test_locked_down_policy_is_refused_when_the_caller_owns_it(self):
+        """Same-uid 0o400/0o500 is NOT holder separation.
+
+        The owner can chmod the file or directory back to writable and then
+        rewrite it (the exact path E02 records as the posix WEAK reason), so
+        the probe must refuse to judge it with exit 5. This is the regression
+        lock for the Codex P1 finding: the chmod-then-rewrite flip from DENY
+        to ALLOW can no longer happen without the exemption flag.
+        """
         path = self.write_policy("p.json", self.base_policy(), mode=0o400)
         rc, report, out, err = run_probe(
             "tool", "--policy", path, "--tool", "read_repo", "--stage", "1")
-        self.assertEqual(rc, 0, out + err)
-        self.assertEqual(report["verdict"], "ALLOW")
+        self.assertEqual(rc, 5, out + err)
+        self.assertEqual(report["verdict"], "REFUSED_TO_JUDGE")
+        self.assertTrue(any("owned by the caller" in reason
+                            for reason in report["policy_writable_reasons"]))
+
+    def test_chmod_flip_from_deny_to_allow_requires_the_exemption_flag(self):
+        """The exact Codex P1 attack sequence must not end in a silent ALLOW.
+
+        The caller owns a locked-down policy (0o400 in a 0o500 directory),
+        chmods the file writable, adds the tool, raises nothing, restores
+        0o400 - and asks again. Without the explicit --allow-writable-policy
+        exemption the call is REFUSED_TO_JUDGE (exit 5) both before and
+        after the flip: the caller can no longer flip a refusal into a
+        judgment by chmod-rewriting the policy. This also documents the
+        limit honestly: judgment of a caller-owned policy is only possible
+        through the explicit testing-only flag, which is why real holder
+        separation needs a different uid (cross-uid stays NOT_TESTED).
+        """
+        policy = self.base_policy()
+        path = self.write_policy("p.json", policy, mode=0o400)
+        rc, report, out, err = run_probe(
+            "tool", "--policy", path, "--tool", "write_workspace", "--stage", "2")
+        self.assertEqual(rc, 5, out + err)
+        self.assertEqual(report["verdict"], "REFUSED_TO_JUDGE")
+
+        # The flip: chmod, rewrite, chmod back. The directory stays 0o500.
+        os.chmod(path, 0o644)
+        try:
+            policy["senders"]["current"]["tools"] = ["read_repo", "write_workspace", "run_tests"]
+            with open(path, "w") as handle:
+                json.dump(policy, handle)
+        finally:
+            os.chmod(path, 0o400)
+
+        rc, report, out, err = run_probe(
+            "tool", "--policy", path, "--tool", "write_workspace", "--stage", "2")
+        self.assertEqual(rc, 5, out + err)
+        self.assertEqual(report["verdict"], "REFUSED_TO_JUDGE")
+        self.assertFalse(report["allowed"])
+
+    def test_missing_max_stage_exits_five(self):
+        """A policy that omits the stage ceiling cannot be judged.
+
+        A missing ceiling must not mean "unlimited": exit 5 with
+        PROBE_ERROR, not a silent ALLOW.
+        """
+        policy = self.base_policy()
+        del policy["senders"]["current"]["max_stage"]
+        policy["stages"]["9"] = {"tools": ["read_repo"]}
+        path = self.write_policy("p.json", policy)
+        rc, report, out, err = run_probe(
+            "tool", "--policy", path, "--tool", "read_repo", "--stage", "9")
+        self.assertEqual(rc, 5, out + err)
+        self.assertEqual(report["verdict"], "PROBE_ERROR")
+
+    def test_string_max_stage_exits_five_not_a_traceback(self):
+        """A non-numeric ceiling is unusable, not a denial."""
+        policy = self.base_policy()
+        policy["senders"]["current"]["max_stage"] = "2"
+        path = self.write_policy("p.json", policy)
+        rc, report, out, err = run_probe(
+            "tool", "--policy", path, "--tool", "read_repo", "--stage", "1")
+        self.assertEqual(rc, 5, out + err)
+        self.assertEqual(report["verdict"], "PROBE_ERROR")
+        self.assertNotIn("Traceback", err)
 
     def test_broken_policy_exits_five(self):
         path = os.path.join(self.policy_dir, "bad.json")
@@ -625,11 +857,59 @@ class ReadbackTest(unittest.TestCase):
         os.chmod(path, 0o400)
         os.chmod(self.policy_dir, 0o500)
 
-        rc, report, out, err = run_probe("readback", "--policy", path, "--stage", "2")
+        # This suite owns the policy file, so judging requires the explicit
+        # testing-only exemption (holder separation needs a different uid).
+        rc, report, out, err = run_probe(
+            "readback", "--policy", path, "--stage", "2", "--allow-writable-policy")
         self.assertEqual(rc, 0, out + err)
         self.assertEqual(report["verdict"], "OK")
         self.assertIn("promote", report["stage_whitelist"])
         self.assertNotIn("promote", report["effective_whitelist"])
+        self.assertIn("read_repo", report["effective_whitelist"])
+
+    def test_readback_excludes_expired_senders_from_the_effective_whitelist(self):
+        """An expired sender must not make a tool look usable (Codex P2).
+
+        The gate denies the call with sender-authorization-expired; the
+        readback must agree and keep the tool out of effective_whitelist.
+        """
+        policy = {
+            "senders": {
+                "gone": {"uid": os.getuid(), "gid": os.getgid(), "max_stage": 2,
+                         "tools": ["read_repo"], "expires_at": 1000},
+            },
+            "stages": {
+                "1": {"tools": ["read_repo"]},
+            },
+            "reserved_tools": [],
+        }
+        path = os.path.join(self.policy_dir, "policy.json")
+        with open(path, "w") as handle:
+            json.dump(policy, handle)
+        os.chmod(path, 0o400)
+        os.chmod(self.policy_dir, 0o500)
+
+        # Gate: the call is denied as expired.
+        rc, report, out, err = run_probe(
+            "tool", "--policy", path, "--tool", "read_repo", "--stage", "1",
+            "--now", "2000000000", "--allow-writable-policy")
+        self.assertEqual(rc, 1, out + err)
+        self.assertEqual(report["reason"], "sender-authorization-expired")
+
+        # Readback at the same instant: the tool must not be effective.
+        rc, report, out, err = run_probe(
+            "readback", "--policy", path, "--stage", "1",
+            "--now", "2000000000", "--allow-writable-policy")
+        self.assertEqual(rc, 0, out + err)
+        self.assertEqual(report["verdict"], "OK")
+        self.assertNotIn("read_repo", report["effective_whitelist"])
+
+        # Before expiry the tool is effective: the predicate is time, not
+        # an unconditional removal.
+        rc, report, out, err = run_probe(
+            "readback", "--policy", path, "--stage", "1",
+            "--now", "500", "--allow-writable-policy")
+        self.assertEqual(rc, 0, out + err)
         self.assertIn("read_repo", report["effective_whitelist"])
 
     def test_readback_refuses_a_writable_policy(self):
@@ -678,11 +958,32 @@ class ShippedFixtureTest(unittest.TestCase):
             os.chmod(tmp, 0o500)
             try:
                 rc, report, out, err = run_probe(
-                    "tool", "--policy", path, "--tool", "read_repo", "--stage", "1")
+                    "tool", "--policy", path, "--tool", "read_repo", "--stage", "1",
+                    "--allow-writable-policy")
             finally:
                 os.chmod(tmp, 0o700)
             self.assertEqual(rc, 0, out + err)
             self.assertEqual(report["verdict"], "ALLOW")
+
+    def test_example_policy_is_refused_for_a_caller_that_owns_it(self):
+        """The shipped fixture, copied out by a caller, is not judgeable.
+
+        Whoever copies the fixture owns the copy, so the ownership rule
+        refuses to judge it (exit 5) - the README's guidance in executable
+        form. The judgment path itself needs the testing-only flag.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "policy.json")
+            shutil.copyfile(FIXTURE_POLICY, path)
+            os.chmod(path, 0o400)
+            os.chmod(tmp, 0o500)
+            try:
+                rc, report, out, err = run_probe(
+                    "tool", "--policy", path, "--tool", "read_repo", "--stage", "1")
+            finally:
+                os.chmod(tmp, 0o700)
+            self.assertEqual(rc, 5, out + err)
+            self.assertEqual(report["verdict"], "REFUSED_TO_JUDGE")
 
 
 if __name__ == "__main__":

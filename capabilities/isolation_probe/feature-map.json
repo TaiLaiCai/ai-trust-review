@@ -25,8 +25,8 @@
     {
       "id": "E02-NEGATIVE-CONTROL",
       "command": "python3 capabilities/isolation_probe/probe.py write --root ROOT --backend posix --fresh --control-permissions keep",
-      "expected": "exit 1; verdict FAIL; the same write is reported as 'written' when it really is allowed, so a probe that always said 'denied' cannot pass",
-      "actual_source": "tests/test_probe.py::PosixWriteIsolationTest::test_negative_control_reports_written_when_the_write_is_allowed"
+      "expected": "exit 1; verdict FAIL; the same write is reported as 'written' when it really is allowed, so a probe that always said 'denied' cannot pass; the bytes-digest check is excused in keep mode ONLY when at least one expected-denial check has already failed, so seatbelt+keep (denials all hold, bytes still change) is also FAIL and can never be PASS / kernel-enforced",
+      "actual_source": "tests/test_probe.py::PosixWriteIsolationTest::test_negative_control_reports_written_when_the_write_is_allowed; ::SeatbeltKeepCombinationTest"
     },
     {
       "id": "E03-ALLOW",
@@ -49,20 +49,38 @@
     {
       "id": "E03-POLICY-HOLDER",
       "command": "python3 capabilities/isolation_probe/probe.py tool --policy POLICY --tool read_repo --stage 1",
-      "expected": "exit 5; verdict REFUSED_TO_JUDGE when the policy file or its directory is writable by the caller, because a rewritable policy cannot bind an identity",
-      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_writable_policy_is_refused_to_judge; ::test_writable_policy_directory_is_refused_to_judge; ::test_locked_down_policy_is_judged"
+      "expected": "exit 5; verdict REFUSED_TO_JUDGE when the caller can rewrite the policy: the file or its directory is owned by the caller's uid (an owner can chmod it writable again, so same-uid 0o400/0o500 is NOT holder separation), or the caller has actual write access (access(2), including group/other write bits), or the stat fails. A genuinely separate holder (different uid, no write access) is judged normally",
+      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_writable_policy_is_refused_to_judge; ::test_writable_policy_directory_is_refused_to_judge; ::test_locked_down_policy_is_refused_when_the_caller_owns_it; ::test_chmod_flip_from_deny_to_allow_requires_the_exemption_flag; ::ShippedFixtureTest::test_example_policy_is_refused_for_a_caller_that_owns_it"
+    },
+    {
+      "id": "E03-POLICY-VALIDATION",
+      "command": "python3 capabilities/isolation_probe/probe.py tool --policy POLICY --tool read_repo --stage 9",
+      "expected": "exit 5; verdict PROBE_ERROR when a sender has no numeric max_stage (a missing ceiling is not 'unlimited') or a non-numeric max_stage/expires_at (a broken policy must not crash with a traceback on exit code 1, which is the deny code)",
+      "actual_source": "tests/test_probe.py::ToolPermissionTest::test_missing_max_stage_exits_five; ::test_string_max_stage_exits_five_not_a_traceback"
     },
     {
       "id": "E03-READBACK",
       "command": "python3 capabilities/isolation_probe/probe.py readback --policy POLICY --stage 2",
-      "expected": "exit 0; the effective whitelist in force for that stage, with reserved tools excluded",
-      "actual_source": "tests/test_probe.py::ReadbackTest::test_readback_reports_effective_whitelist_without_reserved_tools"
+      "expected": "exit 0; the effective whitelist in force for that stage, with reserved tools excluded AND senders whose expires_at has lapsed not counted as usable (the same expiration predicate the gate applies; --now replays the judgment instant)",
+      "actual_source": "tests/test_probe.py::ReadbackTest::test_readback_reports_effective_whitelist_without_reserved_tools; ::test_readback_excludes_expired_senders_from_the_effective_whitelist"
+    },
+    {
+      "id": "E02-FRESH-SYMLINK",
+      "command": "python3 capabilities/isolation_probe/probe.py write --root SYMLINK --backend posix --fresh",
+      "expected": "exit 5; verdict PROBE_ERROR before any chmod runs; the symlink target's directory and file modes are untouched and nothing in it is deleted (os.chmod follows links, so a symlink root must be refused before the first permission change; in-tree chmods use follow_symlinks=False)",
+      "actual_source": "tests/test_probe.py::SymlinkRootTest"
+    },
+    {
+      "id": "E02-NONPERMISSION-ERRNO-CLI-LOCK",
+      "command": "python3 capabilities/isolation_probe/probe.py write --root LAYOUT_WITHOUT_RESERVED_AND_SECRET_FILES --backend posix",
+      "expected": "exit 1; verdict FAIL with reserved_bank_read and secret_read observed as error/ENOENT: a non-permission errno is not a refusal, so a boundary whose protected reads error out cannot PASS (locks record() against dropping the outcome=='refused' condition)",
+      "actual_source": "tests/test_probe.py::MissingFilesLayoutCliTest"
     },
     {
       "id": "BOUNDARY",
       "command": "python3 -m unittest discover -s capabilities/isolation_probe/tests -v",
-      "expected": "43 tests pass; missing roots, overlapping roots, broken policy and missing policy keys exit 5; --fresh re-runs against a root the probe already locked down",
-      "actual_source": "tests/test_probe.py::LayoutTest; ::ToolPermissionTest::test_broken_policy_exits_five; ::test_missing_policy_key_exits_five; ::ReadbackTest::test_readback_refuses_a_writable_policy; ::FreshRerunTest"
+      "expected": "53 tests pass; missing roots, overlapping roots, broken policy, missing policy keys, non-numeric max_stage and symlink roots exit 5; --fresh re-runs against a root the probe already locked down",
+      "actual_source": "tests/test_probe.py::LayoutTest; ::ToolPermissionTest::test_broken_policy_exits_five; ::test_missing_policy_key_exits_five; ::ReadbackTest::test_readback_refuses_a_writable_policy; ::FreshRerunTest; ::SymlinkRootTest"
     },
     {
       "id": "E02-FRESH-RERUN",
