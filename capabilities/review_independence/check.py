@@ -34,8 +34,8 @@ def check(pr_author, pr_head_sha, producers, receipts):
     problems = []
     if not SHA_RE.match(pr_head_sha or ""):
         return 2, "USAGE", ["--pr-head-sha must be 40 lowercase hex chars"]
-    if not pr_author or not isinstance(pr_author, str):
-        return 2, "USAGE", ["--pr-author must be a non-empty string"]
+    if not isinstance(pr_author, str) or not pr_author.strip():
+        return 2, "USAGE", ["--pr-author must be a non-blank string"]
     forbidden = {a.strip().lower() for a in [pr_author] + list(producers) if a and a.strip()}
     for path in receipts:
         try:

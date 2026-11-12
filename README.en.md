@@ -50,9 +50,9 @@ The recipient check before dispatch is `check.py` in [handoff_recipient v1.3](ca
 
 The self-check items an executing bot hands over are the fields the repository already names; see "Self-check before delivery" below. The [evidence package](capabilities/evidence_package/README.md) checks only the bytes inside the manifest. The Chief Engineer checks that package and the independent re-run, not the bot's self-assessment.
 
-### On the code side: PR, four required checks, pre-review comment, merge
+### On the code side: PR, ruleset required checks, pre-review comment, merge
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs six jobs on `pull_request`. Four of them are the ruleset's required status checks. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs seven jobs on `pull_request`. Six of them are the ruleset's required status checks (read-only read-back on 2026-11-12, see below): `repository-contracts`, `capability-tests`, `event-gate`, `loop-history-v2`, `handoff-conventions`, and `handoff-recipient-v11`. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
 
 | Job | What the repository actually runs |
 |---|---|
@@ -61,12 +61,12 @@ The self-check items an executing bot hands over are the fields the repository a
 | `event-gate` | Runs the `control/gate` tests and byte-for-byte `verify` of the example ledger; a tampered ledger must exit 1 (REGRESSION) |
 | `loop-history-v2` | Runs `control/loop_status/tests`; discovering zero tests is a failure |
 
-Two more fixture-assertion jobs, `handoff-recipient-v11` and `handoff-conventions`, run the real-card red/green exit codes on top of their test suites. They are not ruleset required checks.
+Two more fixture-assertion jobs, `handoff-recipient-v11` and `handoff-conventions`, run the real-card red/green exit codes on top of their test suites; both are ruleset required checks as of the 2026-11-12 read-back. The `review-independence` job ([capabilities/review_independence](capabilities/review_independence/README.md)) asserts the red/green exit codes of the review-independence fixtures and, on pull_request events, checks the rerun receipts declared under `docs/reviews/independence/` against the PR author and the current head. It is not in the ruleset's required checks; adding it is the master's follow-up.
 
 ```mermaid
 flowchart TD
   pr["Pull Request"]
-  subgraph checks ["four required checks in ci.yml"]
+  subgraph checks ["ruleset required checks in ci.yml"]
     a["repository-contracts"]
     b["capability-tests"]
     c["event-gate"]
@@ -81,13 +81,15 @@ flowchart TD
   pre --> merge
 ```
 
-The convention for the Cursor Automation "信任审查 PR 预审" (trust-review PR pre-review) is in [docs/pr-prereview.md](docs/pr-prereview.md) (Chinese). The trigger is PR opened, by anyone. It runs in the Cursor cloud. The allowed tools are Memories and Comment on Pull Request. PR Approval is not allowed. It posts a Chinese pre-review as `cursor[bot]`. The conclusion is exactly one of 建议合并 (suggest merge), 需修改 (changes required), or 阻塞 (block). This automation is not a workflow in this repository. The comment cannot approve and cannot merge. A merge requires three things at once: the four required ruleset checks green, this pre-review concluding 建议合并, and a Chief Engineer check. [AGENTS.md](AGENTS.md) says there is no auto-merge. The ruleset's `required_approving_review_count` is 0. The last two items are repository conventions, not status checks.
+The convention for the Cursor Automation "信任审查 PR 预审" (trust-review PR pre-review) is in [docs/pr-prereview.md](docs/pr-prereview.md) (Chinese). The trigger is PR opened, by anyone. It runs in the Cursor cloud. The allowed tools are Memories and Comment on Pull Request. PR Approval is not allowed. It posts a Chinese pre-review as `cursor[bot]`. The conclusion is exactly one of 建议合并 (suggest merge), 需修改 (changes required), or 阻塞 (block). This automation is not a workflow in this repository. The comment cannot approve and cannot merge. A merge requires three things at once: the six required ruleset checks green, this pre-review concluding 建议合并, and a Chief Engineer check. [AGENTS.md](AGENTS.md) says there is no auto-merge. The ruleset's `required_approving_review_count` is 0. The last two items are repository conventions, not status checks.
 
 On 2026-11-04 the GitHub API was queried read-only for `TaiLaiCai/ai-trust-review`. The ruleset was not modified. At read time the default-branch head was `045ed7caaccf0f49b4255e87f63498b9b358d93e`.
 
 Ruleset `main` (id `26351164`, [rules page](https://github.com/TaiLaiCai/ai-trust-review/rules/26351164)) has `enforcement` `active`, `target` `branch`, `conditions.ref_name.include` `~DEFAULT_BRANCH`, `updated_at` `2026-11-04T07:42:31.783Z`, and `current_user_can_bypass` `never`. `GET /repos/TaiLaiCai/ai-trust-review/rulesets/26351164` lists these four `required_status_checks`, each with `integration_id` `15368`: `repository-contracts`, `capability-tests`, `event-gate`, `loop-history-v2`. `strict_required_status_checks_policy` is false. `do_not_enforce_on_create` is false. The same ruleset also has `deletion`, `non_fast_forward`, and `pull_request` (`required_approving_review_count` 0, `dismiss_stale_reviews_on_push` false, `required_reviewers` empty, `require_code_owner_review` false, `require_last_push_approval` false, `required_review_thread_resolution` false, `require_extra_approval_for_unattributed_changes` true, `allowed_merge_methods` merge, squash, and rebase). `GET /repos/TaiLaiCai/ai-trust-review/rules/branches/main` returns the same effective rules. On that commit's check-runs, the four jobs have `app.slug` `github-actions`, `app.id` `15368`, and `conclusion` `success`. So all four are required status checks on this ruleset, limited to integration `15368`. On this commit that id is GitHub Actions.
 
 `GET /repos/TaiLaiCai/ai-trust-review/branches/main/protection` returned 403, body `Resource not accessible by integration`. `GET /repos/TaiLaiCai/ai-trust-review/branches/main` shows `protected` true, nested `protection.enabled` false, and `required_status_checks.contexts` empty. The GraphQL field `branchProtectionRules` also returned `Resource not accessible by integration`. Whether classic branch protection has a separate set of required checks was not readable this time and stays **pending confirmation**, because the current token cannot read that endpoint. The four required checks above come from the ruleset read, not from the classic-protection body that was not returned. If the ruleset changes later, the GitHub ruleset is the source; this paragraph does not update itself.
+
+Another read-only read-back on 2026-11-12: ruleset `26351164` had not been written again (`updated_at` `2026-11-07T09:35:45.375Z`), and the required checks had grown to six, adding `handoff-conventions` and `handoff-recipient-v11`, still on integration `15368`; `review-independence` is not among them. The "four checks" above reflect the historical 2026-11-04 read.
 
 The 2026-11-02 training record describes the three CI jobs of that day. The fourth job, `loop-history-v2`, was added to the workflow later (merge note `c69d1ab`). This read shows the ruleset now requires all four.
 

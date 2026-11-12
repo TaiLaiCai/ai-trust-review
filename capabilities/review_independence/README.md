@@ -12,7 +12,7 @@
 - 任一回执 `runner.account` 等于 PR 作者/生产者 → 退出 1（自审）。
 - 任一回执 `head_sha` ≠ 当前 PR head → 退出 1（过期回执）。
 - 回执缺失/损坏 `runner.account` 或 `head_sha`，或不是 `rerun-receipt/v1`、JSON 不可读、重复键 → 退出 1（不足，非 PASS）。
-- `--pr-head-sha` 不是 40 位小写十六进制、`--pr-author` 为空 → 退出 2（用法错误）。
+- `--pr-head-sha` 不是 40 位小写十六进制、`--pr-author` 为空或纯空白 → 退出 2（用法错误）。
 - 全部回执独立且绑定当前 head → 退出 0。
 - `--version` 打印 `review-independence/v1`。
 
@@ -31,7 +31,8 @@ python3 -m unittest discover -s capabilities/review_independence/tests -v
 
 ## 边界与 NOT_TESTED
 
-- 本作业只是 CI 作业。GitHub ruleset `main`（id 26351164）的必需检查目前仍是前四项；把 `review-independence` 列为必需是主人/编排者的收尾动作，本能力不改设置 API，ruleset 生效读回 NOT_TESTED。
+- 本作业只是 CI 作业，且不在规则集必需检查里。GitHub ruleset `main`（id 26351164）2026-11-12 只读读回的必需检查是六项（`repository-contracts`、`capability-tests`、`event-gate`、`loop-history-v2`、`handoff-conventions`、`handoff-recipient-v11`）；把 `review-independence` 列为必需是主人/编排者的收尾动作，本能力不改设置 API，ruleset 生效读回 NOT_TESTED。
+- 已知限制（回应 PR #82 外部审查，均属 fail-closed 方向，不产生假绿）：（1）回执 `runner.account` 是回执声明字段，不是平台认证身份，作者可伪造非作者登录名——因此本作业未列入必需检查，列入前须先改用平台认证来源或签名回执；（2）回执提交进被审树内会使其自身 `head_sha` 过期（红），非空回执目录的合法承载（外部工件/独立证据版本）是后续独立议题；（3）回执目录为空时作业绿但输出明示 NOT_TESTED，非 PASS，是否改为硬失败待 ruleset 收尾时一并决定。
 - 「合入前 Pi 与 Hermes 都审完」是 AGENTS.md 的文档约定（主人补充规则，2026-11-09）；机器强制部分只有上述作者/head 两项检查，本工具不核验「谁审了」之外的角色清单。
 - 不验证回执内容真伪（那属于 rerun_receipt 的 verify），不提供 OS 隔离，不构成批准。
 

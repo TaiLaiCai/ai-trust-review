@@ -60,6 +60,39 @@ class Gate(unittest.TestCase):
                 "--receipt", str(FIX / "receipt-self-review.json"))
         self.assertEqual(p.returncode, 1)
 
+    def test_blank_pr_author_is_usage_error(self):
+        p = run("check", "--pr-author", "   ", "--pr-head-sha", HEAD,
+                "--receipt", str(FIX / "receipt-self-review.json"))
+        self.assertEqual(p.returncode, 2)
+        self.assertIn("USAGE", p.stdout)
+        self.assertNotIn("INDEPENDENT_AND_HEAD_BOUND", p.stdout)
+
+    def test_wrong_schema_receipt_fails(self):
+        body = json.loads((FIX / "receipt-valid.json").read_text())
+        body["schema_version"] = "not-a-receipt/v9"
+        tmp = FIX.parent / "tests" / "tmp-wrong-schema.json"
+        tmp.write_text(json.dumps(body))
+        try:
+            p = run("check", "--pr-author", AUTHOR, "--pr-head-sha", HEAD,
+                    "--receipt", str(tmp))
+            self.assertEqual(p.returncode, 1)
+            self.assertIn("not a rerun-receipt/v1 receipt", p.stdout)
+        finally:
+            tmp.unlink()
+
+    def test_missing_runner_account_fails(self):
+        body = json.loads((FIX / "receipt-valid.json").read_text())
+        del body["runner"]["account"]
+        tmp = FIX.parent / "tests" / "tmp-no-account.json"
+        tmp.write_text(json.dumps(body))
+        try:
+            p = run("check", "--pr-author", AUTHOR, "--pr-head-sha", HEAD,
+                    "--receipt", str(tmp))
+            self.assertEqual(p.returncode, 1)
+            self.assertIn("missing runner.account", p.stdout)
+        finally:
+            tmp.unlink()
+
     def test_bad_usage_exits_two(self):
         p = run("check", "--pr-author", AUTHOR, "--pr-head-sha", "deadbeef",
                 "--receipt", str(FIX / "receipt-valid.json"))
