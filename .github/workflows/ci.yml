@@ -77,6 +77,58 @@ jobs:
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(0 if result.wasSuccessful() else 1)
           PY
+  review-independence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run nonempty independence suite and assert red-green fixture exits
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          import unittest
+          root = "capabilities/review_independence"
+          suite = unittest.defaultTestLoader.discover(root + "/tests")
+          if not suite.countTestCases():
+              raise SystemExit("no review-independence tests discovered")
+          if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
+              raise SystemExit(1)
+          head = "1526ea1bc733612dba4f814ecb220ea2330e0646"
+          for fixture, code in (
+              ("receipt-self-review.json", 1),
+              ("receipt-stale-head.json", 1),
+              ("receipt-valid.json", 0),
+          ):
+              p = subprocess.run(
+                  [sys.executable, root + "/check.py", "check",
+                   "--pr-author", "TaiLaiCai", "--pr-head-sha", head,
+                   "--receipt", root + "/fixtures/" + fixture],
+                  capture_output=True, text=True, timeout=30)
+              print(fixture, "rc=" + str(p.returncode), p.stdout, end="")
+              if p.returncode != code:
+                  raise SystemExit("fixture regression: " + fixture)
+          PY
+      - name: Apply gate to PR-declared rerun receipts (if any)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          receipts=(docs/reviews/independence/*.json)
+          if [ "${#receipts[@]}" -gt 0 ]; then
+            args=()
+            for f in "${receipts[@]}"; do args+=(--receipt "$f"); done
+            python3 capabilities/review_independence/check.py check \
+              --pr-author "$PR_AUTHOR" --pr-head-sha "$PR_HEAD" "${args[@]}"
+          else
+            echo "no receipts declared under docs/reviews/independence/; machine enforcement deferred until ruleset inclusion (NOT_TESTED)"
+          fi
   handoff-recipient-v11:
     runs-on: ubuntu-latest
     timeout-minutes: 5

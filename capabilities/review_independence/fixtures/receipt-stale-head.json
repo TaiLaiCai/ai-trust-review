@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-11-09T00:00:00Z",
+  "head_sha": "0123456789abcdef0123456789abcdef01234567",
+  "receipts": [
+    {
+      "argv": [
+        "true"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-11-09T00:00:00Z",
+      "id": "r",
+      "started_at": "2026-11-09T00:00:00Z",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "runner": {
+    "account": "hermes-bot",
+    "agent": "hermes",
+    "model": "m",
+    "os": "linux",
+    "python": "3.12"
+  },
+  "schema_version": "rerun-receipt/v1"
+}
