@@ -56,6 +56,29 @@ def findings(result):
 
 
 class IndexTests(unittest.TestCase):
+    def test_forged_def_in_comment_or_string_is_missing(self):
+        names = "capabilities/loop_closure/tests/fake.py::test_index_clear_keeps_red_green_not_tested"
+        forged = {
+            names: ("# def test_index_clear_keeps_red_green_not_tested(self):\n" "pass\n").encode(),
+            REG: SOURCE,
+        }
+        code, raw = r.assess_index(index([entry(test=names)]), forged)
+        self.assertEqual(code, 1)
+        self.assertIn("missing_test_name", findings((code, raw)))
+
+    def test_forged_def_inside_string_literal_is_missing(self):
+        names = "capabilities/loop_closure/tests/fake.py::test_index_clear_keeps_red_green_not_tested"
+        blob = ('DOC = """\ndef test_index_clear_keeps_red_green_not_tested(self):\n"""\n').encode()
+        code, raw = r.assess_index(index([entry(test=names)]), {names: blob})
+        self.assertEqual(code, 1)
+        self.assertIn("missing_test_name", findings((code, raw)))
+
+    def test_unparseable_registration_is_missing_not_crash(self):
+        names = "capabilities/loop_closure/tests/fake.py::test_index_clear_keeps_red_green_not_tested"
+        code, raw = r.assess_index(index([entry(test=names)]), {names: b"def (:"})
+        self.assertEqual(code, 1)
+        self.assertIn("missing_test_name", findings((code, raw)))
+
     def test_index_clear_keeps_red_green_not_tested(self):
         code, raw = r.assess_index(index([entry()]), KNOWN)
         body = json.loads(raw)

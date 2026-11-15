@@ -8,6 +8,7 @@ mean a loop is closed.
 old_impl_red_green is always NOT_TESTED. This module does not run an old
 implementation and does not invent that result.
 """
+import ast
 import importlib.util
 import re
 from datetime import datetime
@@ -111,8 +112,18 @@ def check_registration(value, registrations, findings, where):
         findings.append({"finding": "empty_test_name", "detail": where})
         return
     blob = registrations.get(text)
-    if not isinstance(blob, bytes) or f"def {name}(".encode() not in blob:
+    if not isinstance(blob, bytes):
         findings.append({"finding": "missing_test_name", "detail": text})
+        return
+    try:
+        tree = ast.parse(blob.decode("utf-8"))
+    except (SyntaxError, UnicodeDecodeError, ValueError):
+        findings.append({"finding": "missing_test_name", "detail": text})
+        return
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+            return
+    findings.append({"finding": "missing_test_name", "detail": text})
 
 
 def finish(schema, findings, scope, extra):
