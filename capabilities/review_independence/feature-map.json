@@ -1,0 +1,12 @@
+{
+  "capability": "review_independence",
+  "schema": "review-independence/v1",
+  "input": "rerun-receipt/v1 JSON files (runner.account + head_sha) and the GitHub PR Review API payload (reviews subcommand)",
+  "scope": "receipt author and head binding only; platform review author/state/commit_id binding via the reviews subcommand; no approval granting, no ruleset writes",
+  "exit_codes": {"0": "INDEPENDENT_AND_HEAD_BOUND", "1": "REVIEW_INDEPENDENCE_VIOLATION or insufficient receipt", "2": "USAGE"},
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  }
+}
