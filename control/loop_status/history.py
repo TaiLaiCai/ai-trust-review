@@ -3,6 +3,7 @@ from datetime import datetime
 import hashlib
 import json
 import re
+import unicodedata
 
 MAX_BYTES = 16 * 1024 * 1024
 ZERO = "0" * 64
@@ -54,6 +55,38 @@ def nonempty(value):
     return isinstance(value, str) and bool(value) and value == value.strip()
 
 
+# Deleted after NFKC. Same set as capabilities/loop_closure/detect.py.
+ZERO_WIDTH = frozenset("\u200b\u200c\u200d\u2060\ufeff")
+
+
+def normalize_name(value):
+    """Same identity fold as capabilities/loop_closure/detect.normalize_name.
+
+    Order: NFKC, delete U+200B/U+200C/U+200D/U+2060/U+FEFF, collapse every
+    whitespace run to one ASCII space, strip, casefold. Empty is not an
+    identity. A remaining non-whitespace control character (category Cc)
+    is an input error.
+    """
+    if not isinstance(value, str):
+        return ""
+    text = unicodedata.normalize("NFKC", value)
+    text = "".join(ch for ch in text if ch not in ZERO_WIDTH)
+    collapsed = []
+    pending_space = False
+    for ch in text:
+        if ch.isspace():
+            pending_space = True
+            continue
+        if pending_space and collapsed:
+            collapsed.append(" ")
+        pending_space = False
+        collapsed.append(ch)
+    folded = "".join(collapsed).casefold()
+    if any(unicodedata.category(ch) == "Cc" for ch in folded):
+        raise InputError("name contains a control character")
+    return folded
+
+
 def loops(value):
     if not isinstance(value, dict) or any(
             not nonempty(k) or not isinstance(v, str) or v not in STATES for k, v in value.items()):
@@ -69,18 +102,18 @@ def identities(aliases, owners, subject):
         if not nonempty(stable) or not isinstance(names, list):
             raise InputError("invalid identity")
         for name in [stable] + names:
-            if not nonempty(name):
+            if not isinstance(name, str) or not normalize_name(name):
                 raise InputError("invalid alias")
-            key = name.casefold()
+            key = normalize_name(name)
             if table.get(key, stable) != stable:
                 raise InputError("ambiguous alias")
             table[key] = stable
-    if any(not isinstance(o, str) or o.casefold() not in table for o in owners):
+    if any(not isinstance(o, str) or normalize_name(o) not in table for o in owners):
         raise InputError("unknown owner")
-    if not isinstance(subject, str) or subject.casefold() not in table:
+    if not isinstance(subject, str) or normalize_name(subject) not in table:
         raise InputError("unknown subject")
-    allowed = {table[o.casefold()] for o in owners}
-    if table[subject.casefold()] in allowed:
+    allowed = {table[normalize_name(o)] for o in owners}
+    if table[normalize_name(subject)] in allowed:
         raise InputError("subject cannot approve its own waiver")
     return table, allowed
 
@@ -152,7 +185,7 @@ def assess(snapshots, ledger, current, ts, waivers, aliases, owners, *,
                 raise InputError("empty waiver field")
             if waiver["loop"] in waived:
                 raise InputError("duplicate waiver loop")
-            if table.get(waiver["approved_by"].casefold()) not in allowed:
+            if table.get(normalize_name(waiver["approved_by"])) not in allowed:
                 raise InputError("waiver owner is not allowed")
             waiver_time = timestamp(waiver["ts"])
             if waiver_time > now or (times and waiver_time <= times[-1]):

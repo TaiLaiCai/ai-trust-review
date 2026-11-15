@@ -50,9 +50,9 @@ flowchart TD
 
 执行 Bot 交出的自检项，以仓库里已经写明的字段为准，见下文「交付前自检」。[证据包](capabilities/evidence_package/README.md) 只核对清单内字节。总工程师核对的是这包证据和独立复跑，不是 Bot 的自我评价。
 
-### 代码侧：PR、四项检查、预审评论、合并
+### 代码侧：PR、四项必需检查、预审评论、合并
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在 `pull_request` 上运行四项作业，彼此没有 `needs` 依赖，都是只读 checkout（`persist-credentials: false`）：
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在 `pull_request` 上运行六项作业。其中四项是规则集必需的状态检查，彼此没有 `needs` 依赖，都是只读 checkout（`persist-credentials: false`）：
 
 | 作业 | 仓库里它实际做的事 |
 |---|---|
@@ -61,10 +61,12 @@ flowchart TD
 | `event-gate` | 运行 `control/gate` 测试，对示例账本做逐字节 `verify`；篡改后的账本必须退出 1（REGRESSION） |
 | `loop-history-v2` | 运行 `control/loop_status/tests`；发现 0 条测试则失败 |
 
+另有 `handoff-recipient-v11` 与 `handoff-conventions` 两项夹具断言作业：它们在各自测试套件之外再跑真实卡片的红绿退出码，不在规则集的必需检查里。
+
 ```mermaid
 flowchart TD
   pr["Pull Request"]
-  subgraph checks ["ci.yml 的四项作业"]
+  subgraph checks ["ci.yml 的四项必需检查"]
     a["repository-contracts"]
     b["capability-tests"]
     c["event-gate"]

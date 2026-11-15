@@ -50,9 +50,9 @@ The recipient check before dispatch is `check.py` in [handoff_recipient v1.3](ca
 
 The self-check items an executing bot hands over are the fields the repository already names; see "Self-check before delivery" below. The [evidence package](capabilities/evidence_package/README.md) checks only the bytes inside the manifest. The Chief Engineer checks that package and the independent re-run, not the bot's self-assessment.
 
-### On the code side: PR, four checks, pre-review comment, merge
+### On the code side: PR, four required checks, pre-review comment, merge
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs four jobs on `pull_request`. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs six jobs on `pull_request`. Four of them are the ruleset's required status checks. They have no `needs` edges. Each checkout is read-only (`persist-credentials: false`):
 
 | Job | What the repository actually runs |
 |---|---|
@@ -61,10 +61,12 @@ The self-check items an executing bot hands over are the fields the repository a
 | `event-gate` | Runs the `control/gate` tests and byte-for-byte `verify` of the example ledger; a tampered ledger must exit 1 (REGRESSION) |
 | `loop-history-v2` | Runs `control/loop_status/tests`; discovering zero tests is a failure |
 
+Two more fixture-assertion jobs, `handoff-recipient-v11` and `handoff-conventions`, run the real-card red/green exit codes on top of their test suites. They are not ruleset required checks.
+
 ```mermaid
 flowchart TD
   pr["Pull Request"]
-  subgraph checks ["four jobs in ci.yml"]
+  subgraph checks ["four required checks in ci.yml"]
     a["repository-contracts"]
     b["capability-tests"]
     c["event-gate"]
@@ -95,7 +97,7 @@ The 2026-11-02 training record describes the three CI jobs of that day. The four
 
 The standard folds training into loops, then grants trust by stage. The stage pages are review procedures. They are not a platform grant, and they do not change stages. The entry is [00-入口与统一判定](docs/standards/00-入口与统一判定.md). The machine-readable index is [审查门槛.json](docs/standards/审查门槛.json).
 
-**Loop training.** The threshold file lists loops A, B, C, D, and E for stages 2 through 4. What has landed in code is turning one correction into an executable check, rather than one more line of prompt: a misaddressed execution became the recipient check, an undefined convention became a lexical check, and editing the original during review became a byte comparison before delivery. `control/loop_status` is the C6 history ratchet: a key that was once closed and then regresses or disappears keeps reporting regression. Exit 0 means this run found no history regression. Whether a loop is closed still needs the map, a re-run, and a correction-ticket record. The full loop detector is still item 5 on the [roadmap](docs/ROADMAP.md). That directory's own note says it is not full C6.
+**Loop training.** The threshold file lists loops A, B, C, D, and E for stages 2 through 4. What has landed in code is turning one correction into an executable check, rather than one more line of prompt: a misaddressed execution became the recipient check, an undefined convention became a lexical check, and editing the original during review became a byte comparison before delivery. `control/loop_status` is the C6 history ratchet: a key that was once closed and then regresses or disappears keeps reporting regression. Exit 0 means this run found no history regression. Whether a loop is closed still needs the map, a re-run, and a correction-ticket record. The closure component [capabilities/loop_closure](capabilities/loop_closure/README.md) has landed: step evidence, map coverage, and author independence, with a summary of closed not counting as closure. It is still not full C6; see the [roadmap](docs/ROADMAP.md).
 
 **Practice cards first.** The unit of starting work is the handoff. Acceptance conditions are frozen before dispatch ([stage 2](docs/standards/02-阶段2-自证正确.md)). If the recipient check or the undefined-convention check returns non-zero, work does not start. The blank practice card is [docs/practice-card-template.md](docs/practice-card-template.md). Its required fields are the goal, the input, acceptance items limited to public items, a turn budget, a file cap, the full context, and the receipt format. The receipt pastes the complete command and the complete output. The card is the public-field template in this repository. Its acceptance items leave reserved criteria out.
 
@@ -147,6 +149,7 @@ The directories below are the paths that exist in the repository. [capabilities/
 | [capabilities/rerun_receipt](capabilities/rerun_receipt/README.md) | `emit` executes manifest commands at a bound head and records byte digests; `verify` re-checks receipts and evidence bytes read-only. Exit 0 only proves the receipts and evidence read this time are consistent. |
 | [capabilities/bounded_advance](capabilities/bounded_advance/README.md) | Advances a finite pre-authorized plan serially: the ledger binds the whole plan fingerprint, duplicate deliveries do not re-run completed units, and a failing unit stops the plan. |
 | [capabilities/isolation_probe](capabilities/isolation_probe/README.md) | E02/E03 real probes: an unauthorized write is refused by the kernel (the verdict reads the errno and the control-plane bytes, never a path string); tool permission is decided by the uid/gid bound in the policy, and a claimed identity plays no part. The permission-bit backend reports `WEAK`, because the owner can change the mode and write anyway. |
+| [capabilities/loop_closure](capabilities/loop_closure/README.md) | Closure component: step evidence, map coverage, and author independence; a summary of closed is not closure, and this is not full C6. |
 | [control/gate](control/gate/README.md) | Folds a hash-chained event log into a deterministic state. Candidate stage tops out at 2, `effective_stage` is always null, and the result can be compared to a ledger byte for byte. |
 | [control/loop_status](control/loop_status/README.md) | C6 history-ratchet pure function: a key that was closed and then regresses or disappears keeps reporting regression. Exit 0 means no history regression was found. |
 
