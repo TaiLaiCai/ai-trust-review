@@ -34,4 +34,4 @@ python3 -m unittest discover -s capabilities/event_gate/tests -v
 
 ## 当前验收状态
 
-本地测试通过（追加、重放 no-op、冲突冻结、版本漂移、缺证据断链、断索引、篡改检测、指纹）。同账号自测不能自签验收。独立复跑由预审·Grok（agent 4a5a20a4-a312-4515-a8ee-bcf304cca4f0）对 head `3d2ee5019646f521eeaf560cd970cf1cac0646c1` 完成，APO-43 结论 REPRODUCED（三条命令退出码 0/0/0）；GitHub CI 与运行时信任审查仍为 NOT_TESTED。`example/` 是生成夹具，不绑定任何真实账本。
+本地测试通过（追加、重放 no-op、冲突冻结、版本漂移、缺证据断链、断索引、篡改检测、指纹）。同账号自测不能自签验收。独立复跑记为 `NOT_TESTED`。APO-43 保留了技术复跑记录，但 PR #79 的作者与该回执的生产者是同一主体，且原始 stderr 无法按所报摘要复核。历史记录保留在 PR #79 与 APO-43。GitHub CI 与运行时信任审查仍为 NOT_TESTED。`example/` 是生成夹具，不绑定任何真实账本。
