@@ -12,10 +12,10 @@ sys.path.insert(0, str(ROOT))
 import advance  # noqa: E402
 
 
-def plan_for(input_bytes, units):
+def plan_for(input_bytes, units, plan_id="two-units"):
     document = {
         "schema": advance.SCHEMA,
-        "plan_id": "two-units",
+        "plan_id": plan_id,
         "input_sha256": advance.sha256(input_bytes),
         "units": units,
     }
@@ -294,6 +294,37 @@ class DeploySafetyTests(unittest.TestCase):
         rows = advance.read_ledger(queue / "ledger.jsonl")
         self.assertTrue(all(row["actor_role"] == "consumer" for row in rows))
         self.assertTrue(any(row.get("reviewer_version") == "external-codex-not-sent" for row in rows))
+        again = advance.serve(queue, once=True)
+        self.assertEqual(again["executed"], [])
+        self.assertEqual((work / "marker").read_text(), "U1\n")
+
+    def test_spawn_failure_does_not_strand_later_authorization(self):
+        queue = self.dir / "queue"
+        work = queue / "work"
+        work.mkdir(parents=True)
+        bad = queue / "bad.json"
+        good = queue / "good.json"
+        payload = queue / "input.bin"
+        payload.write_bytes(self.bound)
+        bad.write_bytes(plan_for(self.bound, [{
+            "id": "U1",
+            "argv": ["/no/such/bounded-advance-bin"],
+            "stdin_sha256": None,
+            "expected_exit": 0,
+        }], plan_id="missing-bin"))
+        good.write_bytes(plan_for(self.bound, [unit("U1", 0, 0)], plan_id="good-task"))
+        auth = queue / "authorized.jsonl"
+        text = (
+            '{"plan":"bad.json","input":"input.bin","delivery":"bad","cwd":"work"}\n'
+            '{"plan":"good.json","input":"input.bin","delivery":"good","cwd":"work"}\n'
+        )
+        auth.write_text(text)
+        ran = advance.serve(queue, once=True)
+        self.assertEqual(ran["executed"], ["U1"])
+        self.assertEqual((work / "marker").read_text(), "U1\n")
+        self.assertEqual(auth.read_text(), text)
+        rows = advance.read_ledger(queue / "ledger.jsonl")
+        self.assertTrue(any(row["status"] == "rejected" and row["detail"] == "spawn failed" for row in rows))
         again = advance.serve(queue, once=True)
         self.assertEqual(again["executed"], [])
         self.assertEqual((work / "marker").read_text(), "U1\n")

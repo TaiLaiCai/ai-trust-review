@@ -322,11 +322,7 @@ def consume_one(queue):
         )
         if result["executed"] or result["status"] == "partial":
             return result
-        if result["status"] in {"rejected", "stopped"} and result["reason"] not in {
-            "plan already stopped", "uncertain claim; not re-executed",
-            "plan changed: existing progress is bound to a different plan fingerprint",
-        }:
-            return result
+        # A recorded rejection stops only that authorization. Later lines stay eligible.
     return {"status": "idle", "executed": [], "reason": "no runnable authorized task"}
 
 
@@ -353,8 +349,6 @@ def serve(queue_dir, once=False):
             result = consume_one(queue)
             if result["status"] == "partial" or result["executed"]:
                 continue
-            if result["status"] == "rejected":
-                return result
             os.read(read_fd, 1)
     finally:
         os.close(read_fd)
