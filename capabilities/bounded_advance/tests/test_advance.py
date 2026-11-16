@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -56,7 +57,7 @@ class AdvanceTests(unittest.TestCase):
         self.assertEqual(result["executed"], ["U1", "U2"])
         self.assertEqual((self.cwd / "marker").read_text(), "U1\nU2\n")
         rows = advance.read_ledger(self.ledger)
-        self.assertEqual([row["status"] for row in rows], ["ok", "ok"])
+        self.assertEqual([row["status"] for row in rows], ["claimed", "ok", "claimed", "ok"])
         self.assertEqual(rows[1]["prev_sha256"], advance.sha256(advance.canonical(rows[0])))
 
     def test_duplicate_delivery_does_not_execute_again(self):
@@ -206,6 +207,138 @@ class Verdict6744651431Tests(unittest.TestCase):
         self.assertEqual(u["stdin_sha256"], empty_hash)
         result = self.run_raw(plan_for(self.bound, [u]), stdin={"U1": b""})
         self.assertEqual(result["status"], "complete")
+
+
+class DeploySafetyTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        self.ledger = self.dir / "ledger.jsonl"
+        self.bound = b"bound-version-1"
+        self.cwd = self.dir / "work"
+        self.cwd.mkdir()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_units(self, units, fault=None, delivery="d1"):
+        return advance.advance(
+            plan_for(self.bound, units), self.bound, {}, self.ledger, delivery, self.cwd,
+            None, fault,
+        )
+
+    def test_crash_after_exec_before_ledger_does_not_rerun(self):
+        first = self.run_units([unit("U1", 0, 0)], fault="after_exec")
+        self.assertEqual(first["executed"], ["U1"])
+        self.assertEqual((self.cwd / "marker").read_text(), "U1\n")
+        again = self.run_units([unit("U1", 0, 0)], delivery="d2")
+        self.assertEqual(again["status"], "stopped")
+        self.assertEqual(again["executed"], [])
+        self.assertEqual(again["reason"], "uncertain claim; not re-executed")
+        self.assertEqual((self.cwd / "marker").read_text(), "U1\n")
+        third = self.run_units([unit("U1", 0, 0)], delivery="d3")
+        self.assertEqual(third["executed"], [])
+        self.assertEqual((self.cwd / "marker").read_text(), "U1\n")
+        uncertain = [row for row in advance.read_ledger(self.ledger) if row["status"] == "uncertain"]
+        self.assertEqual(len(uncertain), 1)
+
+    def test_crash_after_claim_before_exec_does_not_start(self):
+        first = self.run_units([unit("U1", 0, 0)], fault="after_claim")
+        self.assertEqual(first["executed"], [])
+        self.assertFalse((self.cwd / "marker").exists())
+        again = self.run_units([unit("U1", 0, 0)])
+        self.assertEqual(again["status"], "stopped")
+        self.assertFalse((self.cwd / "marker").exists())
+
+    def test_unfinished_argv_swap_does_not_run(self):
+        raw = plan_for(self.bound, [unit("U1", 0, 0), unit("U2", 0, 0)])
+        first = advance.advance(raw, self.bound, {}, self.ledger, "d1", self.cwd, max_steps=1)
+        self.assertEqual(first["executed"], ["U1"])
+        swapped = plan_for(self.bound, [unit("U1", 0, 0), {
+            "id": "U2",
+            "argv": [sys.executable, "-c", "from pathlib import Path; Path('swapped').write_text('x')"],
+            "stdin_sha256": None,
+            "expected_exit": 0,
+        }])
+        second = advance.advance(swapped, self.bound, {}, self.ledger, "d2", self.cwd, None)
+        self.assertEqual(second["status"], "stopped")
+        self.assertEqual(second["executed"], [])
+        self.assertFalse((self.cwd / "swapped").exists())
+        self.assertEqual((self.cwd / "marker").read_text(), "U1\n")
+
+    def test_queue_once_runs_only_authorized_task(self):
+        queue = self.dir / "queue"
+        queue.mkdir()
+        plan = queue / "plan.json"
+        payload = queue / "input.bin"
+        raw = plan_for(self.bound, [unit("U1", 0, 0)])
+        plan.write_bytes(raw)
+        payload.write_bytes(self.bound)
+        # 未授权的计划文件不得被执行。
+        idle = advance.serve(queue, once=True)
+        self.assertEqual(idle["status"], "idle")
+        work = queue / "work"
+        work.mkdir()
+        self.assertFalse((work / "marker").exists())
+        auth = queue / "authorized.jsonl"
+        before = (
+            '{"plan":"plan.json","input":"input.bin","delivery":"d1","cwd":"work",'
+            '"producer_version":"external-claude-not-sent",'
+            '"reviewer_version":"external-codex-not-sent"}\n'
+        )
+        auth.write_text(before)
+        ran = advance.serve(queue, once=True)
+        self.assertEqual(ran["executed"], ["U1"])
+        self.assertEqual(auth.read_text(), before)
+        self.assertEqual((work / "marker").read_text(), "U1\n")
+        rows = advance.read_ledger(queue / "ledger.jsonl")
+        self.assertTrue(all(row["actor_role"] == "consumer" for row in rows))
+        self.assertTrue(any(row.get("reviewer_version") == "external-codex-not-sent" for row in rows))
+        again = advance.serve(queue, once=True)
+        self.assertEqual(again["executed"], [])
+        self.assertEqual((work / "marker").read_text(), "U1\n")
+
+    def test_queue_waits_without_polling_until_authorized(self):
+        queue = self.dir / "queue"
+        queue.mkdir()
+        proc = subprocess.Popen(
+            [sys.executable, str(ADVANCE), "--queue", str(queue)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        )
+        ready = queue / "ready"
+        for _ in range(50):
+            if ready.exists() or proc.poll() is not None:
+                break
+            subprocess.run(["/bin/sleep", "0.05"], check=False)
+        self.assertIsNone(proc.poll())
+        self.assertTrue(ready.exists())
+        work = queue / "work"
+        work.mkdir()
+        self.assertFalse((work / "marker").exists())
+        plan = queue / "plan.json"
+        payload = queue / "input.bin"
+        plan.write_bytes(plan_for(self.bound, [unit("U1", 0, 0)]))
+        payload.write_bytes(self.bound)
+        (queue / "authorized.jsonl").write_text(
+            '{"plan":"plan.json","input":"input.bin","delivery":"d1","cwd":"work"}\n'
+        )
+        wake = queue / "wake.fifo"
+        fd = os.open(wake, os.O_WRONLY)
+        try:
+            os.write(fd, b"\n")
+        finally:
+            os.close(fd)
+        for _ in range(50):
+            if (work / "marker").exists() or proc.poll() is not None:
+                break
+            subprocess.run(["/bin/sleep", "0.05"], check=False)
+        self.assertEqual((work / "marker").read_text(), "U1\n")
+        self.assertIsNone(proc.poll())
+        proc.terminate()
+        proc.communicate(timeout=5)
+        self.assertEqual(
+            (queue / "authorized.jsonl").read_text().count("\n"), 1,
+        )
 
 
 if __name__ == "__main__":
