@@ -1,0 +1,8 @@
+exit_code=0
+status=survived
+duration_seconds=0.391805
+output_sha256=779fd005dd24bffec2977965544fe4376543264add990d851ecf7c578c1b7a24
+----------------------------------------------------------------------
+Ran 27 tests in 0.348s
+
+OK
