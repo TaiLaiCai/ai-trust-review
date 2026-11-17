@@ -494,17 +494,24 @@ def read_fixture(dir_path, name, expect_len):
 
 def output_dir_fd(zip_path, output_dir):
     out = os.path.abspath(output_dir)
-    if os.path.islink(out) or not os.path.isdir(out):
-        raise Problem("output-dir-unsafe")
-    zparent = os.path.dirname(os.path.abspath(zip_path))
-    if out == zparent or out.startswith(zparent + os.sep):
-        raise Problem("output-dir-overlaps-source")
+    source_parent = os.path.realpath(os.path.dirname(os.fspath(zip_path)) or ".")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+    fd = None
     try:
-        return os.open(out, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
-    except OSError as error:
-        if error.errno == errno.ELOOP:
-            raise Problem("output-dir-unsafe") from None
+        fd = os.open(os.sep, flags)
+        for part in filter(None, out.split(os.sep)):
+            child = os.open(part, flags, dir_fd=fd)
+            os.close(fd)
+            fd = child
+        if os.path.commonpath((out, source_parent)) == source_parent:
+            raise Problem("output-dir-overlaps-source")
+        opened, fd = fd, None
+        return opened
+    except OSError:
         raise Problem("output-dir-unsafe") from None
+    finally:
+        if fd is not None:
+            os.close(fd)
 
 
 def read_zip(path):
@@ -944,7 +951,13 @@ def perform(
             if sha256_bytes(blob) != item["sha256"]:
                 raise Problem("fixture-sha-mismatch")
             fixtures[step_id] = blob
-        scratch = tempfile.mkdtemp(prefix="s1scratch-", dir=output_dir)
+        checked_fd = output_dir_fd(zip_path, output_dir)
+        try:
+            if not os.path.samestat(os.fstat(checked_fd), os.fstat(dir_fd)):
+                raise Problem("output-dir-unsafe")
+            scratch = tempfile.mkdtemp(prefix="s1scratch-", dir=os.path.abspath(output_dir))
+        finally:
+            os.close(checked_fd)
         receipt["scratch"] = "created"
         try:
             write_bodies(scratch, measured.bodies)

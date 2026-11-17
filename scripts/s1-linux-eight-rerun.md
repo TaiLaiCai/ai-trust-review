@@ -65,7 +65,7 @@ python3 scripts/s1-linux-eight-rerun.py \
   --output-dir /controlled/receipts
 ```
 
-`/controlled/...` 是示意路径。输出目录必须已经存在，不能是符号链接，也不能是 ZIP 所在目录或其子目录。工具只在该目录写 `receipt.json` 和临时 scratch。回执先落到一个新建文件，再替换 `receipt.json` 这个名字，因此不会截断已经硬链接到该名字上的源文件，也不会顺着符号链接写过去。标准输出与 `receipt.json` 是同一份 JSON，不含文件正文、stdin 字节或本机绝对路径。
+`/controlled/...` 是示意路径。输出目录必须已经存在，输出路径的每一级均不能是符号链接，也不能落在 ZIP 实际所在目录或其子目录。工具通过已打开的目录写 `receipt.json`，在建临时 scratch 前会重新核对输出目录。运行期间输出目录及其父目录应由操作员控制。回执先落到一个新建文件，再替换 `receipt.json` 这个名字，因此不会截断已经硬链接到该名字上的源文件，也不会顺着符号链接写过去。标准输出与 `receipt.json` 是同一份 JSON，不含文件正文、stdin 字节或本机绝对路径。
 
 一步的 stdin 写入和进程等待共用同一个超时。子进程不读满 stdin 时，写入不会把这一步拖过时限。
 

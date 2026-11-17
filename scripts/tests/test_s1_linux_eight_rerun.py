@@ -141,7 +141,7 @@ def marker_program(marker):
 class S1LinuxEightRerunTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.root = Path(self.tmp.name) / "CANARYPATH"
+        self.root = Path(self.tmp.name).resolve() / "CANARYPATH"
         self.root.mkdir()
 
     def tearDown(self):
@@ -681,6 +681,27 @@ class Synthetic(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(receipt["reason"], "fixture-unreadable")
         self.assertFalse(receipt["executed"])
+
+    def test_output_directory_rejects_a_linked_ancestor(self):
+        src, out, _fix = self.dirs()
+        (out / "receipts").mkdir()
+        alias = self.root / "alias"
+        alias.symlink_to(out, target_is_directory=True)
+
+        with self.assertRaises(mod.Problem) as caught:
+            mod.output_dir_fd(src / "archive.zip", alias / "receipts")
+        self.assertEqual(caught.exception.reason, "output-dir-unsafe")
+
+    def test_output_directory_checks_resolved_source_parent(self):
+        src, _out, _fix = self.dirs()
+        receipts = src / "receipts"
+        receipts.mkdir()
+        source_alias = self.root / "source-alias"
+        source_alias.symlink_to(src, target_is_directory=True)
+
+        with self.assertRaises(mod.Problem) as caught:
+            mod.output_dir_fd(source_alias / "archive.zip", receipts)
+        self.assertEqual(caught.exception.reason, "output-dir-overlaps-source")
 
     def test_unread_stdin_stays_inside_the_step_timeout(self):
         script = self.root / "holdstdin.py"
