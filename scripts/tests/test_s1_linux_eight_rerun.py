@@ -682,6 +682,56 @@ class Synthetic(unittest.TestCase):
         self.assertEqual(receipt["reason"], "fixture-unreadable")
         self.assertFalse(receipt["executed"])
 
+    def test_unread_stdin_stays_inside_the_step_timeout(self):
+        script = self.root / "holdstdin.py"
+        script.write_text("import time\ntime.sleep(5)\n", encoding="utf-8")
+        payload = b"Z" * (256 * 1024)
+        started = time.monotonic()
+        row = mod.run_one(
+            mod.Step("T3", ("python3", script.name), "status_input", 0),
+            str(self.root),
+            payload,
+            0.3,
+            1024,
+        )
+        elapsed = time.monotonic() - started
+        self.assertLess(elapsed, 2.0)
+        self.assertEqual(row["technical_status"], "timeout")
+        self.assertEqual(row["s1_step_judgment"], "NOT_TESTED")
+        self.assertEqual(row["stdin_bytes"], len(payload))
+        encoded = json.dumps(row)
+        self.assertNotIn("ZZZZZZZZ", encoded)
+        self.assertNotIn("CANARYPATH", encoded)
+
+    def test_receipt_replace_keeps_hardlinked_source_bytes(self):
+        src, out, _fix = self.dirs()
+        original = pack({"a.txt": b"plain-synthetic-member\n"})
+        zip_path = src / "archive.zip"
+        zip_path.write_bytes(original)
+        receipt_path = out / "receipt.json"
+        os.link(zip_path, receipt_path)
+        inode = zip_path.stat().st_ino
+        code, receipt, text = self.run_main(["--zip", str(zip_path), "--output-dir", str(out)])
+        self.assertEqual(code, 1)
+        self.assertEqual(receipt["reason"], "identity-mismatch")
+        self.assertTrue(receipt["archive"]["source_unchanged"])
+        self.assertEqual(zip_path.read_bytes(), original)
+        self.assertEqual(zip_path.stat().st_ino, inode)
+        self.assertNotEqual(receipt_path.stat().st_ino, inode)
+        self.assertEqual(receipt_path.read_text(encoding="ascii"), text)
+        self.assertFalse(any(path.name.startswith(".receipt-") for path in out.iterdir()))
+
+        sentinel = out / "sentinel.bin"
+        sentinel.write_bytes(b"keep-sentinel")
+        receipt_path.unlink()
+        receipt_path.symlink_to("sentinel.bin")
+        code, _receipt, text = self.run_main(["--zip", str(zip_path), "--output-dir", str(out)])
+        self.assertEqual(code, 1)
+        self.assertEqual(sentinel.read_bytes(), b"keep-sentinel")
+        self.assertFalse(receipt_path.is_symlink())
+        self.assertEqual(receipt_path.read_text(encoding="ascii"), text)
+        self.assertEqual(zip_path.read_bytes(), original)
+
 
 def mod_perform(test, zip_path, out, binding_path, fix, identity, timeout, max_output):
     code, receipt, text = mod.perform(

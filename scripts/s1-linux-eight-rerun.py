@@ -16,7 +16,9 @@ import hashlib
 import io
 import json
 import os
+import random
 import re
+import select
 import shutil
 import signal
 import stat
@@ -540,13 +542,45 @@ def confirm_source(path, data, mode):
 
 
 def write_receipt(dir_fd, text):
-    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW | os.O_CLOEXEC
-    fd = os.open("receipt.json", flags, 0o644, dir_fd=dir_fd)
-    try:
-        os.write(fd, text.encode("ascii"))
-        os.fsync(fd)
-    finally:
+    """Write a new inode, then replace the receipt name.
+
+    O_TRUNC on an existing receipt.json would discard a hard-linked source.
+    A symlink at that name is replaced, not followed.
+    """
+    payload = text.encode("ascii")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC
+    for _ in range(8):
+        tmp_name = ".receipt-%d-%d.tmp" % (os.getpid(), random.SystemRandom().randrange(1 << 30))
+        try:
+            fd = os.open(tmp_name, flags, 0o644, dir_fd=dir_fd)
+        except FileExistsError:
+            continue
+        try:
+            view = payload
+            while view:
+                wrote = os.write(fd, view)
+                if wrote <= 0:
+                    raise OSError("short receipt write")
+                view = view[wrote:]
+            os.fsync(fd)
+        except Exception:
+            os.close(fd)
+            try:
+                os.unlink(tmp_name, dir_fd=dir_fd)
+            except OSError:
+                pass
+            raise
         os.close(fd)
+        try:
+            os.replace(tmp_name, "receipt.json", src_dir_fd=dir_fd, dst_dir_fd=dir_fd)
+        except OSError:
+            try:
+                os.unlink(tmp_name, dir_fd=dir_fd)
+            except OSError:
+                pass
+            raise
+        return
+    raise OSError("receipt replace failed")
 
 
 def child_env(scratch):
@@ -559,6 +593,15 @@ def child_env(scratch):
         "PYTHONUNBUFFERED": "1",
         "TMPDIR": scratch,
     }
+
+
+def close_stream(stream):
+    if stream is None or stream.closed:
+        return
+    try:
+        stream.close()
+    except (OSError, ValueError):
+        pass
 
 
 def kill_group(proc):
@@ -636,32 +679,62 @@ def run_one(spec, scratch, stdin_bytes, timeout, max_output):
     )
     out_thread.start()
     err_thread.start()
+    deadline = time.monotonic() + timeout
+    timed_out = False
+    pending = memoryview(stdin_bytes) if stdin_bytes else None
+    sent = 0
+    stdin_open = proc.stdin is not None
+    if stdin_open:
+        os.set_blocking(proc.stdin.fileno(), False)
     try:
-        if stdin_bytes:
-            try:
-                proc.stdin.write(stdin_bytes)
-            except (BrokenPipeError, OSError):
-                pass
-        try:
-            proc.stdin.close()
-        except OSError:
-            pass
-        deadline = time.monotonic() + timeout
-        timed_out = False
         while True:
             if truncated.is_set():
                 kill_group(proc)
+                break
+            if time.monotonic() >= deadline:
+                timed_out = True
+                kill_group(proc)
+                break
+            if stdin_open and pending is not None:
+                try:
+                    wrote = os.write(proc.stdin.fileno(), pending[sent:])
+                except BlockingIOError:
+                    wrote = 0
+                except (BrokenPipeError, OSError):
+                    pending = None
+                    close_stream(proc.stdin)
+                    stdin_open = False
+                    wrote = 0
+                else:
+                    if wrote > 0:
+                        sent += wrote
+                    if sent >= len(pending):
+                        pending = None
+                        close_stream(proc.stdin)
+                        stdin_open = False
+            elif stdin_open:
+                close_stream(proc.stdin)
+                stdin_open = False
+            if proc.poll() is not None and not stdin_open:
                 break
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 timed_out = True
                 kill_group(proc)
                 break
-            try:
-                proc.wait(timeout=min(0.05, remaining))
-                break
-            except subprocess.TimeoutExpired:
-                continue
+            slice_wait = min(0.05, remaining)
+            if stdin_open:
+                try:
+                    select.select([], [proc.stdin.fileno()], [], slice_wait)
+                except (ValueError, OSError):
+                    close_stream(proc.stdin)
+                    stdin_open = False
+            else:
+                try:
+                    proc.wait(timeout=slice_wait)
+                    break
+                except subprocess.TimeoutExpired:
+                    continue
         out_thread.join(timeout=5)
         err_thread.join(timeout=5)
         if out_thread.is_alive() or err_thread.is_alive():
@@ -692,10 +765,7 @@ def run_one(spec, scratch, stdin_bytes, timeout, max_output):
         if proc.poll() is None:
             kill_group(proc)
         for stream in (proc.stdin, proc.stdout, proc.stderr):
-            try:
-                stream.close()
-            except OSError:
-                pass
+            close_stream(stream)
 
 
 def count_bytecode(root):
