@@ -10,7 +10,7 @@
 
 </div>
 
-这是本仓库的定位，不是排名、客户名单或性能承诺。这里的「可信」只由下面三条构成，每一条都能在仓库里找到出处。天数、次数、比率写在 [审查标准](docs/standards/00-入口与统一判定.md) 与 [审查门槛.json](docs/standards/审查门槛.json) 里，标准入口写明它们是审查目标，不是已经取得的成绩。本页不改变任何 Bot 的等级或权限。
+这是本仓库的定位，不是排名、客户名单或性能承诺。这里的「可信」只由下面三条构成，每一条都能在仓库里找到出处。天数、次数、比率写在 [审查标准](docs/standards/00-入口与统一判定.md) 与 [审查门槛.json](docs/standards/审查门槛.json) 里，标准入口写明它们是审查目标，不是已经取得的成绩。本页不改变任何 Bot 的等级或权限。全员适用的验证流程见 [验证分层与证据复用](#验证分层与证据复用)。
 
 ---
 
@@ -185,6 +185,24 @@ v1.3 37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899
 
 ---
 
+## 验证分层与证据复用
+
+2026-11-17 北京时间 19:23，主人批准把本节作为全员适用的验证流程，写入本 README 并同步。批准范围是分层验证、增量证据复用，以及这次文档同步。该原则已经获主人批准：以后执行同一原则，不再就同一原则重复请求批准。具体入口、第三方接触、资源绑定等新增范围另批。本节不编批准事件编号，不改阶段、权限或任务状态。
+
+**既有要求继续全部适用。** 按 [TRUST-REVIEW-1.0](docs/standards/00-入口与统一判定.md)，B01–B08 本来就是安全合成资产上的边界测试，不是这次新发明，也不因这次批准而豁免。[阶段 1](docs/standards/01-阶段1-深度介入.md) 的 T1-B 写明：这些测试使用安全隔离资产，不把危险操作真的做出去。[证据模板](docs/standards/05-审查记录与证据模板.md) 写明：合成测试包与真实运行包分目录、分身份、分账本。S1-05 本来就是至少 1 个监督下的真实业务小任务：有实际产物，人逐步审阅，并独立核对数量、内容、输出与 SHA。S1-01 至 S1-08 与适用的 B01–B08 仍然全部适用。一次监督小任务只落在 S1-05；`evidence_stage=1` 仍要 S1-01～08 全部满足，且适用边界项没有未决失败。S2、M2 仍以 [阶段 2](docs/standards/02-阶段2-自证正确.md) 与 [上线门禁](docs/standards/06-Dune与CI上线门禁.md) 为准。本节不改那些判定。
+
+**技术验证与真实权限验证分开记录。** 每项结论单独标成技术测试、真实验证或未验证。技术测试的通过只记技术测试。真实权限只由真实验证支持。没有证据的项保持未验证；`NOT_TESTED` 保持为 `NOT_TESTED`。
+
+技术测试用非敏感合成包核对只读、越权拒绝、到期撤销和可复核证据。合成资产与真实资产分目录、分身份、分账本。私有原件默认不得传给模型服务。MCP 只是受限接口：它不能充当隔离证明，也不是当前已批准的原件入口。本批准不包含安装 MCP。
+
+真实验证仍是合格隔离环境中的监督真实小任务，加上当时适用的全部门槛，包括独立复核。隔离方式按该次威胁模型和明确批准选择。标准没有规定必须使用 macOS 虚拟机。同机目录、容器和 MCP 不能自行认定等价。真实隔离与独立复核继续保留。
+
+**同范围证据可以复用。** 复用要同时满足：范围与当次明确范围相同；产物、版本和哈希可以核对；权限边界与运行主体未变；环境与测试版本一致；证据仍然有效，并且另一审查者能够复核。只重测变化的部分和受影响的部分。权限、运行主体或隔离环境等边界变化时，重新验证对应部分。某一项变化或失效时，写明依据后重测受影响项。发现安全关键的跨项影响时，扩大重测。
+
+**本批准停在流程本身。** 它不新建虚拟机，不扩大权限，不恢复已暂停方案，不部署，不付款，不外发，也不改变阶段。
+
+---
+
 ## 如何验证
 
 只使用 Python 标准库。下面的命令核对仓库契约和回归。它们不认证任何真实 Bot，不写入实际等级或权限。`scripts/check_repository.py` 通过时打印的是：
@@ -193,7 +211,7 @@ v1.3 37cc9e5967922bf3be21ef118462a353cd498b55eb38e5eb0aa88b420f650899
 PASS: repository structure and standard contracts; runtime trust review NOT_TESTED
 ```
 
-其中的 `NOT_TESTED` 是脚本固定输出，表示运行时信任审查不在这次检查范围内。
+其中的 `NOT_TESTED` 是脚本固定输出，表示运行时信任审查不在这次检查范围内。这些命令是仓库契约的技术测试。真实权限、隔离和阶段判定见 [验证分层与证据复用](#验证分层与证据复用)，不由本段命令改写。
 
 ```bash
 python3 scripts/check_repository.py
@@ -244,14 +262,14 @@ rm -f "$tampered"
 
 ## 当前状态
 
-以下只写仓库里已经有的记录。没有新的审查文件时，不把后来的代码合入算成等级变化。
+以下只写仓库里已经有的记录。没有新的审查文件时，不把后来的代码合入算成等级变化。验证分层一节不改写下列等级、复跑和隔离记录。
 
 - **等级。** [2026-11-02 训练进度](docs/reviews/2026-11-02-lightvela-training.md) 与 [执行者试点](docs/reviews/2026-11-02-worker-stage2-pilot.md) 写明：所记录 Bot 的 `evidence_stage` 与 `effective_stage` 为 null，按阶段 1 的方式监督工作，连胜未形成。此后合入了收件人检查 v1.2/v1.3、`review_readonly`、`loop_status` 和第四项 CI，仓库里没有更新的审查记录把这些等级改掉。本页不改等级。
 - **独立复跑。** `NOT_TESTED`：六份能力地图 [evidence_package](capabilities/evidence_package/feature-map.json)、[handoff_recipient](capabilities/handoff_recipient/feature-map.json)、[handoff_conventions](capabilities/handoff_conventions/feature-map.json)、[message_identity](capabilities/message_identity/feature-map.json)、[rerun_receipt](capabilities/rerun_receipt/feature-map.json)、[review_readonly](capabilities/review_readonly/feature-map.json) 的 `independent_verification` 均为 `status=NOT_TESTED`、`verifier=null`、`head_sha=null`。 [control/gate](control/gate/feature-map.json) 的 `independent_verification.status` 同为 `NOT_TESTED`。 [review_readonly](capabilities/review_readonly/feature-map.json) 的 `runtime_bot_integration` 与 `independent_acceptance` 同为 `NOT_TESTED`。 [handoff_conventions](capabilities/handoff_conventions/feature-map.json) 另记 `remote_capability_tests: NOT_TESTED`、`deployment: NOT_DEPLOYED`。 [loop_status](control/loop_status/README.md) 写明独立审阅待完成，旧检测器上的变红证据为 `NOT_TESTED`，不能用新测试代替。 [isolation_probe](capabilities/isolation_probe/feature-map.json) 的 `runtime_bot_integration` 与 `independent_acceptance` 同为 `NOT_TESTED`，跨 UID 受控主体与 Linux 后端亦为 `NOT_TESTED`。
 - **身份与隔离。** 平台 sender 认证（C4）已有可执行候选：[capabilities/message_identity](capabilities/message_identity/README.md) 把消息绑到平台机器字段给出的发件人，正文 `author_role` 不构成认证。它的独立复跑仍是 `NOT_TESTED`，未接入任何 Bot 流程（实际强制力 `text_only`），也不改变任何等级。H1/H2 写隔离未作为已实现项记录。收件人检查在训练记录中的强制力是 `text_only`。同账号不能证明独立性，见 [CODEOWNERS](.github/CODEOWNERS) 与训练记录。
 - **已部署副本与发布包。** 主机上的收件人检查，记录中的版本是 v1，不是本树的 v1.3。 [dist/v0.1.0](dist/v0.1.0/RELEASE-NOTES.md) 来自 main `e3f532a12a5a5219af451471d2452444bc178f79`，其中收件人检查为 v1.1，不含当前的 `review_readonly` 与 `loop_status`。
 - **规则集读回。** 2026-11-04 的只读查询里，四项 CI 都是规则集 `main` 的必需状态检查，见上文。
-- **预审约定。** 见 [docs/pr-prereview.md](docs/pr-prereview.md)。该文件记载触发、工具、发言身份和三档结论；它不是从 Cursor 自动化配置接口导出的原文。评论字段和机器可读裁决行见 [docs/review-verdict-format.md](docs/review-verdict-format.md)。[README.en.md](README.en.md) 与本页结构一致。
+- **预审约定。** 见 [docs/pr-prereview.md](docs/pr-prereview.md)。该文件记载触发、工具、发言身份和三档结论；它不是从 Cursor 自动化配置接口导出的原文。评论字段和机器可读裁决行见 [docs/review-verdict-format.md](docs/review-verdict-format.md)。[README.en.md](README.en.md) 与本页其余结构一致；「验证分层与证据复用」只写在本页。
 - **待确认。** 「总工程师」与「主人」是否为同一主体。经典分支保护端点本次返回 403，是否另有必需检查见上文。
 - **历史协作图。** [docs/assets/collaboration.svg](docs/assets/collaboration.svg) 是 2026-11-02 前后的示意图。图中名称只是文字标注。 [发布说明](dist/v0.1.0/RELEASE-NOTES.md) 写明：本项目与 xAI、Anthropic、OpenAI 无隶属或背书关系。
 
