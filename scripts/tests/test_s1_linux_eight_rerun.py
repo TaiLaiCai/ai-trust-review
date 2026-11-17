@@ -505,34 +505,69 @@ class S1LinuxEightRerunTest(unittest.TestCase):
             self.assertNotIn("CANARY-ESCAPE", text)
             self.assertNotIn(CANARY, text)
 
-    def test_nested_member_is_not_executed(self):
-        marker = self.root / "ran-marker"
-        files = core_files(extra={"nested/leaf.py": marker_program(str(marker)).encode()})
-        data = pack(files)
-        zip_path = self.root / "src"
-        zip_path.mkdir()
-        archive = zip_path / "archive.zip"
-        archive.write_bytes(data)
-        out = self.root / "out"
-        out.mkdir()
-        identity = self.identity_from(data)
-        self.assertEqual(identity.regular_files, 9)
-        binding = binding_for({name: blob for name, blob in files.items() if "/" not in name})
-        binding_path = self.root / "binding.json"
+    def nested_files(self):
+        preflight = "from pathlib import Path\nif Path('extra.py').exists():\n    raise SystemExit(3)\n" + PREFLIGHT_OK
+        core = core_files(preflight=preflight)
+        groups = ("src", "tests", "data", "docs")
+        entries = {name: f"{groups[i % len(groups)]}/{name}" for i, name in enumerate(mod.ENTRY_MEMBERS)}
+        files = {path: core[name] for name, path in entries.items()}
+        files.update({"notes.txt": core["notes.txt"], "docs/extra.py": b"# evidence only\n",
+                      "docs/status_tool.py": b"# alternate evidence, not an entry\n"})
+        return files, entries
+
+    def test_nested_executes_only_explicit_entries_without_changing_source(self):
+        files, entries = self.nested_files()
+        archive, out, fix, binding_path, identity, before = self.prepare(files)
+        archive.chmod(0o444)
+        mode = archive.stat().st_mode
+        binding = binding_for(files)
+        binding["entry_members"] = entries
         binding_path.write_text(json.dumps(binding), encoding="utf-8")
-        fix = self.root / "fix"
-        fix.mkdir()
-        for name, blob in {"t4.bin": T4, "t5.bin": T5, "t6.bin": T6}.items():
-            (fix / name).write_bytes(blob)
-        code, receipt, text = self.run_main(
-            self.args(archive, out, binding_path, fix, execute=True), identity=identity
-        )
-        self.assertEqual(code, 2)
-        self.assertEqual(receipt["reason"], "layout-not-flat")
+        code, receipt, _text = self.run_main(self.args(archive, out, binding_path, fix, True), identity)
+        self.assertEqual(code, 0)
+        self.assertEqual(receipt["binding_status"], "complete")
+        self.assertEqual(receipt["binding_sha256"], sha256(binding_path.read_bytes()))
         self.assertEqual(receipt["archive"]["layout"], "nested")
+        self.assertEqual([step["exit_code"] for step in receipt["steps"]], [0, 0, 0, 0, 2, 2, 0, 0])
+        self.assertEqual(receipt["steps"][2]["stdin_sha256"], sha256(STATUS_INPUT))
+        self.assertEqual(receipt["scratch"], "removed")
+        self.assertTrue(receipt["archive"]["source_unchanged"])
+        self.assertEqual(archive.read_bytes(), before)
+        self.assertEqual(archive.stat().st_mode, mode)
+
+    def test_nested_with_no_entry_mapping_is_refused(self):
+        files, _entries = self.nested_files()
+        archive, out, fix, binding_path, identity, _before = self.prepare(files)
+        code, receipt, _text = self.run_main(self.args(archive, out, binding_path, fix, True), identity)
+        self.assertEqual(code, 2)
+        self.assertEqual(receipt["reason"], "binding-incomplete")
+        self.assertIn("entry-map-required", receipt["binding_problems"])
         self.assertFalse(receipt["executed"])
-        self.assertFalse(marker.exists())
-        self.assertNotIn(CANARY, text)
+
+    def test_nested_rejects_invalid_mapping_or_member_census(self):
+        files, entries = self.nested_files()
+        archive, out, fix, binding_path, identity, _before = self.prepare(files)
+        for changes, reason, problem in (
+            ({"status_tool.py": "status_tool.py"}, "binding-incomplete", "missing-entry:status_tool.py"),
+            ({"status_tool.py": entries["preflight.py"]}, "binding-invalid", None),
+            ({"status_tool.py": "data//status_tool.py"}, "binding-invalid", None),
+            ({}, "binding-incomplete", "unpinned:docs/extra.py"),
+            ({}, "binding-incomplete", "extra-member:docs/absent.py"),
+        ):
+            with self.subTest(changes=changes, problem=problem):
+                binding = binding_for(files)
+                binding["entry_members"] = entries | changes
+                if problem == "unpinned:docs/extra.py":
+                    del binding["members"]["docs/extra.py"]
+                if problem == "extra-member:docs/absent.py":
+                    binding["members"]["docs/absent.py"] = sha256(b"")
+                binding_path.write_text(json.dumps(binding), encoding="utf-8")
+                code, receipt, _text = self.run_main(self.args(archive, out, binding_path, fix, True), identity)
+                self.assertEqual(code, 2)
+                self.assertEqual(receipt["reason"], reason)
+                self.assertFalse(receipt["executed"])
+                if problem:
+                    self.assertIn(problem, receipt["binding_problems"])
 
     def test_size_count_and_ratio_caps(self):
         fat = {"big.bin": b"Q" * (300 * 1024)}

@@ -170,6 +170,7 @@ def base_receipt(mode):
     return {
         "archive": empty_archive(),
         "binding_problems": [],
+        "binding_sha256": None,
         "binding_status": "absent",
         "executed": False,
         "hour_limit_24": "NOT_IMPLEMENTED",
@@ -228,17 +229,8 @@ def step_shell(spec):
 
 def classify(info):
     name = info.filename
-    if not isinstance(name, str) or len(name) > MAX_NAME_CHARS or "\x00" in name or "\\" in name:
-        return "path-escape"
-    if name.startswith("/") or name.startswith("~"):
-        return "path-escape"
     raw = name[:-1] if name.endswith("/") else name
-    if not raw:
-        return "path-escape"
-    parts = raw.split("/")
-    if any(part in ("", ".", "..") for part in parts):
-        return "path-escape"
-    if re.match(r"^[A-Za-z]:", raw):
+    if info.orig_filename != name or not valid_member_path(raw):
         return "path-escape"
     mode = info.external_attr >> 16
     fmt = stat.S_IFMT(mode)
@@ -251,6 +243,14 @@ def classify(info):
     if name.endswith("/") or info.is_dir() or fmt == stat.S_IFDIR:
         return "dir"
     return "regular"
+
+
+def valid_member_path(path):
+    if not isinstance(path, str) or not path or len(path) > MAX_NAME_CHARS:
+        return False
+    if not path.isprintable() or "\\" in path or ":" in path:
+        return False
+    return all(part not in ("", ".", "..") and not part.startswith("~") for part in path.split("/"))
 
 
 def measure(data):
@@ -338,10 +338,9 @@ def measure(data):
                 "path": name,
                 "sha256": digest,
             })
-            if "/" not in name and SAFE_NAME.fullmatch(name):
-                bodies[name] = blob
-            elif "/" not in name:
+            if "/" not in name and not SAFE_NAME.fullmatch(name):
                 reasons.append("member-name")
+            bodies[name] = blob
     finally:
         archive.close()
     if reasons:
@@ -356,8 +355,6 @@ def measure(data):
     public["regular_files"] = sum(1 for item in members if item["kind"] == "regular")
     public["uncompressed_bytes"] = sum(item["bytes"] for item in members if item["kind"] == "regular")
     public["layout"] = "nested" if nested else "flat"
-    if nested:
-        bodies = {}
     return Measured(public, bodies)
 
 
@@ -394,7 +391,7 @@ def load_binding(path):
         obj = json.loads(raw.decode("utf-8"), object_pairs_hook=unique_object)
     except (UnicodeDecodeError, json.JSONDecodeError, Problem):
         raise Problem("binding-invalid") from None
-    if not isinstance(obj, dict) or set(obj) != BINDING_TOP_KEYS:
+    if not isinstance(obj, dict) or set(obj) - {"entry_members"} != BINDING_TOP_KEYS:
         raise Problem("binding-invalid")
     if obj["schema_version"] != BINDING_SCHEMA:
         raise Problem("binding-invalid")
@@ -405,7 +402,7 @@ def load_binding(path):
         raise Problem("binding-invalid")
     clean_members = {}
     for name, digest in members.items():
-        if not isinstance(name, str) or not SAFE_NAME.fullmatch(name):
+        if not valid_member_path(name):
             raise Problem("binding-invalid")
         if not isinstance(digest, str) or not HEX64.fullmatch(digest):
             raise Problem("binding-invalid")
@@ -429,7 +426,21 @@ def load_binding(path):
             "name": item["name"],
             "sha256": item["sha256"],
         }
-    return {"members": clean_members, "stdin_fixtures": clean_fixtures}
+    entry_members = None
+    if "entry_members" in obj:
+        entry_members = obj["entry_members"]
+        if not isinstance(entry_members, dict) or set(entry_members) != set(ENTRY_MEMBERS):
+            raise Problem("binding-invalid")
+        if not all(valid_member_path(path) for path in entry_members.values()):
+            raise Problem("binding-invalid")
+        if len(set(entry_members.values())) != len(ENTRY_MEMBERS):
+            raise Problem("binding-invalid")
+    return {
+        "members": clean_members,
+        "stdin_fixtures": clean_fixtures,
+        "entry_members": entry_members,
+        "sha256": sha256_bytes(raw),
+    }
 
 
 def assess_binding(measured, binding):
@@ -439,9 +450,16 @@ def assess_binding(measured, binding):
         for item in measured.public["members"]
         if item["kind"] == "regular"
     }
-    for name in ENTRY_MEMBERS:
-        if name not in regular:
-            problems.append("missing-entry:" + name)
+    entries = binding["entry_members"]
+    if entries is None and measured.public["layout"] == "nested":
+        problems.append("entry-map-required")
+    elif entries is not None and measured.public["layout"] == "flat":
+        problems.append("entry-map-for-flat")
+    else:
+        for name in ENTRY_MEMBERS:
+            path = entries[name] if entries is not None else name
+            if path not in regular:
+                problems.append("missing-entry:" + name)
     for path in regular:
         pinned = binding["members"].get(path)
         if pinned is None:
@@ -923,12 +941,10 @@ def perform(
             raise Problem("identity-mismatch")
         if receipt["archive"]["identity"] == "census-conflict":
             raise Problem("census-conflict")
-        if measured.public["layout"] != "flat":
-            if execute:
-                raise Problem("layout-not-flat")
         binding = None
         if binding_path:
             binding = load_binding(binding_path)
+            receipt["binding_sha256"] = binding["sha256"]
             status, problems = assess_binding(measured, binding)
             receipt["binding_status"] = status
             receipt["binding_problems"] = problems
@@ -942,8 +958,10 @@ def perform(
             receipt["technical_status"] = "inspect-only"
             receipt["executed"] = False
             receipt["s1_judgment"] = "NOT_TESTED"
-            code = 2 if receipt["binding_status"] == "invalid" else 0
-            return finish(receipt, code, dir_fd)
+            return finish(receipt, 0, dir_fd)
+        bodies = measured.bodies
+        if binding["entry_members"] is not None:
+            bodies = {name: bodies[path] for name, path in binding["entry_members"].items()}
         fixtures = {}
         for step_id, rule_bytes in STDIN_SIZES.items():
             item = binding["stdin_fixtures"][step_id]
@@ -960,11 +978,8 @@ def perform(
             os.close(checked_fd)
         receipt["scratch"] = "created"
         try:
-            write_bodies(scratch, measured.bodies)
-            for name in ENTRY_MEMBERS:
-                if name not in measured.bodies:
-                    raise Problem("scratch-failed")
-            rows = execute_steps(scratch, measured.bodies, fixtures, timeout, max_output)
+            write_bodies(scratch, bodies)
+            rows = execute_steps(scratch, bodies, fixtures, timeout, max_output)
             receipt["steps"] = rows
             receipt["executed"] = True
             receipt["pycache_entries"] = count_bytecode(scratch)
@@ -999,6 +1014,8 @@ def perform(
         refuse(receipt, "scratch-failed")
         return finish(receipt, 1, dir_fd)
     except Problem as error:
+        if error.reason == "binding-invalid":
+            receipt["binding_status"] = "invalid"
         refuse(receipt, error.reason)
         code = 1 if error.reason in {
             "unreadable-zip",

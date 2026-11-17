@@ -21,7 +21,7 @@
 
 成员全长 SHA 不在工具里。inspect 可以列出归档相对路径、字节数和全长 SHA，供操作员自己写入 binding。摘要对不上、成员数或展开字节对不上、或扫描不安全，都不会执行。
 
-扫描拒绝：绝对路径、`..`、反斜线、盘符、NUL、重复路径、符号链接、FIFO/设备/套接字、加密成员、声明大小与读到的字节不符。上限：ZIP 1MiB、条目 64、单成员 256KiB、展开合计 1MiB；单成员达到 64KiB 且压缩比超过 80 也拒绝。嵌套普通文件可以 inspect，但不能执行。执行还要求每个普通文件都是单层安全文件名，并且 binding 逐个钉住全长 SHA。缺钉、多钉、摘要不符都 fail-closed。
+扫描拒绝绝对路径、`..`、反斜线、冒号、控制字符、重复路径、符号链接、FIFO/设备/套接字、加密成员及声明大小不符。上限为 ZIP 1MiB、条目 64、单成员 256KiB、展开合计 1MiB。单成员达到 64KiB 且压缩比超过 80 也拒绝。平铺和嵌套布局均须逐件绑定普通文件的完整归档相对路径和全长 SHA。缺项、多项、摘要不符均拒绝执行。
 
 ## 固定八步
 
@@ -69,7 +69,9 @@ python3 scripts/s1-linux-eight-rerun.py \
 
 一步的 stdin 写入和进程等待共用同一个超时。子进程不读满 stdin 时，写入不会把这一步拖过时限。
 
-binding 的 schema 是 `s1-linux-eight-binding/v0`。顶层只有 `schema_version`、`steps`、`members`、`stdin_fixtures`。`steps` 必须正好是上表八个 id。`members` 把每个 ZIP 根上的普通文件钉成全长小写 SHA256。`stdin_fixtures` 只有 T4、T5、T6，每项只有 `bytes`、`sha256`、`name`。`bytes` 必须分别是 2、8、19。`name` 是夹具目录里的单层文件名。未知字段、重复 JSON 键、字面量字段都会拒绝。工具不猜 stdin 内容。
+binding 的 schema 是 `s1-linux-eight-binding/v0`。平铺布局继续使用 `schema_version`、`steps`、`members`、`stdin_fixtures`。`steps` 必须正好是上表八个 id。`members` 将每个普通文件的完整归档相对路径绑定到全长小写 SHA256。`stdin_fixtures` 只有 T4、T5、T6，每项只有 `bytes`、`sha256`、`name`。`bytes` 必须分别是 2、8、19，`name` 是受控夹具目录里的单层文件名。未知字段和重复 JSON 键都会拒绝。
+
+嵌套布局还必须提供 `entry_members`。它恰好包含 `README.md`、`preflight.py`、`sample_fixed.json`、`status_input.json`、`status_tool.py`、`test_preflight.py`、`test_status_tool.py` 七个固定 scratch 文件名。每个值须指向一个不同的、已经在 `members` 里绑定的完整归档路径。由操作员根据冻结地图或受控清单确认用途。同名文件须用完整路径指明，工具不推断入口。执行时只向 scratch 放入这七个映射后的文件。其他普通文件仍核验哈希，目录项不落盘。回执 `binding_sha256` 记录实际读取的 binding 原字节摘要，供复核选用的映射和夹具版本。
 
 退出码 0 只表示 inspect 认对了冻结 ZIP，或八步都在时限和输出上限内跑完。它不是 S1 通过。退出码 1 是身份不符、不安全归档、摘要不符、夹具字节不符、超时、输出超限或源文件变化。退出码 2 是用法、binding 契约、缺 `--dedicated-vm`，或输出目录不安全。
 
@@ -79,7 +81,7 @@ binding 的 schema 是 `s1-linux-eight-binding/v0`。顶层只有 `schema_versio
 
 - 冻结 ZIP 文件本身。全长 SHA 必须等于上表，工具不附带该文件。
 - inspect 测到的每个普通文件成员的全长 SHA256。工具不内置成员摘要。
-- T4、T5、T6 的受控 stdin 文件，长度恰好是 2、8、19 字节，以及它们的全长 SHA256。工具不内置字面量。
+- T4、T5、T6 的受控 stdin 原始文件，长度分别为 2、8、19 字节，并有明确的步骤归属和全长 SHA256。
 - 操作员自己写成的 binding。错误摘要不会被忽略。
 - 期望 stdout/stderr 全长哈希仍然没有。工具只记录实测字节数和实测 SHA，不把它写成内容通过。
 
