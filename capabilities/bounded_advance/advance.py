@@ -10,6 +10,7 @@ import argparse
 import fcntl
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -132,6 +133,8 @@ def append_row(path, row):
     blob = canonical(row)
     with path.open("ab") as handle:
         handle.write(blob)
+        handle.flush()
+        os.fsync(handle.fileno())
     return row
 
 
@@ -139,7 +142,8 @@ def plan_rows(rows, plan_id, plan_sha):
     return [row for row in rows if row.get("plan_id") == plan_id and row.get("plan_sha256") == plan_sha]
 
 
-def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd, max_steps=None):
+def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd,
+            max_steps=None, fault=None, binding=None):
     if not isinstance(delivery_id, str) or not delivery_id or len(delivery_id) > 64:
         raise ContractError("invalid delivery_id")
     if not isinstance(input_bytes, bytes):
@@ -157,23 +161,49 @@ def advance(plan_raw, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd,
         fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
         try:
             return _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit,
-                                   ledger_path, delivery_id, cwd, max_steps)
+                                   ledger_path, delivery_id, cwd, max_steps, fault, binding)
         finally:
             fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
 
 
-def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd, max_steps):
+def _note(binding):
+    note = {"actor_role": "consumer"}
+    if not binding:
+        return note
+    for key in ("producer_version", "reviewer_version"):
+        value = binding.get(key)
+        if value is not None:
+            note[key] = value
+    return note
+
+
+def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, delivery_id, cwd,
+                    max_steps, fault, binding):
     rows = read_ledger(ledger_path)
     matched = plan_rows(rows, plan["plan_id"], plan_sha)
-    if any(row.get("status") in {"mismatch", "rejected"} for row in matched):
+    if any(row.get("status") in {"mismatch", "rejected", "uncertain"} for row in matched):
         return {"status": "stopped", "executed": [], "reason": "plan already stopped"}
     same_id_other_plan = [row for row in rows
                           if row.get("plan_id") == plan["plan_id"]
-                          and row.get("plan_sha256") != plan_sha
-                          and row.get("status") == "ok"]
+                          and row.get("plan_sha256") != plan_sha]
     if same_id_other_plan:
         return {"status": "stopped", "executed": [],
                 "reason": "plan changed: existing progress is bound to a different plan fingerprint"}
+    for unit in plan["units"]:
+        last = None
+        for row in matched:
+            if row.get("unit_id") == unit["id"]:
+                last = row.get("status")
+        if last == "claimed":
+            append_row(ledger_path, {
+                "delivery_id": delivery_id, "plan_id": plan["plan_id"], "plan_sha256": plan_sha,
+                "input_sha256": plan["input_sha256"], "unit_id": unit["id"], "status": "uncertain",
+                "exit_code": None, "expected_exit": unit["expected_exit"],
+                "stdout_sha256": None, "stderr_sha256": None,
+                "detail": "claim without completion; execution uncertain; not re-executed",
+                **_note(binding),
+            })
+            return {"status": "stopped", "executed": [], "reason": "uncertain claim; not re-executed"}
     done = {row["unit_id"] for row in matched if row.get("status") == "ok"}
     if sha256(input_bytes) != plan["input_sha256"]:
         # 拒绝记录按计划声明的 sha 归档，实际输入 sha 另记；同计划随后任何投递都停。
@@ -184,6 +214,7 @@ def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, del
             "unit_id": "-", "status": "rejected", "exit_code": None, "expected_exit": None,
             "stdout_sha256": None, "stderr_sha256": None,
             "detail": "input bytes do not match plan input_sha256",
+            **_note(binding),
         })
         return {"status": "rejected", "executed": [], "reason": "input_sha256 mismatch"}
     executed = []
@@ -207,9 +238,32 @@ def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, del
                 "input_sha256": plan["input_sha256"], "unit_id": unit["id"], "status": "rejected",
                 "exit_code": None, "expected_exit": unit["expected_exit"],
                 "stdout_sha256": None, "stderr_sha256": None, "detail": "stdin sha mismatch",
+                **_note(binding),
             })
             return {"status": "rejected", "executed": executed, "reason": "stdin_sha256 mismatch"}
-        proc = subprocess.run(unit["argv"], cwd=cwd, input=stdin, capture_output=True, shell=False)
+        append_row(ledger_path, {
+            "delivery_id": delivery_id, "plan_id": plan["plan_id"], "plan_sha256": plan_sha,
+            "input_sha256": plan["input_sha256"], "unit_id": unit["id"], "status": "claimed",
+            "exit_code": None, "expected_exit": unit["expected_exit"],
+            "stdout_sha256": None, "stderr_sha256": None,
+            "argv_sha256": sha256(canonical(unit["argv"])), "detail": "claimed before exec",
+            **_note(binding),
+        })
+        if fault == "after_claim":
+            return {"status": "partial", "executed": executed, "reason": "fault after claim"}
+        try:
+            proc = subprocess.run(unit["argv"], cwd=cwd, input=stdin, capture_output=True, shell=False)
+        except OSError as error:
+            append_row(ledger_path, {
+                "delivery_id": delivery_id, "plan_id": plan["plan_id"], "plan_sha256": plan_sha,
+                "input_sha256": plan["input_sha256"], "unit_id": unit["id"], "status": "rejected",
+                "exit_code": 127, "expected_exit": unit["expected_exit"],
+                "stdout_sha256": sha256(b""), "stderr_sha256": sha256(str(error).encode()),
+                "detail": "spawn failed", **_note(binding),
+            })
+            return {"status": "stopped", "executed": executed, "reason": "spawn failed"}
+        if fault == "after_exec":
+            return {"status": "partial", "executed": executed + [unit["id"]], "reason": "fault after exec"}
         too_large = len(proc.stdout) > MAX_OUTPUT_BYTES or len(proc.stderr) > MAX_OUTPUT_BYTES
         if too_large:
             status, detail = "rejected", "output exceeds byte limit"
@@ -222,7 +276,7 @@ def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, del
             "input_sha256": plan["input_sha256"],
             "unit_id": unit["id"], "status": status, "exit_code": proc.returncode,
             "expected_exit": unit["expected_exit"], "stdout_sha256": sha256(proc.stdout),
-            "stderr_sha256": sha256(proc.stderr), "detail": detail,
+            "stderr_sha256": sha256(proc.stderr), "detail": detail, **_note(binding),
         })
         executed.append(unit["id"])
         if status != "ok":
@@ -230,16 +284,95 @@ def _advance_locked(plan, plan_sha, input_bytes, stdin_by_unit, ledger_path, del
     return {"status": "complete", "executed": executed, "reason": None}
 
 
+def _under_queue(queue, raw_path):
+    if not isinstance(raw_path, str) or not raw_path or raw_path.startswith("/") or "\\" in raw_path:
+        raise ContractError("queue path must be relative")
+    path = (queue / raw_path).resolve()
+    if queue.resolve() not in path.parents and path != queue.resolve():
+        raise ContractError("queue path escapes the queue directory")
+    return path
+
+
+def consume_one(queue):
+    """Run at most one pre-authorized unit. Never appends authorizations."""
+    auth_path = queue / "authorized.jsonl"
+    if not auth_path.exists():
+        return {"status": "idle", "executed": [], "reason": "no authorization file"}
+    raw = auth_path.read_bytes()
+    if not raw:
+        return {"status": "idle", "executed": [], "reason": "no authorized tasks"}
+    if not raw.endswith(b"\n"):
+        raise ContractError("authorized.jsonl must be LF-terminated")
+    for line in raw[:-1].split(b"\n"):
+        item = json.loads(line.decode("utf-8"), object_pairs_hook=unique_pairs)
+        plan_path = _under_queue(queue, item.get("plan"))
+        input_path = _under_queue(queue, item.get("input"))
+        delivery = item.get("delivery")
+        cwd = _under_queue(queue, item["cwd"]) if item.get("cwd") else queue
+        stdin_by_unit = {}
+        for unit_id, rel in (item.get("stdin") or {}).items():
+            stdin_by_unit[unit_id] = _under_queue(queue, rel).read_bytes()
+        binding = {
+            "producer_version": item.get("producer_version"),
+            "reviewer_version": item.get("reviewer_version"),
+        }
+        result = advance(
+            plan_path.read_bytes(), input_path.read_bytes(), stdin_by_unit,
+            queue / "ledger.jsonl", delivery, cwd, max_steps=1, binding=binding,
+        )
+        if result["executed"] or result["status"] == "partial":
+            return result
+        # A recorded rejection stops only that authorization. Later lines stay eligible.
+    return {"status": "idle", "executed": [], "reason": "no runnable authorized task"}
+
+
+def open_wake(path):
+    if not path.exists():
+        os.mkfifo(path, 0o600)
+    read_fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+    hold_fd = os.open(path, os.O_WRONLY)
+    os.set_blocking(read_fd, True)
+    return read_fd, hold_fd
+
+
+def serve(queue_dir, once=False):
+    """Consume the authorized queue. Idle wait is one blocking read, not a poll."""
+    queue = Path(queue_dir)
+    if not queue.is_dir():
+        raise ContractError("queue is not a directory")
+    if once:
+        return consume_one(queue)
+    read_fd, hold_fd = open_wake(queue / "wake.fifo")
+    (queue / "ready").write_text("waiting\n")
+    try:
+        while True:
+            result = consume_one(queue)
+            if result["status"] == "partial" or result["executed"]:
+                continue
+            os.read(read_fd, 1)
+    finally:
+        os.close(read_fd)
+        os.close(hold_fd)
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description="advance one finite pre-authorized plan")
-    parser.add_argument("--plan", required=True, type=Path)
-    parser.add_argument("--input", required=True, type=Path)
-    parser.add_argument("--ledger", required=True, type=Path)
-    parser.add_argument("--delivery", required=True)
-    parser.add_argument("--cwd", required=True, type=Path)
+    parser.add_argument("--plan", type=Path)
+    parser.add_argument("--input", type=Path)
+    parser.add_argument("--ledger", type=Path)
+    parser.add_argument("--delivery")
+    parser.add_argument("--cwd", type=Path)
     parser.add_argument("--max-steps", type=int)
     parser.add_argument("--stdin", action="append", default=[], metavar="UNIT=PATH")
+    parser.add_argument("--queue", type=Path)
+    parser.add_argument("--once", action="store_true")
     args = parser.parse_args(argv)
+    if args.queue:
+        result = serve(args.queue, once=args.once)
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+        return 0 if result["status"] in {"complete", "partial", "idle"} else 1
+    if not (args.plan and args.input and args.ledger and args.delivery and args.cwd):
+        raise ContractError("plan mode needs --plan --input --ledger --delivery --cwd")
     stdin_by_unit = {}
     for item in args.stdin:
         unit_id, separator, path = item.partition("=")
