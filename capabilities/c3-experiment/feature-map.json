@@ -1,0 +1,53 @@
+{
+  "capability": "c3-experiment/v1",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "producer": "apo subagent implementation in this branch; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "command": "python3 -m unittest discover -s capabilities/c3-experiment/tests -v",
+      "expected": "每批 experiment 登记含假设、判断标准、对照分配、随机种子、预期方向、样本量声明",
+      "id": "registration-complete",
+      "tests": [
+        "test_fixtures_are_valid_json_and_marked_demo",
+        "test_experiment_fixture_has_registration_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c3-experiment/tests -v",
+      "expected": "每批留对照，至少择一对照方式，对照比例字段在场",
+      "id": "control-group",
+      "tests": [
+        "test_experiment_fixture_has_registration_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c3-experiment/tests -v",
+      "expected": "假设与判断标准注明发行前冻结，随机种子在场且分配可复现",
+      "id": "freeze-and-reproduce",
+      "tests": [
+        "test_experiment_fixture_has_registration_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c3-experiment/tests -v",
+      "expected": "prompt.md 含 goal、acceptance、grants、paths、stop_when、budget 六个契约字段",
+      "id": "frozen-contract",
+      "tests": [
+        "test_prompt_contains_frozen_contract_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c3-experiment/tests -v",
+      "expected": "feature-map.json 合法，independent_verification.status 为 NOT_TESTED",
+      "id": "independent-verification",
+      "tests": [
+        "test_feature_map_is_valid_json_and_not_tested"
+      ]
+    }
+  ],
+  "version": "1"
+}

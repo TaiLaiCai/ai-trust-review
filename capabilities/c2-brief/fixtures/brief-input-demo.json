@@ -1,0 +1,55 @@
+{
+  "brief_id": "演示简报-001",
+  "demo": true,
+  "fields": {
+    "field_1_hotspot_name_and_level": {
+      "hotspot_name": "演示热点-001",
+      "level": "模式现象"
+    },
+    "field_2_stage_and_window_deadline": {
+      "stage": "加速初期",
+      "window_deadline_lower_bound": "演示日期-001"
+    },
+    "field_3_target_features": {
+      "bpm_range": "100-120",
+      "duration_seconds_range": "150-180",
+      "mood": "演示情绪-明朗",
+      "structure_hint": "演示结构提示-主歌加副歌",
+      "theme": "演示主题-001"
+    },
+    "field_4_evidence": {
+      "fact_ids": [
+        "演示事实-001",
+        "演示事实-002"
+      ],
+      "growth_multiple": "演示倍数-001",
+      "platform": "演示平台-001"
+    },
+    "field_5_stock_match_result": {
+      "gap": "演示缺口-001",
+      "match_basis": "演示匹配依据-特征区间相符",
+      "matched_song": "演示歌曲-001"
+    },
+    "field_6_recommended_tier_and_deadline": {
+      "delivery_deadline": "演示日期-002",
+      "tier": "L2 改编"
+    },
+    "field_7_confidence_and_uncertainty": {
+      "confidence": "演示置信度-中",
+      "uncertainty": "演示不确定点-样本量有限"
+    },
+    "field_8_prohibited_similarity_boundary": {
+      "avoid_reference_types": [
+        "演示参照类型-001",
+        "演示参照类型-002"
+      ],
+      "rule": "不得逼近具体作品的旋律、歌词、标志性元素"
+    },
+    "field_9_acceptance_items": [
+      "演示验收项-固定字段齐全",
+      "演示验收项-数字引用事实 id",
+      "演示验收项-含禁止相似边界"
+    ]
+  },
+  "note": "合成演示数据，非真实数据"
+}

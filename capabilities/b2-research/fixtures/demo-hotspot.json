@@ -1,0 +1,54 @@
+{
+  "demo": true,
+  "expected_hotspot": {
+    "evidence_refs": [
+      "演示激增-001",
+      "演示激增-002"
+    ],
+    "feature_range": {
+      "bpm": [
+        100,
+        120
+      ],
+      "mood": "演示情绪-轻快",
+      "theme": "演示主题-出行"
+    },
+    "level": "模式层",
+    "sample_size": 2,
+    "stage": "萌芽",
+    "window": {
+      "lower_days": 3,
+      "note": "样本不足时应写经验性参考，样本 N",
+      "upper_days": 7
+    }
+  },
+  "feature_library": [
+    {
+      "bpm": 110,
+      "mood": "演示情绪-轻快",
+      "theme": "演示主题-出行",
+      "work_id": "演示歌曲-001"
+    },
+    {
+      "bpm": 115,
+      "mood": "演示情绪-轻快",
+      "theme": "演示主题-出行",
+      "work_id": "演示歌曲-002"
+    }
+  ],
+  "note": "合成演示数据，非真实数据",
+  "public_topics": [
+    "演示话题-甲",
+    "演示话题-乙"
+  ],
+  "surges": [
+    {
+      "multiple": 3.2,
+      "work_id": "演示歌曲-001"
+    },
+    {
+      "multiple": 2.9,
+      "work_id": "演示歌曲-002"
+    }
+  ]
+}

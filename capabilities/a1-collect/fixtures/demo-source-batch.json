@@ -1,0 +1,55 @@
+{
+  "anomalies": [
+    {
+      "detail": "演示异常：演示批次内有一条记录无法映射，已进未解析队列",
+      "kind": "anomaly"
+    }
+  ],
+  "batch": {
+    "batch_id": "演示批次-001",
+    "captured_time": "2026-11-18T10:05:00+08:00",
+    "dedup_count": 1,
+    "event_time": "2026-11-18T10:00:00+08:00",
+    "raw_sha256": "113c1cae59eea943ef61ec69fb72104ace8e9b9a3430b8873f0f1bde00c7219b",
+    "total_count": 3,
+    "unparsed_count": 1
+  },
+  "demo": true,
+  "note": "合成演示数据，非真实数据",
+  "observations": [
+    {
+      "captured_time": "2026-11-18T10:05:00+08:00",
+      "event_time": "2026-11-18T10:00:00+08:00",
+      "metric_class": "热度",
+      "metric_name": "演示热度值",
+      "metric_value": 100,
+      "platform_id": "演示平台-ID-001",
+      "work_title": "演示歌曲-001"
+    },
+    {
+      "captured_time": "2026-11-18T10:05:00+08:00",
+      "event_time": "2026-11-18T10:00:00+08:00",
+      "metric_class": "播放",
+      "metric_name": "演示播放量",
+      "metric_value": 200,
+      "platform_id": "演示平台-ID-002",
+      "work_title": "演示歌曲-002"
+    }
+  ],
+  "source_profile": {
+    "category": "公域",
+    "frequency": "每日一次",
+    "layer": "A",
+    "method": "公开榜单读取",
+    "name": "演示来源-001",
+    "rate_limit": "演示限速值",
+    "risk": "演示用，无真实风险",
+    "terms": "允许"
+  },
+  "unparsed_queue": [
+    {
+      "raw_sha256": "e9263faa6db445346d039e050fdfe83cc06ed173ad926572e2a9b4c44e8368b9",
+      "reason": "无法映射到作品 ID"
+    }
+  ]
+}

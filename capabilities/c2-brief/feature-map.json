@@ -1,0 +1,53 @@
+{
+  "capability": "c2-brief/v1",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "producer": "apo subagent implementation in this branch; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "command": "python3 -m unittest discover -s capabilities/c2-brief/tests -v",
+      "expected": "9 个固定字段齐全，合成演示输入的字段名与契约一致",
+      "id": "brief-fields",
+      "tests": [
+        "test_fixtures_are_valid_json_and_marked_demo",
+        "test_brief_fixture_has_nine_fixed_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c2-brief/tests -v",
+      "expected": "简报证据字段含平台、增幅与事实 id 占位，数字不脱离事实引用",
+      "id": "evidence-reference",
+      "tests": [
+        "test_brief_fixture_has_nine_fixed_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c2-brief/tests -v",
+      "expected": "简报含禁止相似边界，列出需避开的参照类型，不给可直接复刻的旋律与歌词",
+      "id": "prohibited-boundary",
+      "tests": [
+        "test_brief_fixture_has_nine_fixed_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c2-brief/tests -v",
+      "expected": "prompt.md 含 goal、acceptance、grants、paths、stop_when、budget 六个契约字段",
+      "id": "frozen-contract",
+      "tests": [
+        "test_prompt_contains_frozen_contract_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/c2-brief/tests -v",
+      "expected": "feature-map.json 合法，independent_verification.status 为 NOT_TESTED",
+      "id": "independent-verification",
+      "tests": [
+        "test_feature_map_is_valid_json_and_not_tested"
+      ]
+    }
+  ],
+  "version": "1"
+}
