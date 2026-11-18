@@ -1085,7 +1085,17 @@ def _rollback_locked(root, args):
                         "newer_jobs": newer, "status": job.get("status")})
     backup = root / "backups" / ("%s.json" % jid)
     if job.get("before_present"):
+        # F2 修复：备份字节必须先读出并核对 before_sha256，才允许碰平台文件。
+        # 损坏或与记录不符的备份在这里被拒 —— 平台与有效作业状态原样保留，
+        # 而不是像旧行为那样先把平台写成损坏字节再报 rollback-failed。
+        # 备份文件缺失、超限或非普通文件仍走既有契约错误路径（exit 2），零平台写入。
         data = read_file_bytes(backup, "backup", MAX_PLATFORM_BYTES)
+        backup_digest = sha256_hex(data)
+        if backup_digest != job.get("before_sha256"):
+            raise Rejected({"action": "rollback-failed", "id": jid,
+                            "expected_sha256": job.get("before_sha256"),
+                            "backup_sha256": backup_digest,
+                            "detail": "backup bytes do not match the recorded before-state"})
         write_atomic(platform_path(root, target), data)
         restored = platform_digest(root, target)
         if restored != job.get("before_sha256"):
