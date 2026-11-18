@@ -1,0 +1,21 @@
+{
+  "batch_id": "演示发行批次-001",
+  "control_allocation": {
+    "control_ratio": "演示比例-待主人定",
+    "control_songs": [
+      "演示歌曲-002"
+    ],
+    "method": "错开发行日",
+    "treatment_songs": [
+      "演示歌曲-001"
+    ]
+  },
+  "criteria": "演示判断标准-D30 非付费独立听众进入同平台近期分布前 10%",
+  "demo": true,
+  "expected_direction": "演示预期方向-实验组高于对照组",
+  "frozen_before_release": true,
+  "hypothesis": "演示假设-按演示热点特征创作的歌曲，D30 非付费独立听众高于对照组",
+  "note": "合成演示数据，非真实数据",
+  "random_seed": 20261118,
+  "sample_size_statement": "演示样本量声明-样本不足，不能推断因果"
+}

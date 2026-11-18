@@ -1,0 +1,28 @@
+{
+  "demo": true,
+  "note": "合成演示数据，非真实数据",
+  "work": {
+    "work_id": "演示作品-001",
+    "title": "演示歌曲-001",
+    "platform_ids": {
+      "演示平台甲": "演示ID-001",
+      "演示平台乙": "演示ID-002"
+    },
+    "features": {
+      "genre": "演示曲风",
+      "bpm": 120,
+      "mode": "大调",
+      "mood": "演示情绪",
+      "theme": "演示主题",
+      "vocal": "演示人声",
+      "duration_seconds": 180,
+      "history_percentile": {
+        "d7": "演示分位",
+        "d30": "演示分位"
+      }
+    },
+    "confidence": 0.5,
+    "review_status": "待人审",
+    "label_version": 1
+  }
+}

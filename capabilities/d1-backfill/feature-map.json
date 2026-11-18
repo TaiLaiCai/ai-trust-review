@@ -1,0 +1,52 @@
+{
+  "capability": "d1-backfill/v1",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "producer": "本目录由生产者落地；验收须由独立主体复跑，生产者不得自签",
+  "steps": [
+    {
+      "command": "python3 -m unittest discover -s capabilities/d1-backfill/tests -v",
+      "expected": "合成演示输入为合法 JSON，且顶层标 demo 与合成演示说明",
+      "id": "fixtures-demo",
+      "tests": [
+        "test_fixtures_are_demo_json"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/d1-backfill/tests -v",
+      "expected": "prompt.md 含 goal、acceptance、grants、paths、stop_when、budget 六个冻结契约字段",
+      "id": "frozen-contract",
+      "tests": [
+        "test_prompt_contains_frozen_contract_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/d1-backfill/tests -v",
+      "expected": "feature-map.json 为合法 JSON，且 independent_verification.status 为 NOT_TESTED",
+      "id": "trust-status",
+      "tests": [
+        "test_feature_map_not_tested"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/d1-backfill/tests -v",
+      "expected": "README.md 中的相对链接均指向本目录实际创建的文件",
+      "id": "readme-links",
+      "tests": [
+        "test_readme_links_resolve"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/d1-backfill/tests -v",
+      "expected": "能力文件不含自签 PASS，验收状态只写 NOT_TESTED",
+      "id": "no-self-pass",
+      "tests": [
+        "test_no_self_signed_pass"
+      ]
+    }
+  ],
+  "version": "1"
+}

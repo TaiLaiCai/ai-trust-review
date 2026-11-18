@@ -1,0 +1,53 @@
+{
+  "capability": "a2-catalog/v1",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "producer": "Apo Labs 框架 v0.5 第 6 节 A2 契约的目录化落地；本目录为生产者侧产物，非独立验收回执",
+  "steps": [
+    {
+      "command": "python3 -m unittest discover -s capabilities/a2-catalog/tests -v",
+      "expected": "作品三层结构齐全，任选一首能列出各平台 ID 与全部特征",
+      "id": "work-layers",
+      "tests": [
+        "test_fixtures_are_demo_json",
+        "test_fixture_work_has_all_features"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/a2-catalog/tests -v",
+      "expected": "平台 ID 映射齐全，ID 冲突或疑似重复时写冲突事实并交人判断",
+      "id": "platform-id-mapping",
+      "tests": [
+        "test_fixture_work_has_all_features"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/a2-catalog/tests -v",
+      "expected": "特征含曲风、BPM、调式、情绪、主题、人声、时长与历史表现分位；低置信标待人审，不入检索主索引；新标注不覆盖旧标注",
+      "id": "feature-labeling",
+      "tests": [
+        "test_fixture_work_has_all_features"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/a2-catalog/tests -v",
+      "expected": "prompt.md 含 goal、acceptance、grants、paths、stop_when、budget 六个冻结契约字段",
+      "id": "contract-fields",
+      "tests": [
+        "test_prompt_has_frozen_contract_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/a2-catalog/tests -v",
+      "expected": "independent_verification.status 为 NOT_TESTED，verifier 与 head_sha 为空，待独立主体复跑",
+      "id": "independent-verification",
+      "tests": [
+        "test_feature_map_is_not_tested"
+      ]
+    }
+  ],
+  "version": "1"
+}

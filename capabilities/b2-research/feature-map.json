@@ -1,0 +1,45 @@
+{
+  "capability": "b2-research/v1",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "producer": "本分支内由生产者撰写；非已认证 Bot 回执",
+  "steps": [
+    {
+      "command": "python3 -m unittest discover -s capabilities/b2-research/tests -v",
+      "expected": "合成演示输入为合法 JSON，且标 demo，内容为合成演示数据",
+      "id": "fixtures-demo",
+      "tests": [
+        "test_fixture_is_valid_json_and_marked_demo"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/b2-research/tests -v",
+      "expected": "prompt.md 含 goal、acceptance、grants、paths、stop_when、budget 六个冻结契约字段，且含 §0 注入版与 B2 专属契约全文",
+      "id": "prompt-contract",
+      "tests": [
+        "test_prompt_contains_frozen_contract_fields",
+        "test_prompt_contains_section_zero_and_b2_contract"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/b2-research/tests -v",
+      "expected": "feature-map.json 为合法 JSON，且 independent_verification.status 为 NOT_TESTED",
+      "id": "feature-map",
+      "tests": [
+        "test_feature_map_is_valid_json_and_not_tested"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/b2-research/tests -v",
+      "expected": "README.md 中的相对链接均指向本目录内实际存在的文件",
+      "id": "readme-links",
+      "tests": [
+        "test_readme_relative_links_point_to_existing_files"
+      ]
+    }
+  ],
+  "version": "1"
+}

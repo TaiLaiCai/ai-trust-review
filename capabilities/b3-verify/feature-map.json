@@ -1,0 +1,44 @@
+{
+  "capability": "b3-verify/v1",
+  "independent_verification": {
+    "status": "NOT_TESTED",
+    "verifier": null,
+    "head_sha": null
+  },
+  "producer": "apo implementation in this PR; not an authenticated Bot receipt",
+  "steps": [
+    {
+      "command": "python3 -m unittest discover -s capabilities/b3-verify/tests -v",
+      "expected": "fixtures 为合法 JSON 且标 demo，内容为合成演示数据",
+      "id": "fixtures-demo",
+      "tests": [
+        "test_fixtures_are_demo_json"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/b3-verify/tests -v",
+      "expected": "prompt.md 含 goal、acceptance、grants、paths、stop_when、budget 六个契约字段",
+      "id": "prompt-contract",
+      "tests": [
+        "test_prompt_has_frozen_contract_fields"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/b3-verify/tests -v",
+      "expected": "feature-map.json 为合法 JSON 且 independent_verification.status 为 NOT_TESTED",
+      "id": "feature-map-status",
+      "tests": [
+        "test_feature_map_is_not_tested"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s capabilities/b3-verify/tests -v",
+      "expected": "prompt.md 与 README.md 含“与 B2 不得同一实例”的独立性要求",
+      "id": "independence-from-b2",
+      "tests": [
+        "test_independence_from_b2_stated"
+      ]
+    }
+  ],
+  "version": "1"
+}
