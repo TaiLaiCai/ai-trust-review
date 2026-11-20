@@ -1,0 +1,1 @@
+{"demo":true,"note":"合成演示数据，非真实数据","talent":{"availability":"可接","confidence":0.5,"constraints":"演示授权范围","history_percentile":{"d30":"演示分位","d7":"演示分位"},"label_version":1,"name":"演示歌手-001","review_status":"待人审","talent_id":"演示人才-001","voice_features":{"language":"普通话","mood":"演示情绪","range":"中音","style":"演示风格","timbre":"演示音色"}}}
