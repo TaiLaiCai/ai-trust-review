@@ -94,6 +94,33 @@ class PromptTests(unittest.TestCase):
             with self.subTest(field=field):
                 self.assertIn(field, text)
 
+    def test_prompt_frozen_contract_yaml_is_structured(self):
+        """冻结契约 YAML 块里 paths/budget 是带子键的映射，不是空值。
+
+        回归：曾因 read:/write: 与 rounds:/files: 没缩进，YAML 把 paths
+        和 budget 读成 None，而只查字段名的测试照样通过。
+        """
+        import re
+
+        text = (CAPABILITY_DIR / "prompt.md").read_text(encoding="utf-8")
+        block = re.search(r"```yaml\n(.*?)```", text, re.S).group(1)
+        self.assertIn("paths:\n  read:", block)
+        self.assertIn("  write:", block)
+        self.assertIn("budget:\n  rounds:", block)
+        self.assertIn("  files:", block)
+        for leaked in ("read:", "write:", "rounds:", "files:"):
+            with self.subTest(leaked=leaked):
+                self.assertNotIn("\n" + leaked, "\n" + block)
+        try:
+            import yaml
+        except ImportError:
+            return
+        data = yaml.safe_load(block)
+        self.assertIsInstance(data["paths"], dict)
+        self.assertTrue(data["paths"]["read"])
+        self.assertTrue(data["paths"]["write"])
+        self.assertEqual(data["budget"], {"rounds": 3, "files": 10})
+
     def test_prompt_quotes_framework_sections(self):
         """prompt.md 含 §0 注入版与 §6 A3 专属契约的引用标记。"""
         text = (CAPABILITY_DIR / "prompt.md").read_text(encoding="utf-8")
