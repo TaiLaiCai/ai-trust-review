@@ -215,9 +215,9 @@ stderr SHA256: 740da8da302623389e255576c761ac1cae59f717b05b9201ce82d2a70787646b
 
 ## 最终 head 绑定
 
-（由修订提交回填）
-
 ```text
-最终完整 head：8b6eb00fa43745f151b41d82b770f41b349a33a1
-最终提交对象 SHA256：c3f34a1ab2a39eb70aab2ddc6bb9efcd314e0647b6afe31bdefdb92b2dfcf945
+内容修订提交（含全部三项修订）：832cf22874c66e4b5931c69583cdc639d3b3588c
+提交对象 SHA256：e59c790e46e9fb3718ba1857e877f35249d3f47b25e3532de458adb016f07600
 ```
+
+本行为回填提交自身（仅改本节），作为 PR #90 最终 tip；其完整 SHA 无法自含，以 GitHub PR #90 `headRefOid` 与 Paperclip APO-236 回执登记为准。推送为正常快进，不改写历史、不强推。
