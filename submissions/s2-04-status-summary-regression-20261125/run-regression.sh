@@ -55,12 +55,14 @@ entry_gap() {
 check_sha() {
   path=$1
   want=$2
+  name=$3
   if [ ! -f "$path" ]; then
-    entry_gap "missing file $path (pickup: see Paperclip APO-234 document exact-status-preamble-source-index)"
+    entry_gap "missing file $name (pickup: see Paperclip APO-234 document exact-status-preamble-source-index)"
   fi
-  got=$(shasum -a 256 "$path" | cut -d' ' -f1)
+  digest_line=$(shasum -a 256 "$path" 2>/dev/null) || entry_gap "cannot read $name"
+  got=${digest_line%% *}
   if [ "$got" != "$want" ]; then
-    entry_gap "sha256 mismatch for $path (got $got, want $want)"
+    entry_gap "sha256 mismatch for $name (got $got, want $want)"
   fi
 }
 
@@ -167,7 +169,7 @@ RuntimeError: synthetic infrastructure failure" 1
     st_fail=1
   else
     got_missing=$?
-    if [ "$got_missing" -eq 2 ] && grep -q "ENTRY GAP: missing file" "$WORK/missing.err"; then
+    if [ "$got_missing" -eq 2 ] && grep -q "ENTRY GAP: missing file old-session_gate.py" "$WORK/missing.err" && ! grep -Fq -- "$EMPTY" "$WORK/missing.err"; then
       echo "selftest missing-pickup: PASS"
     else
       echo "selftest missing-pickup: FAIL (exit $got_missing)" >&2
@@ -197,7 +199,7 @@ RuntimeError: synthetic infrastructure failure" 1
     st_fail=1
   else
     got_tamper=$?
-    if [ "$got_tamper" -eq 2 ] && grep -q "ENTRY GAP: sha256 mismatch" "$WORK/tamper.err"; then
+    if [ "$got_tamper" -eq 2 ] && grep -q "ENTRY GAP: sha256 mismatch for old-session_gate.py" "$WORK/tamper.err" && ! grep -Fq -- "$TAMPER" "$WORK/tamper.err"; then
       echo "selftest tampered-bytes: PASS"
     else
       echo "selftest tampered-bytes: FAIL (exit $got_tamper)" >&2
@@ -219,9 +221,9 @@ if [ -z "${S204_SOURCE_DIR:-}" ]; then
 fi
 SRC_DIR=$S204_SOURCE_DIR
 
-check_sha "$TEST_PY" "$TEST_SHA"
-check_sha "$SRC_DIR/old-session_gate.py" "$OLD_SHA"
-check_sha "$SRC_DIR/revised-session_gate.py" "$REVISED_SHA"
+check_sha "$TEST_PY" "$TEST_SHA" test_status_preamble.py
+check_sha "$SRC_DIR/old-session_gate.py" "$OLD_SHA" old-session_gate.py
+check_sha "$SRC_DIR/revised-session_gate.py" "$REVISED_SHA" revised-session_gate.py
 
 run_case "old-session_gate.py" "$SRC_DIR/old-session_gate.py" 1 "$EXPECTED_OLD_STDOUT"
 run_case "revised-session_gate.py" "$SRC_DIR/revised-session_gate.py" 0 "$EXPECTED_REVISED_STDOUT"

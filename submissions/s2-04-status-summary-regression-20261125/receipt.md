@@ -223,3 +223,17 @@ Git 提交无法自含自身 SHA，故绑定分两层：
 ```
 
 最终完整 head 以 GitHub PR #90 `headRefOid` 与 Paperclip APO-236 回执登记为准（本提交之后的收尾提交仅改本节与回执文本，不含代码或判定逻辑变更）。推送均为正常快进，不改写历史、不强推。
+
+## 补充修订 · 路径回显最小补丁（2026-11-25）
+
+按协调方向采用 Paperclip 文档 `pr90-path-diagnostics-candidate`（附件 SHA256 `69244c8e29f1169be9c628a81e76285759452a52cbc54f69a56b1c107618d6d1`）的最小补丁：`check_sha` 错误只显示固定文件标签（缺件 / 读取失败 / 摘要不符），不展开调用者传入的目录；读取失败（shasum 无法读文件）新增 `ENTRY GAP: cannot read <文件名>` 且不透出 shasum 原生路径诊断；缺件与字节篡改自测断言合成目录不出现在 stderr。仅修改本 `run-regression.sh`。
+
+实测（新 head 工作树）：
+
+- `sh run-regression.sh --selftest` → 退出 0，9 用例全 PASS，stdout SHA256 `670a3ccf73fe156434d5e8f88b67f26622a1abf9950473714aed582ccf14b044`，stderr 空。
+- `S204_SOURCE_DIR=<受控取件目录> sh run-regression.sh` → 退出 0，入口 stdout SHA256 `d3f596d1ea10b8d31288262c3ad0257b440a5e0c449e27a694c43df1cdc13c7b`（与修订前一致，行为不变），stderr 空。
+- 合成空目录缺件 → 退出 2，仅 `ENTRY GAP: missing file old-session_gate.py`，无目录回显。
+- 合成不可读文件（chmod 000）→ 退出 2，仅 `ENTRY GAP: cannot read old-session_gate.py`，无路径回显。
+- 仓库四文件 grep 本机目录零命中。
+
+本补丁提交后最终 head 以 GitHub PR #90 `headRefOid` 与 Paperclip APO-236 终态回执登记为准。
