@@ -19,7 +19,7 @@
 | 1 | 第一批补证包入库 | PR #57 MERGED | merge `38bbb9f`；目录 `submissions/s1-evidence-pack-20261107/` |
 | 2 | 第二批 addendum 入库 | PR #66 MERGED（取代未合并的 #64） | merge `acde4f6`；目录 `submissions/s1-evidence-pack-addendum-20261108/` |
 | 3 | PR #64 | 已关闭未合并 | 关闭评论 6745386650；内容以 #66 为准 |
-| 4 | Issue #63 | 内容已入库，跟踪器仍开 | **建议主人关闭**；无增量待办 |
+| 4 | Issue #63 | 内容已入库，跟踪器仍开 | **建议主人关闭**；无增量待办。PR #64 关闭依据为评论 6745386650 |
 | 5 | 包内 SHA / B4 / manifest 自洽 | 历史 REPRODUCED 记录保留 | Hark 旧回执绑定旧 head；不能自动迁移为当前 main 的 REPRODUCED |
 | 6 | 第一批 `/Users/tlc` 路径豁免 | 主人裁定选 B | #6 issuecomment-6719271054；仅限该目录已入库字节 |
 | 7 | Linux 八步复跑工具 | 已合入 main | PR #86；`scripts/s1-linux-eight-rerun.py`；默认 inspect；`s1_judgment` 固定 `NOT_TESTED` |
